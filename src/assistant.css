@@ -1,0 +1,69 @@
+/* Floating assistant: scoped styling matches the original green Jobster theme. */
+#fja-root{position:fixed;right:22px;bottom:20px;z-index:49;font-family:Inter,"Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5;color:#283d2f}
+#fja-root *{box-sizing:border-box}
+#fja-root [hidden]{display:none!important}
+#fja-root button,#fja-root input,#fja-root textarea{font:inherit}
+#fja-root button:focus-visible,#fja-root input:focus-visible,#fja-root textarea:focus-visible{outline:3px solid #b4d593;outline-offset:2px}
+#fja-root button{cursor:pointer}
+#fja-root button:disabled{cursor:not-allowed;opacity:.48}
+#fja-root .fja-launcher{position:relative;margin-left:auto;display:flex;align-items:center;gap:10px;background:#285e45;color:#f7faf1;border:1px solid #46775b;border-radius:100px;min-height:54px;padding:0 20px 0 15px;box-shadow:0 12px 35px rgba(20,54,36,.28),0 3px 9px rgba(24,52,33,.14);font-size:12px;font-weight:600;letter-spacing:.1px;transition:transform .18s,background .18s,box-shadow .18s}
+#fja-root .fja-launcher:hover{background:#1c4938;transform:translateY(-2px);box-shadow:0 17px 40px rgba(20,54,36,.3)}
+#fja-root .fja-launch-icon{width:33px;height:33px;display:grid;place-items:center;border-radius:50%;background:#ffffff24;color:#dbe9bc}
+#fja-root .fja-dot{position:absolute;width:9px;height:9px;border:2px solid #285e45;border-radius:50%;right:13px;top:8px;background:#c9b986}
+#fja-root .fja-dot.is-live{background:#a1dd88}
+#fja-root .fja-panel{position:absolute;right:0;bottom:69px;width:min(394px,calc(100vw - 28px));height:min(615px,calc(100dvh - 110px));min-height:330px;border-radius:17px;overflow:hidden;background:#fff;border:1px solid #dce6d9;box-shadow:0 25px 75px #18362435,0 5px 24px #23352312;display:flex;flex-direction:column}
+#fja-root .fja-header{background:linear-gradient(120deg,#1d4737,#2b6549);color:#eef7e9;display:flex;align-items:center;gap:11px;padding:18px 17px 16px;flex-shrink:0}
+#fja-root .fja-header-icon{width:39px;height:39px;display:grid;place-items:center;border-radius:12px;background:#d8e8b5;color:#2d6240;flex-shrink:0}
+#fja-root .fja-heading{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+#fja-root .fja-heading strong{font-size:14px;color:#f4f8ea;font-weight:650}
+#fja-root .fja-heading small{font-size:10px;color:#c2d8c4}
+#fja-root .fja-top-button{display:grid;place-items:center;width:29px;height:30px;padding:0;border:0;border-radius:7px;background:transparent;color:#d1e2ce;flex-shrink:0}
+#fja-root .fja-top-button:hover{background:#ffffff1b}
+#fja-root .fja-status{padding:9px 16px;display:flex;align-items:center;justify-content:space-between;gap:9px;border-bottom:1px solid #e8ece5;color:#829080;font-size:9px;flex-shrink:0}
+#fja-root .fja-status-pill{display:flex;align-items:center;gap:6px;border-radius:15px;background:#f3f4ed;color:#76826d;font-size:10px;font-weight:600;padding:4px 9px;white-space:nowrap}
+#fja-root .fja-status-pill i{width:6px;height:6px;border-radius:50%;background:#bea765}
+#fja-root .fja-status-pill.fja-ready{background:#eaf4e4;color:#3b763e}
+#fja-root .fja-status-pill.fja-ready i{background:#76ad60}
+#fja-root .fja-status-pill.fja-checking i{background:#bdc095}
+#fja-root .fja-transcript{flex:1;min-height:0;overflow:auto;padding:16px;overscroll-behavior:contain;scrollbar-color:#b9cdb7 #fff}
+#fja-root .fja-welcome{text-align:center;margin:4px auto 0;padding:7px 0;max-width:310px}
+#fja-root .fja-welcome-icon{display:grid;place-items:center;background:#eef5e9;color:#4f8661;border-radius:18px;width:55px;height:55px;margin:0 auto 14px}
+#fja-root .fja-welcome strong{font-family:Georgia,serif;font-size:21px;font-weight:400;color:#314f3b}
+#fja-root .fja-welcome p{color:#778875;font-size:12px;line-height:1.7;margin:9px auto 16px}
+#fja-root .fja-prompts{display:flex;flex-direction:column;gap:8px}
+#fja-root .fja-prompts button{background:#f9fbf7;border:1px solid #dce8d6;border-radius:10px;color:#45714b;text-align:left;padding:9px 12px;font-size:11px;line-height:1.45}
+#fja-root .fja-prompts button:hover{background:#edf5e7;border-color:#a9c89b}
+#fja-root .fja-connection{margin:10px auto;display:flex;align-items:center;flex-direction:column;gap:11px;text-align:center;padding:12px 6px;max-width:310px}
+#fja-root .fja-connect-icon{display:grid;place-items:center;background:#f1f5eb;color:#8da76d;border-radius:18px;width:52px;height:52px}
+#fja-root .fja-connection strong{color:#52784e;font-family:Georgia,serif;font-size:20px;font-weight:400}
+#fja-root .fja-connection p{margin:0;color:#778875;font-size:12px;line-height:1.7}
+#fja-root .fja-connection button{background:transparent;border:0;color:#2e6d4e;font-size:11px;text-decoration:underline;padding:4px}
+#fja-root .fja-connection .fja-retry{border:1px solid #d0ddc8;border-radius:6px;padding:6px 12px;text-decoration:none;background:#f5f9f0}
+#fja-root .fja-connection .fja-setup-text{font-size:11px;background:#f4f8ef;border:1px solid #e0e8d6;padding:10px;border-radius:8px}
+#fja-root .fja-msg{display:flex;margin:0 0 13px}
+#fja-root .fja-msg p{margin:0;padding:11px 13px;border-radius:12px;max-width:92%;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+#fja-root .fja-msg-user{justify-content:flex-end}
+#fja-root .fja-msg-user p{background:#2e704e;color:#fff;border-bottom-right-radius:3px}
+#fja-root .fja-msg-assistant p{background:#f0f5ec;color:#415b43;border:1px solid #e3eddf;border-bottom-left-radius:3px}
+#fja-root .fja-msg-wait p{font-style:italic;background:#f3f6ef;color:#7a8974}
+#fja-root .fja-bottom{padding:11px 14px 12px;background:#fcfdfb;border-top:1px solid #e7ece2;flex-shrink:0}
+#fja-root .fja-summary-option{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;font-weight:600;color:#657d5c}
+#fja-root .fja-summary-option input{width:15px;height:15px;accent-color:#317a52;cursor:pointer;flex:0 0 auto}
+#fja-root .fja-summary-option input:disabled{cursor:not-allowed}
+#fja-root .fja-summary-tip{font-size:9px;color:#82927b;line-height:1.5;margin:4px 0 12px;padding-left:23px}
+#fja-root #fja-form{display:flex;align-items:flex-end;gap:7px;padding:7px 7px 7px 11px;border:1px solid #d9e3d1;background:#fff;border-radius:11px;transition:border-color .15s}
+#fja-root #fja-form:focus-within{border-color:#84b586;box-shadow:0 0 0 3px #d1e5c462}
+#fja-root #fja-input{flex:1;border:0;outline:none;background:transparent;min-height:39px;max-height:110px;resize:vertical;padding:5px 0;font-size:12px;line-height:1.5;min-width:0;color:#354c3b}
+#fja-root #fja-input::placeholder{color:#9eaa96}
+#fja-root #fja-input:focus{box-shadow:none;outline:none}
+#fja-root .fja-send{display:grid;place-items:center;flex:0 0 auto;width:35px;height:35px;border-radius:8px;background:#2e6d4e;border:1px solid #2e6d4e;color:#fff;padding:0}
+#fja-root .fja-send:hover{background:#1a4b35}
+#fja-root .fja-footnote{font-size:9px;line-height:1.5;color:#8d9a87;margin:10px 1px 0}
+#fja-root .fja-error{font-size:11px;line-height:1.5;color:#a34933;background:#fff2ed;border-radius:6px;padding:8px;margin:8px 1px 0}
+#fja-root .fja-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+body.fja-open .toast{right:430px}
+@keyframes fja-pop{from{opacity:0;transform:translateY(9px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:760px){#fja-root{right:14px;bottom:14px}#fja-root .fja-panel{bottom:67px;width:min(394px,calc(100vw - 28px));height:min(640px,calc(100dvh - 100px))}body.fja-open .toast{right:15px;bottom:90px}}
+@media(max-width:380px){#fja-root{right:10px;bottom:10px}#fja-root .fja-launcher{min-height:50px;padding:0 14px 0 10px}#fja-root .fja-panel{bottom:62px;width:calc(100vw - 20px);height:calc(100dvh - 83px)}#fja-root .fja-status{flex-wrap:wrap}#fja-root .fja-bottom{padding:10px}}
+@media(max-height:540px){#fja-root .fja-panel{height:calc(100dvh - 85px);min-height:0}#fja-root .fja-header{padding:10px 15px}#fja-root .fja-bottom{padding:8px}}
+@media(prefers-reduced-motion:reduce){#fja-root *,#fja-root *:before,#fja-root *:after{animation:none!important;transition:none!important}}

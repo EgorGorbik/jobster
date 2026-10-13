@@ -1,0 +1,76 @@
+{
+  "results": [
+    {
+      "test": "Language switch, accessibility state, independent persistence and unchanged data",
+      "passed": true
+    },
+    {
+      "test": "All eight Russian desktop views and document titles",
+      "passed": true
+    },
+    {
+      "test": "Unsaved settings fields survive both language controls",
+      "passed": true
+    },
+    {
+      "test": "Filters, query and selection survive language changes",
+      "passed": true
+    },
+    {
+      "test": "Russian Monday-first calendar and numeric locale; event timestamps unchanged",
+      "passed": true
+    },
+    {
+      "test": "Russian required/email validation, candidate creation, canonical enums and safe Cyrillic notes",
+      "passed": true
+    },
+    {
+      "test": "Stage changes, toasts and historical activity translated without changing records",
+      "passed": true
+    },
+    {
+      "test": "Localized CSV headers and controlled values; names remain unchanged",
+      "passed": true
+    },
+    {
+      "test": "User-entered titles matching interface words are never translated",
+      "passed": true
+    },
+    {
+      "test": "Russian message controls; English U.S. drafts and user text preserved",
+      "passed": true
+    },
+    {
+      "test": "Russian interview scheduling, formats, notices and UTF-8 ICS export",
+      "passed": true
+    },
+    {
+      "test": "Russian campaign preparation with unchanged English templates and simulation disclosures",
+      "passed": true
+    },
+    {
+      "test": "All settings tabs, integration explanations and original backup compatibility",
+      "passed": true
+    },
+    {
+      "test": "Fresh-document hydration restores saved Russian locale and all records",
+      "passed": true
+    },
+    {
+      "test": "Blocked preference storage gracefully keeps Russian for the session",
+      "passed": true
+    },
+    {
+      "test": "Eight Russian views at 390/320 px, mobile controls and modal layout",
+      "passed": true
+    },
+    {
+      "test": "Zero uncaught JavaScript errors and zero external requests",
+      "passed": true
+    }
+  ],
+  "missingKeys": [],
+  "errors": [],
+  "externalRequests": [],
+  "environment": "Offline bundle, set_content, Storage-compatible adapter"
+}

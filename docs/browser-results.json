@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-10-12T00:01:45.713988+00:00",
+  "mode": "Chromium DOM integration; page.set_content; Storage and download adapters",
+  "limitations": [
+    "Native HTTP/file navigation blocked by this environment browser policy.",
+    "Persistence tests validate serialization and rehydration using a Storage-compatible adapter, not disk durability.",
+    "Download tests inspect generated Blobs, not OS save dialogs.",
+    "No live API, SMS, email or external calendar is connected."
+  ],
+  "tests": [
+    {
+      "test": "Eight desktop views and navigation",
+      "passed": true
+    },
+    {
+      "test": "Global search opens correct candidate",
+      "passed": true
+    },
+    {
+      "test": "Candidate filters, search and empty state",
+      "passed": true
+    },
+    {
+      "test": "Create candidate and serialize state",
+      "passed": true
+    },
+    {
+      "test": "Duplicate candidate validation",
+      "passed": true
+    },
+    {
+      "test": "Profile, favorite, notes, escaping, stage and editing",
+      "passed": true
+    },
+    {
+      "test": "Real pointer drag-and-drop stage movement",
+      "passed": true
+    },
+    {
+      "test": "Archive and restore with history preserved",
+      "passed": true
+    },
+    {
+      "test": "Bulk stage move and selected CSV export",
+      "passed": true
+    },
+    {
+      "test": "Job creation, editing, pause, close and reactivation",
+      "passed": true
+    },
+    {
+      "test": "Message draft creation and editing without sending",
+      "passed": true
+    },
+    {
+      "test": "Schedule, reschedule, ICS export and completion",
+      "passed": true
+    },
+    {
+      "test": "Appointment cancellation updates the calendar",
+      "passed": true
+    },
+    {
+      "test": "Campaign segmentation, previews, templates and honest simulation",
+      "passed": true
+    },
+    {
+      "test": "Data-driven reports, periods and report-specific CSV",
+      "passed": true
+    },
+    {
+      "test": "Workspace preferences and local draft invitation",
+      "passed": true
+    },
+    {
+      "test": "Backup export, invalid import rejection and confirmed restore",
+      "passed": true
+    },
+    {
+      "test": "Fresh-page rehydration of serialized workspace",
+      "passed": true
+    },
+    {
+      "test": "CSV formula-injection neutralization",
+      "passed": true
+    },
+    {
+      "test": "Dialog keyboard trapping and Escape dismissal",
+      "passed": true
+    },
+    {
+      "test": "Scoped reset preserves unrelated storage",
+      "passed": true
+    },
+    {
+      "test": "Desktop views and profile remain valid after reset",
+      "passed": true
+    },
+    {
+      "test": "Eight views at 390px and 320px without page overflow",
+      "passed": true
+    },
+    {
+      "test": "Zero uncaught JS errors and zero external network requests",
+      "passed": true
+    }
+  ],
+  "passed": 24,
+  "failed": 0,
+  "page_errors": [],
+  "external_requests": []
+}

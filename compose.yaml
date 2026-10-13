@@ -1,0 +1,21 @@
+services:
+  jobster:
+    build: .
+    env_file:
+      - .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4174
+      JOBSTER_DB: /data/jobster.sqlite
+    ports:
+      - "127.0.0.1:4174:4174"
+    volumes:
+      - jobster_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4174/api/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  jobster_data:

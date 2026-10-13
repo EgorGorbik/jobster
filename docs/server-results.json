@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "passed": true
+  },
+  {
+    "path": "/app.js",
+    "status": 200,
+    "content_type": "text/javascript; charset=utf-8",
+    "passed": true
+  },
+  {
+    "path": "/src/styles.css",
+    "status": 200,
+    "content_type": "text/css; charset=utf-8",
+    "passed": true
+  },
+  {
+    "path": "/missing.html",
+    "status": 404,
+    "content_type": "text/plain",
+    "passed": true
+  },
+  {
+    "path": "/package.json",
+    "status": 404,
+    "content_type": "text/plain",
+    "passed": true
+  },
+  {
+    "method": "POST",
+    "status": 405,
+    "passed": true
+  }
+]

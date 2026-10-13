@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+function setup(initial = {}, failWrite = false) {
+  const values = {...initial};
+  const context = {window: {}, localStorage: {getItem: key => values[key] ?? null, setItem: (key, value) => {if (failWrite) throw new Error('Storage quota exceeded'); values[key] = String(value);}, removeItem: key => {delete values[key];}}, console, Intl, Date, JSON, Math, Number, String, Set, Array};
+  vm.createContext(context);
+  for (const file of ['src/seed.js', 'src/store.js']) vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
+  return {store: context.window.FalconStore, values};
+}
+test('Sample workspace has valid linked records', () => {const {store} = setup(); assert.equal(store.validate(store.state), true); assert.equal(store.state.candidates.length, 8); assert.equal(store.state.jobs.length, 7);});
+test('Changes are serialized and reload correctly', () => {const {store, values} = setup(); store.update(d => {d.settings.company = 'Test workspace';}); const restored = setup(values).store; assert.equal(restored.state.settings.company, 'Test workspace');});
+test('Invalid mutation is atomic', () => {const {store} = setup(); assert.throws(() => store.update(d => {d.candidates[0].stage = 'Unknown';})); assert.equal(store.state.candidates[0].stage, 'New');});
+test('Reject orphan candidate/job reference', () => {const {store} = setup(), data = store.snapshot(); data.candidates[0].jobId = 'missing'; assert.equal(store.validate(data), false);});
+test('Reject duplicate record IDs', () => {const {store} = setup(), data = store.snapshot(); data.jobs[1].id = data.jobs[0].id; assert.equal(store.validate(data), false);});
+test('Reject invalid ratings and headcount', () => {const {store} = setup(); for (const n of [-1, 101, Infinity]) {const d = store.snapshot(); d.candidates[0].rating = n; assert.equal(store.validate(d), false);} const d = store.snapshot(); d.jobs[0].openings = 0; assert.equal(store.validate(d), false);});
+test('Reject malformed field types in backup', () => {const {store} = setup(), d = store.snapshot(); d.candidates[0].source = {}; assert.equal(store.validate(d), false);});
+test('Reject invalid timezone', () => {const {store} = setup(), d = store.snapshot(); d.settings.timezone = 'Nowhere/Invalid'; assert.equal(store.validate(d), false);});
+test('Reject active content or SVG logos', () => {const {store} = setup(), d = store.snapshot(); d.settings.logo = 'data:image/svg+xml,<svg onload=alert(1)>'; assert.equal(store.validate(d), false);});
+test('Reject invalid appointment references', () => {const {store} = setup(), d = store.snapshot(); d.interviews[0].candidateId = 'missing'; assert.equal(store.validate(d), false);});
+test('Gracefully load sample data after corrupt storage', () => {const key = setup().store.KEY; const {store, values} = setup({[key]: '{invalid'}); assert.equal(store.state.candidates.length, 8); assert.ok(store.warning); assert.equal(values[key], '{invalid');});
+test('Storage failure keeps valid changes in memory', () => {const {store} = setup({}, true); const saved = store.update(d => {d.settings.company = 'Unsaved';}); assert.equal(saved, false); assert.equal(store.persistent, false); assert.equal(store.state.settings.company, 'Unsaved');});
+test('Reset changes only the Jobster storage key', () => {const {store, values} = setup({'another-app': 'keep-me'}); store.update(d => {d.settings.company = 'Changed';}); store.reset(); assert.equal(values['another-app'], 'keep-me'); assert.equal(store.state.settings.company, 'Falcon Staffing');});
+test('Backup snapshots are independent copies', () => {const {store} = setup(), backup = store.snapshot(); backup.candidates[0].name = 'Changed externally'; assert.notEqual(store.state.candidates[0].name, backup.candidates[0].name);});
+test('Validated backup round-trip preserves all entities', () => {const {store} = setup(), backup = store.snapshot(); backup.settings.company = 'Restored'; store.restore(backup); assert.equal(JSON.stringify(store.snapshot()), JSON.stringify(backup));});
+test('Activity history is capped and marks new records unread', () => {const {store} = setup(); store.update(d => {for (let i=0;i<205;i++) store.log(d, 'Event ' + i);}); assert.equal(store.state.activity.length, 200); assert.equal(store.state.activity[0].read, false);});

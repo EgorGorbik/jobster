@@ -1,0 +1,264 @@
+
+> falcon-jobster-interactive@2.1.1 test:all
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: English default and Russian saved locale
+ok 1 - English default and Russian saved locale
+  ---
+  duration_ms: 4.881499
+  type: 'test'
+  ...
+# Subtest: Unknown saved locale falls back to English
+ok 2 - Unknown saved locale falls back to English
+  ---
+  duration_ms: 1.213197
+  type: 'test'
+  ...
+# Subtest: Locale preference uses an independent key
+ok 3 - Locale preference uses an independent key
+  ---
+  duration_ms: 1.137565
+  type: 'test'
+  ...
+# Subtest: Storage failures preserve in-memory localization
+ok 4 - Storage failures preserve in-memory localization
+  ---
+  duration_ms: 1.880079
+  type: 'test'
+  ...
+# Subtest: Unsupported language is rejected without mutation
+ok 5 - Unsupported language is rejected without mutation
+  ---
+  duration_ms: 1.281187
+  type: 'test'
+  ...
+# Subtest: Russian plural rules include teens and twenty-one
+ok 6 - Russian plural rules include teens and twenty-one
+  ---
+  duration_ms: 4.889301
+  type: 'test'
+  ...
+# Subtest: Week starts Monday in Russian and Sunday in English
+ok 7 - Week starts Monday in Russian and Sunday in English
+  ---
+  duration_ms: 1.236701
+  type: 'test'
+  ...
+# Subtest: Locale-sensitive numbers and relative dates
+ok 8 - Locale-sensitive numbers and relative dates
+  ---
+  duration_ms: 23.159256
+  type: 'test'
+  ...
+# Subtest: Interpolation never reinterprets inserted placeholders or dollars
+ok 9 - Interpolation never reinterprets inserted placeholders or dollars
+  ---
+  duration_ms: 1.942691
+  type: 'test'
+  ...
+# Subtest: System activity labels translate without translating names
+ok 10 - System activity labels translate without translating names
+  ---
+  duration_ms: 2.891829
+  type: 'test'
+  ...
+# Subtest: Unknown keys and dangerous object-property names stay plain text
+ok 11 - Unknown keys and dangerous object-property names stay plain text
+  ---
+  duration_ms: 1.421804
+  type: 'test'
+  ...
+# Subtest: Every explicit literal translation call has a catalog entry
+ok 12 - Every explicit literal translation call has a catalog entry
+  ---
+  duration_ms: 218.18581
+  type: 'test'
+  ...
+# (node:898) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: frontend API adapter hydrates workspace and sends versioned writes
+ok 13 - frontend API adapter hydrates workspace and sends versioned writes
+  ---
+  duration_ms: 34.540624
+  type: 'test'
+  ...
+# Subtest: frontend API adapter preserves unsaved state on conflict without overwriting
+ok 14 - frontend API adapter preserves unsaved state on conflict without overwriting
+  ---
+  duration_ms: 32.575298
+  type: 'test'
+  ...
+# (node:900) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: public health check and static frontend bootloader
+ok 15 - public health check and static frontend bootloader
+  ---
+  duration_ms: 107.531301
+  type: 'test'
+  ...
+# Subtest: authentication required, no account enumeration, login cookie
+ok 16 - authentication required, no account enumeration, login cookie
+  ---
+  duration_ms: 137.452626
+  type: 'test'
+  ...
+# Subtest: workspace empty by default and revision begins at 1
+ok 17 - workspace empty by default and revision begins at 1
+  ---
+  duration_ms: 3.296314
+  type: 'test'
+  ...
+# Subtest: create job and candidate, persist and filter
+ok 18 - create job and candidate, persist and filter
+  ---
+  duration_ms: 15.482712
+  type: 'test'
+  ...
+# Subtest: move stage, add notes, archive and restore
+ok 19 - move stage, add notes, archive and restore
+  ---
+  duration_ms: 12.515131
+  type: 'test'
+  ...
+# Subtest: interviews, campaign definitions and draft messages never send
+ok 20 - interviews, campaign definitions and draft messages never send
+  ---
+  duration_ms: 10.329602
+  type: 'test'
+  ...
+# Subtest: invalid references rejected atomically and linked jobs protected
+ok 21 - invalid references rejected atomically and linked jobs protected
+  ---
+  duration_ms: 8.946646
+  type: 'test'
+  ...
+# Subtest: optimistic revision concurrency protects users from lost updates
+ok 22 - optimistic revision concurrency protects users from lost updates
+  ---
+  duration_ms: 9.975181
+  type: 'test'
+  ...
+# Subtest: rejects invalid state and unauthorized origins
+ok 23 - rejects invalid state and unauthorized origins
+  ---
+  duration_ms: 6.884668
+  type: 'test'
+  ...
+# Subtest: tenant separation and viewer access restrictions
+ok 24 - tenant separation and viewer access restrictions
+  ---
+  duration_ms: 184.369019
+  type: 'test'
+  ...
+# Subtest: session logout revokes token, audit is server-side and persisted
+ok 25 - session logout revokes token, audit is server-side and persisted
+  ---
+  duration_ms: 4.774632
+  type: 'test'
+  ...
+# Subtest: Sample workspace has valid linked records
+ok 26 - Sample workspace has valid linked records
+  ---
+  duration_ms: 21.438072
+  type: 'test'
+  ...
+# Subtest: Changes are serialized and reload correctly
+ok 27 - Changes are serialized and reload correctly
+  ---
+  duration_ms: 3.373097
+  type: 'test'
+  ...
+# Subtest: Invalid mutation is atomic
+ok 28 - Invalid mutation is atomic
+  ---
+  duration_ms: 2.745413
+  type: 'test'
+  ...
+# Subtest: Reject orphan candidate/job reference
+ok 29 - Reject orphan candidate/job reference
+  ---
+  duration_ms: 1.285824
+  type: 'test'
+  ...
+# Subtest: Reject duplicate record IDs
+ok 30 - Reject duplicate record IDs
+  ---
+  duration_ms: 1.419871
+  type: 'test'
+  ...
+# Subtest: Reject invalid ratings and headcount
+ok 31 - Reject invalid ratings and headcount
+  ---
+  duration_ms: 1.744038
+  type: 'test'
+  ...
+# Subtest: Reject malformed field types in backup
+ok 32 - Reject malformed field types in backup
+  ---
+  duration_ms: 1.868341
+  type: 'test'
+  ...
+# Subtest: Reject invalid timezone
+ok 33 - Reject invalid timezone
+  ---
+  duration_ms: 1.709217
+  type: 'test'
+  ...
+# Subtest: Reject active content or SVG logos
+ok 34 - Reject active content or SVG logos
+  ---
+  duration_ms: 2.014767
+  type: 'test'
+  ...
+# Subtest: Reject invalid appointment references
+ok 35 - Reject invalid appointment references
+  ---
+  duration_ms: 1.823276
+  type: 'test'
+  ...
+# Subtest: Gracefully load sample data after corrupt storage
+ok 36 - Gracefully load sample data after corrupt storage
+  ---
+  duration_ms: 2.014557
+  type: 'test'
+  ...
+# Subtest: Storage failure keeps valid changes in memory
+ok 37 - Storage failure keeps valid changes in memory
+  ---
+  duration_ms: 1.653595
+  type: 'test'
+  ...
+# Subtest: Reset changes only the Jobster storage key
+ok 38 - Reset changes only the Jobster storage key
+  ---
+  duration_ms: 1.736608
+  type: 'test'
+  ...
+# Subtest: Backup snapshots are independent copies
+ok 39 - Backup snapshots are independent copies
+  ---
+  duration_ms: 1.662218
+  type: 'test'
+  ...
+# Subtest: Validated backup round-trip preserves all entities
+ok 40 - Validated backup round-trip preserves all entities
+  ---
+  duration_ms: 4.887979
+  type: 'test'
+  ...
+# Subtest: Activity history is capped and marks new records unread
+ok 41 - Activity history is capped and marks new records unread
+  ---
+  duration_ms: 4.232833
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 597.25225

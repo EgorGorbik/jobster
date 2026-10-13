@@ -1,0 +1,21 @@
+{
+  "passes": [
+    "Offline: 1440x900 layout, launch/close, status, input disabled",
+    "Offline: 390x844 layout, launch/close, status, input disabled",
+    "Offline: 320x720 layout, launch/close, status, input disabled",
+    "Mocked network: status ready, EN/RU chat, history, opt-in, reset",
+    "Mocked network mobile 390x844: panel contained, inputs active",
+    "Mocked network mobile 320x720: panel contained, inputs active"
+  ],
+  "errors": [],
+  "screenshots": [
+    "assistant-offline-ru.png",
+    "assistant-offline-1440.png",
+    "assistant-ready-ru.png",
+    "assistant-offline-320.png",
+    "assistant-ready-320.png",
+    "assistant-offline-390.png",
+    "assistant-ready-390.png",
+    "assistant-ready-en.png"
+  ]
+}
