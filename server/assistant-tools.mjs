@@ -6,7 +6,7 @@ import {randomUUID} from 'node:crypto';
 import {getWorkspace, mutateWorkspace} from './database.mjs';
 import {STAGES, ValidationError, validateRecord, clone} from './validation.mjs';
 import {normalizeJobPublicFields} from './job-public.mjs';
-import {sendInterviewInvite} from './mail.mjs';
+import {sendInterviewInvite, withSuppressedInterviewStageNotify} from './mail.mjs';
 import {sendInterviewTelegram} from './telegram.mjs';
 import {ensureScheduledInterview} from './interview-slot.mjs';
 
@@ -927,7 +927,7 @@ export async function executeAssistantTool(db, workspaceId, actorId, name, rawAr
     const startsAt = resolveInterviewStart(args);
     const sendEmail = args.sendEmail !== false;
     const invited = [];
-    const result = mutateWorkspace(db, workspaceId, undefined, actorId, 'assistant.invite_to_interview', state => {
+    const result = withSuppressedInterviewStageNotify(() => mutateWorkspace(db, workspaceId, undefined, actorId, 'assistant.invite_to_interview', state => {
       const people = pickInviteCandidates(state, args);
       if (!people.length) {
         throw new ValidationError('No Screening/Interview candidates available to invite. Move someone to Screening first.');
@@ -970,7 +970,7 @@ export async function executeAssistantTool(db, workspaceId, actorId, name, rawAr
         });
       }
       return {invited, company: state.settings.company};
-    });
+    }));
     const emailResults = [];
     const telegramResults = [];
     if (sendEmail) {

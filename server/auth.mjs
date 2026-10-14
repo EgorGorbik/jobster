@@ -4,11 +4,10 @@ import {createWorkspace} from './database.mjs';
 import {ValidationError} from './validation.mjs';
 const scrypt = promisify(scryptCallback);
 const DAYS = 7;
-const weak = new Set(['password12345','123456789012','qwerty123456','changeme12345']);
 export const tokenHash = value => createHash('sha256').update(value).digest('hex');
 export async function createPassword(password) {
-  if (typeof password !== 'string' || password.length < 12 || password.length > 256 || weak.has(password.toLowerCase())) {
-    throw new ValidationError('Password must contain 12-256 characters and must not be a common default');
+  if (typeof password !== 'string' || password.length < 1 || password.length > 256) {
+    throw new ValidationError('Password is required (1-256 characters)');
   }
   const salt = randomBytes(24).toString('hex');
   const digest = (await scrypt(password,salt,64)).toString('hex');

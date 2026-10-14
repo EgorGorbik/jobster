@@ -69,3 +69,8 @@ html[lang=ru] .primary,html[lang=ru] .secondary,html[lang=ru] .danger-button{whi
 #jobster-remote-banner button{background:#eff5e9;color:#1c4d32;border:0;border-radius:5px;padding:8px 10px;font-size:11px}
 @media(max-width:760px){#jobster-remote-banner{width:calc(100% - 20px);flex-wrap:wrap;bottom:10px}.remote-entry-panel{padding:26px 23px}}
 @media(max-width:760px){.topbar .remote-logout{display:none}}
+.company-switcher .session-meta{display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.2;text-align:left;min-width:0}
+.company-switcher .session-meta strong{display:block;font-size:12px;font-weight:600;color:#2f4a35;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.company-switcher .session-meta small{display:block;font-size:10px;font-weight:500;color:#7b906e;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1080px){.company-switcher #company-name{display:block!important}.company-switcher .session-meta small{display:none}}
+@media(max-width:380px){.company-switcher{display:flex!important}.company-switcher .session-meta{display:none}}

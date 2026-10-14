@@ -4,6 +4,7 @@
  * No-op when TELEGRAM_BOT_TOKEN is unset.
  */
 import {getWorkspace, mutateWorkspace} from './database.mjs';
+import {stageNoticeText, STAGE_EMAIL_STAGES} from './mail.mjs';
 import {ValidationError} from './validation.mjs';
 
 const API = token => `https://api.telegram.org/bot${token}`;
@@ -123,6 +124,19 @@ export async function sendInterviewTelegram({candidate, jobTitle, interview, com
   return sendTelegramMessage(chatId, text);
 }
 
+/** Same copy as the stage-change email (Interview without a slot, Offer, Hired). */
+export async function sendStageChangeTelegram({candidate, jobTitle, toStage, company}) {
+  const chatId = candidate?.telegramChatId;
+  if (!chatId) return {ok: false, skipped: true, reason: 'no_chat_id'};
+  if (!STAGE_EMAIL_STAGES.includes(toStage)) {
+    return {ok: false, skipped: true, reason: 'stage-not-notified'};
+  }
+  const name = candidate.name || 'кандидат';
+  const role = jobTitle || 'вакансию';
+  const {text} = stageNoticeText({name, role, company, toStage});
+  return sendTelegramMessage(chatId, text);
+}
+
 export async function sendTomorrowReminderTelegram({candidate, jobTitle, interview, company}) {
   const chatId = candidate?.telegramChatId;
   if (!chatId) return {ok: false, skipped: true, reason: 'no_chat_id'};
@@ -212,7 +226,7 @@ export async function handleTelegramUpdate(db, update) {
   });
 
   await sendTelegramMessage(chatId,
-    `Готово, ${found.candidate.name}! Telegram подключён.\nМы пришлём сюда приглашение и напоминание за день до собеседования.\n\nLinked. You will get interview invites and a reminder the day before.`);
+    `Готово, ${found.candidate.name}! Telegram подключён.\nСюда придут те же уведомления, что и на почту: интервью, оффер, найм — и напоминание за день до собеседования.\n\nLinked. You will get the same updates as email (interview, offer, hired) plus a reminder the day before.`);
   return {handled: true, linked: true, candidateId: startId, chatId};
 }
 

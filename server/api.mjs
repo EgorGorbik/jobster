@@ -3,7 +3,7 @@ import {getWorkspace,saveWorkspace,mutateWorkspace,listAudit} from './database.m
 import {login,sessionUser,logout,cookieHeader,clearCookieHeader,changePassword,addUser} from './auth.mjs';
 import {clone,validateWorkspace,validateRecord,ValidationError,STAGES} from './validation.mjs';
 import {normalizeJobPublicFields} from './job-public.mjs';
-import {sendInterviewInvite} from './mail.mjs';
+import {sendInterviewInvite, withSuppressedInterviewStageNotify} from './mail.mjs';
 import {sendInterviewTelegram} from './telegram.mjs';
 import {ensureScheduledInterview, promoteToInterview} from './interview-slot.mjs';
 
@@ -143,7 +143,7 @@ export async function handleApi(req,res,db,url,options={}) {
   if (pathname==='/api/state' || pathname==='/api/workspace/state') {
     if (method==='GET') return json(res,200,{...getWorkspace(db,user.workspaceId),user});
     if (method==='PUT') {
-      requireRole(user,allowAdmin);
+      requireRole(user,allowWrite);
       const body=await readJSON(req);
       const revision=readRevision(req,body);
       if (revision===undefined) throw new ValidationError('A revision is required to protect against overwriting changes',428);
@@ -192,7 +192,7 @@ export async function handleApi(req,res,db,url,options={}) {
   if (method==='POST' && !recordId) {
     const body=await readJSON(req);const revision=readRevision(req,body);
     let mailMeta=null;
-    const result=mutateWorkspace(db,user.workspaceId,revision,user.id,`${kind}.create`,state=>{
+    const run=()=>mutateWorkspace(db,user.workspaceId,revision,user.id,`${kind}.create`,state=>{
       const record=makeRecord(kind,body);
       validateRecord(kind,record,state);
       state[kind].push(record);
@@ -217,6 +217,7 @@ export async function handleApi(req,res,db,url,options={}) {
       }
       return record;
     });
+    const result=kind==='interviews' ? withSuppressedInterviewStageNotify(run) : run();
     if (kind==='interviews' && mailMeta?.candidate) {
       let email={skipped:true};
       let telegram={skipped:true};

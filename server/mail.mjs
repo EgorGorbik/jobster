@@ -139,7 +139,7 @@ export async function sendInterviewInvite({candidate, jobTitle, interview, compa
 /** Only these pipeline stages trigger candidate emails (not New / Screening). */
 export const STAGE_EMAIL_STAGES = ['Interview', 'Offer', 'Hired'];
 
-function stageEmailCopy({name, role, company, toStage}) {
+export function stageNoticeText({name, role, company, toStage}) {
   if (toStage === 'Interview') {
     return {
       subject: `${company}: приглашение на интервью — ${role}`,
@@ -205,37 +205,103 @@ export async function sendStageChangeEmail({candidate, jobTitle, fromStage, toSt
   const name = candidate.name || 'кандидат';
   const email = candidate.email;
   const role = jobTitle || 'вакансию';
-  const {subject, text} = stageEmailCopy({name, role, company, toStage});
+  const {subject, text} = stageNoticeText({name, role, company, toStage});
   return sendMail({to: email, subject, text});
 }
 
-/** Diff candidate stages and notify asynchronously (never throws to caller). */
+/**
+ * POST /api/interviews and the assistant invite already send the appointment
+ * message themselves. Skip the stage diff for that same save so it is not sent twice.
+ */
+let suppressDuplicateInterviewNotify = 0;
+export function withSuppressedInterviewStageNotify(fn) {
+  suppressDuplicateInterviewNotify += 1;
+  try { return fn(); }
+  finally { suppressDuplicateInterviewNotify -= 1; }
+}
+
+let inflight = Promise.resolve();
+export function whenStageNotifiesSettled() {
+  return inflight;
+}
+function trackNotify(promise) {
+  const tracked = Promise.resolve(promise).catch(err => {
+    console.error('[notify] stage notify failed:', err?.message || err);
+  });
+  inflight = inflight.then(() => tracked, () => tracked);
+}
+
+/**
+ * Diff candidate stages and notify asynchronously (never throws to caller).
+ * Email when SMTP is configured; the same text goes to Telegram when the candidate linked the bot.
+ * A brand-new interview created in the same save (pipeline drag onto Interview) uses the appointment text.
+ */
 export function notifyStageChanges(prevState, nextState) {
-  if (!mailConfigured() || process.env.JOBSTER_MAIL_STAGE_NOTIFY === 'false') return;
   try {
     const prevMap = new Map((prevState?.candidates || []).map(c => [c.id, c]));
+    const prevInterviewIds = new Set((prevState?.interviews || []).map(i => i.id));
     const jobs = new Map((nextState?.jobs || []).map(j => [j.id, j.title]));
     const company = nextState?.settings?.company || process.env.JOBSTER_COMPANY || 'Falcon Jobster';
+    const mailOn = mailConfigured() && process.env.JOBSTER_MAIL_STAGE_NOTIFY !== 'false';
+    const tasks = [];
     for (const c of nextState?.candidates || []) {
-      if (c.archived || !c.email) continue;
+      if (c.archived) continue;
       const prev = prevMap.get(c.id);
       if (!prev || prev.stage === c.stage) continue;
       if (!STAGE_EMAIL_STAGES.includes(c.stage)) continue;
-      // Interview appointment emails go via sendInterviewInvite — skip duplicate stage mail if one exists.
-      if (c.stage === 'Interview') {
-        const hasInterview = (nextState.interviews || []).some(
-          i => i.candidateId === c.id && i.status !== 'Cancelled'
-        );
-        if (hasInterview) continue;
-      }
-      void sendStageChangeEmail({
+      const freshInterview = c.stage === 'Interview'
+        ? (nextState.interviews || []).find(i => i.candidateId === c.id && i.status !== 'Cancelled' && !prevInterviewIds.has(i.id))
+        : null;
+      const hasInterview = c.stage === 'Interview' && (nextState.interviews || []).some(
+        i => i.candidateId === c.id && i.status !== 'Cancelled'
+      );
+      // Appointment already existed — invite was sent when it was created.
+      if (c.stage === 'Interview' && hasInterview && !freshInterview) continue;
+      // Caller sends the invite after this save (POST /api/interviews, assistant invite).
+      if (freshInterview && suppressDuplicateInterviewNotify) continue;
+      if (!c.email && !c.telegramChatId) continue;
+      tasks.push({
         candidate: c,
         jobTitle: jobs.get(c.jobId) || '',
         fromStage: prev.stage,
         toStage: c.stage,
-        company
-      }).catch(err => console.error('[mail] stage notify failed:', err.message || err));
+        company,
+        interview: freshInterview || null
+      });
     }
+    for (const task of tasks) {
+      if (!mailOn || !task.candidate.email) continue;
+      const pending = task.interview
+        ? sendInterviewInvite({
+          candidate: task.candidate,
+          jobTitle: task.jobTitle,
+          interview: task.interview,
+          company: task.company
+        })
+        : sendStageChangeEmail(task);
+      trackNotify(pending);
+    }
+    const tgTasks = tasks.filter(t => t.candidate.telegramChatId);
+    if (!tgTasks.length) return;
+    trackNotify(import('./telegram.mjs').then(async mod => {
+      if (!mod.telegramConfigured()) return;
+      await Promise.all(tgTasks.map(task => {
+        const pending = task.interview
+          ? mod.sendInterviewTelegram({
+            candidate: task.candidate,
+            jobTitle: task.jobTitle,
+            interview: task.interview,
+            company: task.company
+          })
+          : mod.sendStageChangeTelegram({
+            candidate: task.candidate,
+            jobTitle: task.jobTitle,
+            toStage: task.toStage,
+            company: task.company
+          });
+        return pending.catch(err => console.error('[telegram] stage notify failed:', err.message || err));
+      }));
+    }));
   } catch (err) {
     console.error('[mail] stage diff failed:', err.message || err);
   }

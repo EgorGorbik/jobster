@@ -59,8 +59,39 @@
   const heading = (kicker, title, text, actions = '') => `<div class="page-heading"><div><span class="eyebrow">${kicker}</span><h1>${title}</h1><p>${text}</p></div><div class="heading-actions">${actions}</div></div>`;
   const panelHead = (title, subtitle, action = '') => `<div class="section-title"><div><h2>${title}</h2><p>${subtitle}</p></div>${action}</div>`;
   const today = dateKey(new Date());
-  const ui = {view: 'overview', search: '', job: 'All', stage: 'All', source: 'All', candidateTab: 'All', jobStatus: 'All', sort: 'updated', page: 1, pageSize: 10, selected: new Set(), reportDays: 30, flowDays: 14, settingsTab: 'workspace', calendarDate: today, calendarMonth: today.slice(0, 7), calendarFilter: 'All', drawerTab: 'profile'};
+  const ui = {view: 'overview', search: '', job: 'All', stage: 'All', source: 'All', candidateTab: 'All', jobStatus: 'All', sort: 'updated', page: 1, pageSize: 10, selected: new Set(), reportDays: 30, flowDays: 14, settingsTab: 'workspace', calendarDate: today, calendarMonth: today.slice(0, 7), calendarFilter: 'All', drawerTab: 'profile', accounts: {items: null, loading: false, error: ''}};
   let dragId = null, lastFocus = null, currentCandidateId = null;
+  const sessionRole = () => window.FalconSession?.role || '';
+  const isOwner = () => sessionRole() === 'Owner';
+  const isAdminOrOwner = () => ['Owner', 'Admin'].includes(sessionRole());
+  async function apiJson(url, options = {}) {
+    const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', ...options});
+    let result = {};
+    try { result = await response.json(); } catch { /* ignore */ }
+    if (!response.ok) {
+      const error = new Error(result.error || `Server error (${response.status})`);
+      error.status = response.status;
+      throw error;
+    }
+    return result;
+  }
+  async function loadAccounts({force = false} = {}) {
+    if (!Store.remote || !isAdminOrOwner()) return;
+    if (ui.accounts.loading) return;
+    if (!force && Array.isArray(ui.accounts.items)) return;
+    ui.accounts.loading = true;
+    ui.accounts.error = '';
+    try {
+      const result = await apiJson('/api/users');
+      ui.accounts.items = Array.isArray(result.items) ? result.items : [];
+    } catch (err) {
+      ui.accounts.error = err.message || I.t('Could not load login accounts.');
+      ui.accounts.items = [];
+    } finally {
+      ui.accounts.loading = false;
+      if (ui.view === 'settings' && ui.settingsTab === 'team') render();
+    }
+  }
 
   function languageSwitcher() {
     return `<div class="language-switcher" role="group" aria-label="${esc(I.t('Interface language'))}"><button type="button" data-action="set-language" data-language="en" lang="en" title="English" aria-label="English" aria-pressed="${I.language === 'en'}">EN</button><button type="button" data-action="set-language" data-language="ru" lang="ru" title="\u0420\u0443\u0441\u0441\u043a\u0438\u0439" aria-label="\u0420\u0443\u0441\u0441\u043a\u0438\u0439" aria-pressed="${I.language === 'ru'}">RU</button></div>`;
@@ -103,7 +134,7 @@
   }
 
   function shell() {
-    $('#root').innerHTML = `<a class="skip-link" href="#workspace">${I.t("Skip to workspace")}</a><div class="app-shell"><aside class="sidebar" aria-label="${I.t("Main navigation")}"><a class="brand" href="#/overview" data-action="navigate" data-view="overview"><span class="brand-mark"><svg viewBox="0 0 32 32" width="25" height="25" aria-hidden="true"><path d="M5 6h25L12 17h13L8 28l4-15Z" fill="currentColor"/></svg></span><span>${I.t("Falcon")} <b>${I.t("Jobster")}</b><small>${I.t("THE HIRING WORKSPACE")}</small></span></a><button type="button" class="icon-button mobile-close" data-action="close-menu" aria-label="${I.t("Close navigation")}">${icon('x', 17)}</button><nav class="main-nav"><span class="nav-caption">${I.t("WORKSPACE")}</span>${['overview', 'pipeline', 'candidates', 'jobs', 'calendar'].map(navItem).join('')}<span class="nav-caption second">${I.t("ENGAGE & MEASURE")}</span>${['campaigns', 'reports'].map(navItem).join('')}</nav><div class="sidebar-bottom"><div class="workspace-note"><span class="live-dot"></span><strong>${Store.remote ? state().settings.company : I.t("Your local workspace")}</strong><p>${Store.remote ? (I.language === "ru" ? "\u0414\u0430\u043d\u043d\u044b\u0435 \u0445\u0440\u0430\u043d\u044f\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435." : "Records are stored on the server.") : I.t("Explore freely. Sample data stays in this browser.")}</p><button data-action="help">${Store.remote ? (I.language === "ru" ? "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441\u043f\u0440\u0430\u0432\u043a\u0443" : "View help") : I.t("Explore the demo {0}", [icon('arrow', 13)])}</button></div>${navItem('settings')}${Store.remote ? `<button type="button" class="nav-item remote-sidebar-logout" data-action="remote-logout">${icon("x", 16)}${I.language === "ru" ? "\u0412\u044b\u0439\u0442\u0438" : "Sign out"}</button>` : ""}<button class="workspace-user" data-action="navigate" data-view="settings"><span class="avatar small">${Store.remote ? esc(initials(window.FalconSession?.name || "Admin")) : I.t("ZS")}</span><span><strong>${Store.remote ? esc(window.FalconSession?.name || "Admin") : I.t("Zafar Safarov")}</strong><small>${Store.remote ? esc(window.FalconSession?.role || "Owner") : I.t("Demo administrator")}</small></span>${icon('chevron', 15)}</button></div></aside><button class="sidebar-scrim" aria-label="${I.t("Close navigation")}" data-action="close-menu"></button><main><header class="topbar"><button class="icon-button mobile-menu" data-action="open-menu" aria-label="${I.t("Open navigation")}">${icon('menu', 21)}</button><div class="breadcrumb"><span>${I.t("Workspace")}</span>${icon('right', 12)}<strong id="breadcrumb-view">${I.t("Overview")}</strong></div><div class="global-search-wrap"><label class="global-search">${icon('search', 17)}<input id="global-search" autocomplete="off" placeholder="${I.t("Search your workspace...")}" aria-label="${I.t("Search candidates, jobs and campaigns")}" aria-controls="global-results" aria-expanded="false"><kbd><span class="shortcut-mod">${I.t("Ctrl")}</span> ${I.t("K")}</kbd></label><div id="global-results" class="global-results" hidden></div></div><div class="top-actions">${languageSwitcher()}<span class="demo-pill"><span></span>${Store.remote ? (I.language === "ru" ? "\u0421\u0435\u0440\u0432\u0435\u0440" : "Server mode") : I.t("Local demo")}</span>${Store.remote ? `<button type="button" class="secondary remote-logout" data-action="remote-logout">${I.language === "ru" ? "\u0412\u044b\u0439\u0442\u0438" : "Sign out"}</button>` : ""}<button class="icon-button notification" data-action="notifications" aria-label="${I.t("Activity notifications")}">${icon('bell', 19)}<i id="notification-dot"></i></button><button class="company-switcher" data-action="navigate" data-view="settings" aria-label="${I.t("Open workspace settings")}"><span id="company-logo" class="company-logo">${I.t("FS")}</span><span id="company-name">${I.t("Falcon Staffing")}</span>${icon('chevron', 13)}</button></div></header><div id="storage-warning" role="alert" hidden></div><section class="workspace" id="workspace" tabindex="-1"></section><footer class="app-footer"><span>${I.t("FALCON JOBSTER")} <i>/</i> ${I.t("Recruiting, thoughtfully connected.")}</span><span>${Store.remote ? (I.language === "ru" ? "\u041d\u0435\u0442 \u043e\u0442\u043f\u0440\u0430\u0432\u043a\u0438 SMS/email" : "No live SMS/email sending") : I.t("Sample data · No live messaging")}</span></footer></main></div>`;
+    $('#root').innerHTML = `<a class="skip-link" href="#workspace">${I.t("Skip to workspace")}</a><div class="app-shell"><aside class="sidebar" aria-label="${I.t("Main navigation")}"><a class="brand" href="#/overview" data-action="navigate" data-view="overview"><span class="brand-mark"><svg viewBox="0 0 32 32" width="25" height="25" aria-hidden="true"><path d="M5 6h25L12 17h13L8 28l4-15Z" fill="currentColor"/></svg></span><span>${I.t("Falcon")} <b>${I.t("Jobster")}</b><small>${I.t("THE HIRING WORKSPACE")}</small></span></a><button type="button" class="icon-button mobile-close" data-action="close-menu" aria-label="${I.t("Close navigation")}">${icon('x', 17)}</button><nav class="main-nav"><span class="nav-caption">${I.t("WORKSPACE")}</span>${['overview', 'pipeline', 'candidates', 'jobs', 'calendar'].map(navItem).join('')}<span class="nav-caption second">${I.t("ENGAGE & MEASURE")}</span>${['campaigns', 'reports'].map(navItem).join('')}</nav><div class="sidebar-bottom"><div class="workspace-note"><span class="live-dot"></span><strong>${Store.remote ? state().settings.company : I.t("Your local workspace")}</strong><p>${Store.remote ? (I.language === "ru" ? "\u0414\u0430\u043d\u043d\u044b\u0435 \u0445\u0440\u0430\u043d\u044f\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435." : "Records are stored on the server.") : I.t("Explore freely. Sample data stays in this browser.")}</p><button data-action="help">${Store.remote ? (I.language === "ru" ? "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441\u043f\u0440\u0430\u0432\u043a\u0443" : "View help") : I.t("Explore the demo {0}", [icon('arrow', 13)])}</button></div>${navItem('settings')}${Store.remote ? `<button type="button" class="nav-item remote-sidebar-logout" data-action="remote-logout">${icon("x", 16)}${I.language === "ru" ? "\u0412\u044b\u0439\u0442\u0438" : "Sign out"}</button>` : ""}</div></aside><button class="sidebar-scrim" aria-label="${I.t("Close navigation")}" data-action="close-menu"></button><main><header class="topbar"><button class="icon-button mobile-menu" data-action="open-menu" aria-label="${I.t("Open navigation")}">${icon('menu', 21)}</button><div class="breadcrumb"><span>${I.t("Workspace")}</span>${icon('right', 12)}<strong id="breadcrumb-view">${I.t("Overview")}</strong></div><div class="global-search-wrap"><label class="global-search">${icon('search', 17)}<input id="global-search" autocomplete="off" placeholder="${I.t("Search your workspace...")}" aria-label="${I.t("Search candidates, jobs and campaigns")}" aria-controls="global-results" aria-expanded="false"><kbd><span class="shortcut-mod">${I.t("Ctrl")}</span> ${I.t("K")}</kbd></label><div id="global-results" class="global-results" hidden></div></div><div class="top-actions">${languageSwitcher()}<span class="demo-pill"><span></span>${Store.remote ? (I.language === "ru" ? "\u0421\u0435\u0440\u0432\u0435\u0440" : "Server mode") : I.t("Local demo")}</span>${Store.remote ? `<button type="button" class="secondary remote-logout" data-action="remote-logout">${I.language === "ru" ? "\u0412\u044b\u0439\u0442\u0438" : "Sign out"}</button>` : ""}<button class="icon-button notification" data-action="notifications" aria-label="${I.t("Activity notifications")}">${icon('bell', 19)}<i id="notification-dot"></i></button><button class="company-switcher" data-action="navigate" data-view="settings" aria-label="${Store.remote ? I.t("Signed-in account") : I.t("Open workspace settings")}"><span id="company-logo" class="company-logo">${I.t("FS")}</span><span class="session-meta"><strong id="company-name">${I.t("Falcon Staffing")}</strong><small id="session-subtitle"></small></span>${icon('chevron', 13)}</button></div></header><div id="storage-warning" role="alert" hidden></div><section class="workspace" id="workspace" tabindex="-1"></section><footer class="app-footer"><span>${I.t("FALCON JOBSTER")} <i>/</i> ${I.t("Recruiting, thoughtfully connected.")}</span><span>${Store.remote ? (I.language === "ru" ? "\u041d\u0435\u0442 \u043e\u0442\u043f\u0440\u0430\u0432\u043a\u0438 SMS/email" : "No live SMS/email sending") : I.t("Sample data · No live messaging")}</span></footer></main></div>`;
     if (/Mac|iPhone|iPad/.test(navigator.platform)) $('.shortcut-mod').textContent = '\u2318';
     render();
   }
@@ -112,8 +143,25 @@
     $$('.nav-item').forEach(b => { const isCurrent = b.dataset.view === ui.view; b.classList.toggle('active', isCurrent); isCurrent ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'); });
     $$('[data-nav-count]').forEach(el => { const v = el.dataset.navCount; el.textContent = v === 'candidates' ? active().length : v === 'jobs' ? state().jobs.filter(j => j.status === 'Active').length : ''; el.hidden = !['candidates', 'jobs'].includes(v); });
     $('#breadcrumb-view').textContent = I.t(VIEWS[ui.view]);
-    $('#company-name').textContent = state().settings.company;
-    $('#company-logo').innerHTML = state().settings.logo ? `<img src="${esc(state().settings.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(state().settings.company));
+    const session = Store.remote ? window.FalconSession : null;
+    const subtitle = $('#session-subtitle');
+    if (session?.email || session?.name) {
+      const label = session.name || session.email;
+      $('#company-name').textContent = label;
+      if (subtitle) {
+        subtitle.textContent = I.t(session.role === 'Owner' ? 'Workspace owner' : (session.role || 'Admin'));
+        subtitle.hidden = false;
+      }
+      $('#company-logo').innerHTML = esc(initials(label));
+      $('.company-switcher')?.setAttribute('aria-label', I.t('Signed in as {0}', [label]));
+    } else {
+      $('#company-name').textContent = state().settings.company;
+      if (subtitle) {
+        subtitle.textContent = I.t('Local demo');
+        subtitle.hidden = false;
+      }
+      $('#company-logo').innerHTML = state().settings.logo ? `<img src="${esc(state().settings.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(state().settings.company));
+    }
     $('#notification-dot').hidden = !state().activity.some(a => !a.read);
     const warning = $('#storage-warning'); warning.hidden = !Store.warning; warning.textContent = I.t(Store.warning);
     document.documentElement.lang = I.language;
@@ -260,8 +308,59 @@
     const s = state().settings;
     return `<form id="settings-form" class="settings-section"><div class="language-settings"><div><h2>${I.t('Interface language')}</h2><p>${I.t('Choose the interface language. Your records and draft messages stay unchanged.')}</p></div><label for="workspace-language">${I.t('Language')}<select id="workspace-language" data-language-control><option value="en" lang="en" ${I.language === 'en' ? 'selected' : ''}>English</option><option value="ru" lang="ru" ${I.language === 'ru' ? 'selected' : ''}>Русский</option></select></label></div><hr><div><h2>${I.t("Workspace details")}</h2><p>${I.t("The name your team sees throughout the demo.")}</p></div><div class="logo-upload"><span>${s.logo ? `<img src="${esc(s.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(s.company))}</span><div><label class="secondary upload-label" for="logo-file">${I.t("{0}Upload logo", [icon('upload', 15)])}</label><input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><small>${I.t("PNG, JPG or WebP. Up to 512 KB.")}</small></div>${s.logo ? button(I.t("Remove"), 'remove-logo', 'x', 'text-button') : ''}</div><label>${I.t("Company name")}<input name="company" value="${esc(s.company)}" required maxlength="80" autocomplete="organization"></label><div class="form-grid"><label>${I.t("Company website")}<input name="website" value="${esc(s.website)}" type="url" placeholder="${I.t("https://example.com")}" maxlength="250"></label><label>${I.t("Display timezone")}<select name="timezone">${options([{value: 'America/New_York', label: I.t("Eastern Time (New York)")}, {value: 'America/Chicago', label: I.t("Central Time (Chicago)")}, {value: 'America/Denver', label: I.t("Mountain Time (Denver)")}, {value: 'America/Los_Angeles', label: I.t("Pacific Time (Los Angeles)")}, {value: 'America/Phoenix', label: I.t("Arizona (Phoenix)")}, {value: 'UTC', label: I.t("UTC")}], s.timezone)}</select></label></div><hr><div><h2>${I.t("Notification preferences")}</h2><p>${I.t("Saved for a future integration. This demo does not send notifications.")}</p></div>${toggle('digest', I.t("Daily recruiting digest"), I.t("A morning overview of the hiring workspace."), s.digest)}${toggle('interview', I.t("Interview reminders"), I.t("A reminder preference for upcoming conversations."), s.interview)}${toggle('offers', I.t("Offer activity"), I.t("Updates when a candidate reaches an offer stage."), s.offers)}<p class="form-error" role="alert" hidden></p><div class="settings-actions"><span class="muted">${Store.remote ? `${icon("database", 14)} ${I.language === "ru" ? "\u0425\u0440\u0430\u043d\u0438\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435" : "Stored on server"}` : I.t("{0} Saved in this browser", [icon('database', 14)])}</span><button class="primary" type="submit">${I.t("{0}Save changes", [icon('check', 16)])}</button></div></form>`;
   }
+  function roleHint(role) {
+    if (role === 'Owner') return I.t('Full access, can create login accounts.');
+    if (role === 'Admin') return I.t('Full web UI. Cannot create login accounts.');
+    if (role === 'Recruiter') return I.t('Full hiring UI. Cannot create login accounts.');
+    if (role === 'Viewer') return I.t('Read-only API access. No full web UI.');
+    return '';
+  }
+  function syncTeamDirectoryFromUser({name, email, role}) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!normalized || !name) return;
+    commit(s => {
+      const existing = s.team.find(t => String(t.email || '').toLowerCase() === normalized);
+      if (existing) {
+        const oldName = existing.name;
+        existing.name = name;
+        existing.role = role === 'Owner' ? 'Owner' : role;
+        existing.status = 'Active';
+        if (oldName !== name) {
+          s.candidates.forEach(c => { if (c.owner === oldName) c.owner = name; });
+          s.jobs.forEach(j => { if (j.owner === oldName) j.owner = name; });
+          s.interviews.forEach(i => { if (i.interviewer === oldName) i.interviewer = name; });
+        }
+      } else {
+        s.team.push({id: Store.id(), name, email: normalized, role: role === 'Owner' ? 'Owner' : role, status: 'Active'});
+      }
+      Store.log(s, `Team directory synced: ${name}`);
+    });
+  }
+  function accountsSettings() {
+    if (!isAdminOrOwner()) {
+      return `<section class="settings-section">${panelHead(I.t("Team & roles"), I.t("Only Owner or Admin can view login accounts."))}</section>`;
+    }
+    const createBtn = isOwner() ? button(I.t("Add teammate"), 'add-account', 'plus', 'primary') : '';
+    const body = ui.accounts.loading && !ui.accounts.items
+      ? `<p class="muted">${I.t("Loading accounts...")}</p>`
+      : ui.accounts.error
+        ? `<div class="notice">${esc(ui.accounts.error)}</div>`
+        : `<div class="team-list">${(ui.accounts.items || []).map(u => `<div>${avatar({name: u.name, color: '#deebe6'})}<span><strong>${esc(u.name)}</strong><small>${esc(u.email)}${u.disabled ? ` &middot; ${esc(I.t('Disabled'))}` : ''}</small></span><em title="${esc(roleHint(u.role))}">${esc(I.t(u.role === 'Owner' ? 'Workspace owner' : u.role))}</em></div>`).join('') || `<p class="muted">${I.t("No login accounts yet.")}</p>`}</div>`;
+    return `<section class="settings-section">${panelHead(I.t("Team & roles"), I.t("People who can sign in. Password is set here; no invite email."), createBtn)}<div class="notice">${I.t("{0} One list: login + appears in owner/interviewer picks. Owner creates accounts; share password securely.", [icon('shield', 17)])}</div>${body}</section>`;
+  }
   function teamSettings() {
-    return `<section class="settings-section">${panelHead(I.t("People behind the hiring"), I.t("Sample team directory. Roles are labels, not enforced permissions."), button(I.t("Add member"), 'add-member', 'plus', 'primary'))}<div class="notice">${I.t("{0} Invitations are saved as local drafts. No invitation email is sent.", [icon('info', 17)])}</div><div class="team-list">${state().team.map(t => `<div>${avatar({...t, color: '#deebe6'})}<span><strong>${esc(t.name)}</strong><small>${esc(t.email || I.t('Email not configured'))} &middot; ${esc(I.t(t.status))}</small></span><em>${esc(I.t(t.role === 'Owner' ? 'Workspace owner' : t.role))}</em>${iconButton(I.t("Edit ") + t.name, 'edit-member', 'edit', `data-id="${esc(t.id)}"`)}</div>`).join('')}</div></section>`;
+    if (!Store.remote) {
+      return `<section class="settings-section">${panelHead(I.t("People behind the hiring"), I.t("Sample team directory. Roles are labels, not enforced permissions."), button(I.t("Add member"), 'add-member', 'plus', 'primary'))}<div class="notice">${I.t("{0} Local demo only. In server mode this becomes real login accounts.", [icon('info', 17)])}</div><div class="team-list">${state().team.map(t => `<div>${avatar({...t, color: '#deebe6'})}<span><strong>${esc(t.name)}</strong><small>${esc(t.email || I.t('Email not configured'))} &middot; ${esc(I.t(t.status))}</small></span><em>${esc(I.t(t.role === 'Owner' ? 'Workspace owner' : t.role))}</em>${iconButton(I.t("Edit ") + t.name, 'edit-member', 'edit', `data-id="${esc(t.id)}"`)}</div>`).join('')}</div></section>`;
+    }
+    if (isAdminOrOwner()) void loadAccounts();
+    return accountsSettings();
+  }
+  function openAccountForm() {
+    if (!Store.remote || !isOwner()) {
+      toast(I.t('Only the Owner can create login accounts.'), true);
+      return;
+    }
+    modal(I.t("Add teammate"), I.t("Creates a sign-in account and adds them to the hiring team list."), `<form id="account-form"><label>${I.t("Name *")}<input name="name" required maxlength="200" autocomplete="name"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="254" autocomplete="off" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Password *")}<input name="password" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Confirm password *")}<input name="confirm" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Role")}<select name="role">${options(['Admin', 'Recruiter'], 'Admin')}</select></label><p class="field-hint">${I.t("Admin/Recruiter: full hiring UI. Only Owner creates accounts.")}</p>${formActions(I.t("Add teammate"))}</form>`);
   }
   function integrationSettings() {
     return `<section class="settings-section"><div><h2>${Store.remote ? "Connect external services" : I.t("Connect when your backend is ready")}</h2><p>${Store.remote ? "The backend API is connected; SMS, email, and calendar providers are not connected. Keep API secrets on the server." : I.t("No provider is connected in this build. Never place API secrets in frontend code or browser storage.")}</p></div><div class="integration-grid">${[{id: 'api', name: 'Backend API', text: 'Authentication, records, audit trail and permissions.', ico: 'database'}, {id: 'sms', name: 'SMS provider', text: 'Server-side sending, consent checks and delivery events.', ico: 'message'}, {id: 'email', name: 'Email provider', text: 'Server-side templates, sending and delivery events.', ico: 'mail'}, {id: 'calendar', name: 'External calendar', text: 'Account connection and two-way event synchronization.', ico: 'calendar'}].map(i => `<article><span class="integration-icon">${icon(i.ico, 23)}</span><h3>${I.t(i.name)}</h3><p>${I.t(i.text)}</p><span class="badge ${i.id === "api" && Store.remote ? "active" : "not-connected"}">${i.id === "api" && Store.remote ? (I.language === "ru" ? "\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u043e" : "Connected") : I.t("Not connected")}</span>${button(I.t("View requirements"), 'integration-info', 'arrow', 'text-button', `data-integration="${i.id}"`)}</article>`).join('')}</div></section>`;
@@ -380,7 +479,7 @@
   }
   function openMemberForm(id = '') {
     const t = state().team.find(t => t.id === id);
-    modal(t ? I.t("Edit team member") : I.t("Add a demo team member"), I.t("This only updates the local directory. Roles do not enforce permissions and no invitation is sent."), `<form id="member-form" data-id="${esc(id)}"><label>${I.t("Name *")}<input name="name" required maxlength="100" value="${esc(t?.name || '')}"></label><label>${I.t("Email {0}", [t?.role === 'Owner' ? '' : '*'])}<input name="email" type="email" ${t?.role === 'Owner' ? '' : 'required'} maxlength="180" value="${esc(t?.email || '')}" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Role")}<select name="role">${options(t?.role === 'Owner' ? ['Owner'] : ['Admin', 'Recruiter', 'Viewer'], t?.role || 'Recruiter')}</select></label>${formActions(t ? I.t("Save member") : I.t("Save draft invitation"))}</form>`);
+    modal(t ? I.t("Edit team member") : I.t("Add a demo team member"), I.t("This only updates the local directory. Roles do not enforce permissions and no invitation is sent."), `<form id="member-form" data-id="${esc(id)}"><label>${I.t("Name *")}<input name="name" required maxlength="100" value="${esc(t?.name || '')}"></label><label>${I.t("Email {0}", [t?.role === 'Owner' ? '' : '*'])}<input name="email" type="email" ${t?.role === 'Owner' ? '' : 'required'} maxlength="180" value="${esc(t?.email || '')}" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Role")}<select name="role">${options(t?.role === 'Owner' ? ['Owner'] : ['Admin', 'Recruiter'], t?.role === 'Viewer' ? 'Recruiter' : (t?.role || 'Recruiter'))}</select></label>${formActions(t ? I.t("Save member") : I.t("Save draft invitation"))}</form>`);
   }
   function notifications() {
     modal(I.t("Your workspace, in motion."), I.t("Activity recorded by this local demo. No external notification service is connected."), `<div class="notification-list">${state().activity.map(a => `<div class="${a.read ? '' : 'unread'}"><span class="activity-dot"></span><p>${esc(I.message(a.text))}<small>${dateFormat(a.at)} &middot; ${timeFormat(a.at)}</small></p></div>`).join('') || empty(I.t("No activity yet"), I.t("Changes in the workspace will appear here."))}</div><div class="modal-actions">${button(I.t("Mark all as read"), 'read-notifications', 'check', 'primary')}</div>`);
@@ -565,10 +664,11 @@
       case 'pause-campaign': commit(d => { const c = d.campaigns.find(c => c.id === id); c.status = 'Paused'; c.updatedAt = new Date().toISOString(); Store.log(d, `Simulation paused: ${c.name}`); }, 'Simulation paused'); openCampaign(id); break;
       case 'report-period': ui.reportDays = Number(target.dataset.days); render(); break;
       case 'export-report': exportReport(); break;
-      case 'settings-tab': ui.settingsTab = tab; render(); break;
+      case 'settings-tab': ui.settingsTab = tab; if (tab === 'team') ui.accounts.items = null; render(); break;
       case 'remove-logo': commit(d => { d.settings.logo = ''; }, 'Workspace logo removed'); break;
       case 'add-member': openMemberForm(); break;
       case 'edit-member': openMemberForm(id); break;
+      case 'add-account': openAccountForm(); break;
       case 'export-backup': exportBackup(); break;
       case 'confirm-reset': confirmDialog(I.t("Reset this demo workspace?"), I.t("All Jobster records and preferences in this browser will be replaced with fresh sample data. Export a JSON backup first to keep your changes. Other browser storage is not affected."), I.t("Reset Jobster demo"), () => { Store.reset(); ui.selected.clear(); ui.settingsTab = 'workspace'; navigate('overview'); toast(I.t("Demo reset. Other browser data was not changed.")); }, true); break;
       case 'confirm-action': { const callback = pendingConfirmation; pendingConfirmation = null; closeOverlay(); if (callback) callback(); break; }
@@ -590,7 +690,7 @@
 
   document.addEventListener('submit', event => {
     const form = event.target;
-    const supported = ['candidate-form', 'job-form', 'notes-form', 'message-form', 'interview-form', 'campaign-form', 'member-form', 'settings-form'];
+    const supported = ['candidate-form', 'job-form', 'notes-form', 'message-form', 'interview-form', 'campaign-form', 'member-form', 'account-form', 'settings-form'];
     if (!supported.includes(form.id)) return;
     event.preventDefault();
     if (!validateForm(form)) return;
@@ -598,6 +698,32 @@
     Object.keys(d).forEach(k => { if (typeof d[k] === 'string') d[k] = d[k].trim(); });
     const id = form.dataset.id || '', now = new Date().toISOString();
     const fail = text => showFormError(form, I.t(text));
+    if (form.id === 'account-form') {
+      if (!isOwner()) return fail('Only the Owner can create login accounts.');
+      if (!d.name || !d.email || !d.password) return fail('Name, email, and password are required.');
+      if (d.password !== d.confirm) return fail('Passwords do not match.');
+      if (!['Admin', 'Recruiter'].includes(d.role)) return fail('Choose Admin or Recruiter.');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+      void (async () => {
+        try {
+          await apiJson('/api/users', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: d.name, email: d.email, password: d.password, role: d.role})
+          });
+          syncTeamDirectoryFromUser({name: d.name, email: d.email, role: d.role});
+          closeOverlay();
+          ui.accounts.items = null;
+          await loadAccounts({force: true});
+          toast(I.t('Teammate added. They can sign in with this email and password.'));
+        } catch (err) {
+          showFormError(form, err.message || I.t('Could not create login account.'));
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      })();
+      return;
+    }
     if (form.id === 'candidate-form') {
       if (!d.name || !d.location || !d.email) return fail('Name, email, and location cannot be blank.');
       if (state().candidates.some(c => c.id !== id && c.email.toLowerCase() === d.email.toLowerCase())) return fail('A candidate with this email already exists, including archived records.');

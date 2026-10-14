@@ -7,6 +7,7 @@ import {once} from 'node:events';
 import {createDatabase} from '../server/database.mjs';
 import {bootstrap} from '../server/auth.mjs';
 import {makeServer} from '../server/index.mjs';
+import {whenStageNotifiesSettled} from '../server/mail.mjs';
 import {
   handleTelegramUpdate,
   isInterviewTomorrow,
@@ -145,6 +146,48 @@ test('interview create sends telegram invite', async () => {
   assert.equal(created.status, 201);
   assert.equal(created.data.telegram?.delivered, true);
   assert.ok(sent.some(s => /Приглашаем вас на интервью|Interview invite/.test(s.body.text)));
+});
+
+test('stage change sends the same notice to telegram', async () => {
+  const jobId = (await query('GET', '/api/jobs')).data.items[0].id;
+  const created = await query('POST', '/api/candidates', {
+    name: 'Olga Stage',
+    email: 'olga.stage@example.com',
+    jobId,
+    location: 'Austin, TX',
+    source: 'Career site',
+    telegramChatId: '555001'
+  });
+  assert.equal(created.status, 201);
+  const id = created.data.data.id;
+
+  sent.length = 0;
+  const interview = await query('POST', `/api/candidates/${id}/stage`, {stage: 'Interview'});
+  assert.equal(interview.status, 200);
+  await whenStageNotifiesSettled();
+  assert.equal(sent.length, 1);
+  assert.ok(sent.some(s => String(s.body.chat_id) === '555001' && /Приглашаем вас на интервью/.test(s.body.text)));
+  assert.ok(/Когда:/.test(sent[0].body.text));
+
+  sent.length = 0;
+  const offer = await query('POST', `/api/candidates/${id}/stage`, {stage: 'Offer'});
+  assert.equal(offer.status, 200);
+  await whenStageNotifiesSettled();
+  assert.equal(sent.length, 1);
+  assert.ok(sent.some(s => String(s.body.chat_id) === '555001' && /предложение по роли/.test(s.body.text)));
+
+  sent.length = 0;
+  const hired = await query('POST', `/api/candidates/${id}/stage`, {stage: 'Hired'});
+  assert.equal(hired.status, 200);
+  await whenStageNotifiesSettled();
+  assert.equal(sent.length, 1);
+  assert.ok(sent.some(s => String(s.body.chat_id) === '555001' && /успешно устроены/.test(s.body.text)));
+
+  sent.length = 0;
+  const screening = await query('POST', `/api/candidates/${id}/stage`, {stage: 'Screening'});
+  assert.equal(screening.status, 200);
+  await whenStageNotifiesSettled();
+  assert.equal(sent.length, 0);
 });
 
 test('tomorrow reminder sends once', async () => {

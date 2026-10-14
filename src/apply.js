@@ -34,14 +34,7 @@ const dict = {
     submit: 'Submit application',
     successTitle: 'Application sent',
     successBody: 'Thank you! We received your application. A recruiter will review it and get back to you by email.',
-    telegramConnect: 'Open bot in Telegram app',
-    telegramConnectTme: 'Open @bot (then press SEND MESSAGE)',
-    telegramConnectWeb: 'Open bot in Telegram Web',
-    telegramConnectLead: 'Telegram Web does not pass Start automatically. Best: desktop/mobile app. Or open the bot and send the command below.',
-    telegramCmdLabel: 'Send this in the bot chat:',
-    telegramCopy: 'Copy',
-    telegramCopied: 'Copied',
-    telegramSkip: 'Need Telegram Desktop/mobile installed for one-tap Start. In Web: open bot → paste /start …',
+    telegramConnect: 'Open Telegram',
     devHint: 'Development mode: SMTP is not connected. Use this code (also printed in the server console):',
     openLink: 'Or open magic link',
     errorGeneric: 'Something went wrong. Try again.',
@@ -82,14 +75,7 @@ const dict = {
     submit: 'Отправить анкету',
     successTitle: 'Анкета отправлена',
     successBody: 'Спасибо! Мы получили ваш отклик. Рекрутер посмотрит анкету и напишет вам на email.',
-    telegramConnect: 'Открыть бота в приложении',
-    telegramConnectTme: 'Открыть @бота (потом SEND MESSAGE)',
-    telegramConnectWeb: 'Открыть бота в Telegram Web',
-    telegramConnectLead: 'Telegram Web не передаёт Start сам. Надёжно: приложение. Или открой бота и отправь команду ниже.',
-    telegramCmdLabel: 'Отправь это в чат бота:',
-    telegramCopy: 'Копировать',
-    telegramCopied: 'Скопировано',
-    telegramSkip: 'Для одного тапа нужен Telegram Desktop/mobile. В Web: открой бота → вставь /start …',
+    telegramConnect: 'Открыть Telegram',
     devHint: 'Режим разработки: SMTP не подключён. Используйте этот код (он же в консоли сервера):',
     openLink: 'Или открыть magic link',
     errorGeneric: 'Что-то пошло не так. Попробуйте ещё раз.',
@@ -109,11 +95,6 @@ let proof = '';
 let lastDev = null;
 let busy = false;
 let telegramLink = null;
-let telegramAppLink = null;
-let telegramWebLink = null;
-let telegramStartCmd = null;
-let telegramBotName = null;
-let telegramAutoTried = false;
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -191,22 +172,9 @@ function stepsUi() {
 
 function formPanel() {
   if (step === 'done') {
-    const hasTg = telegramAppLink || telegramLink || telegramWebLink || telegramStartCmd;
-    const cmdBlock = telegramStartCmd
-      ? `<div class="tg-cmd">
-          <span>${esc(t.telegramCmdLabel)}</span>
-          <code class="tg-cmd-code">${esc(telegramStartCmd)}</code>
-          <button type="button" class="btn btn-secondary tg-btn" data-action="copy-telegram-start">${esc(t.telegramCopy)}</button>
-        </div>`
-      : '';
-    const tg = hasTg
+    const tg = telegramLink
       ? `<div class="tg-connect">
-          <p class="lead">${esc(t.telegramConnectLead)}${telegramBotName ? ` (@${esc(telegramBotName)})` : ''}</p>
-          ${telegramAppLink ? `<button type="button" class="btn btn-primary tg-btn" data-action="open-telegram-app">${esc(t.telegramConnect)}</button>` : ''}
-          ${telegramLink ? `<a class="btn btn-secondary tg-btn" href="${esc(telegramLink)}" target="_blank" rel="noopener noreferrer">${esc(t.telegramConnectTme)}</a>` : ''}
-          ${telegramWebLink ? `<a class="btn btn-secondary tg-btn" href="${esc(telegramWebLink)}" target="_blank" rel="noopener noreferrer">${esc(t.telegramConnectWeb)}</a>` : ''}
-          ${cmdBlock}
-          <p class="tg-skip">${esc(t.telegramSkip)}</p>
+          <a class="btn btn-primary tg-btn" href="${esc(telegramLink)}" target="_blank" rel="noopener noreferrer">${esc(t.telegramConnect)}</a>
         </div>`
       : '';
     return `<section class="form-panel success-card">
@@ -359,40 +327,6 @@ async function startVerification() {
   render();
 }
 
-function openTelegramApp() {
-  if (!telegramAppLink) {
-    if (telegramLink) window.open(telegramLink, '_blank', 'noopener,noreferrer');
-    return;
-  }
-  // Native protocol — Desktop/mobile only. Embedded browsers (Cursor) usually ignore it.
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = telegramAppLink;
-  document.body.appendChild(iframe);
-  setTimeout(() => iframe.remove(), 1500);
-  try { window.location.href = telegramAppLink; } catch { /* ignore */ }
-}
-
-async function copyTelegramStart() {
-  if (!telegramStartCmd) return;
-  try {
-    await navigator.clipboard.writeText(telegramStartCmd);
-  } catch {
-    const ta = document.createElement('textarea');
-    ta.value = telegramStartCmd;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
-  }
-  const btn = root.querySelector('[data-action="copy-telegram-start"]');
-  if (btn) {
-    const prev = btn.textContent;
-    btn.textContent = t.telegramCopied;
-    setTimeout(() => { btn.textContent = prev; }, 1500);
-  }
-}
-
 root.addEventListener('click', event => {
   const langBtn = event.target.closest('[data-lang]');
   if (langBtn) { setLang(langBtn.dataset.lang); return; }
@@ -402,14 +336,6 @@ root.addEventListener('click', event => {
   }
   if (event.target.closest('[data-action="resend-code"]')) {
     void startVerification();
-  }
-  if (event.target.closest('[data-action="open-telegram-app"]')) {
-    event.preventDefault();
-    openTelegramApp();
-  }
-  if (event.target.closest('[data-action="copy-telegram-start"]')) {
-    event.preventDefault();
-    void copyTelegramStart();
   }
 });
 
@@ -439,12 +365,7 @@ root.addEventListener('submit', async event => {
         name: data.name, phone: data.phone, telegram: data.telegram,
         location: data.location, experience: data.experience, notes: data.notes
       });
-      telegramLink = submitted.telegramDeepLink || null;
-      telegramAppLink = submitted.telegramAppLink || null;
-      telegramWebLink = submitted.telegramWebLink || null;
-      telegramStartCmd = submitted.telegramStartCommand || null;
-      telegramBotName = submitted.telegramBot || null;
-      telegramAutoTried = false;
+      telegramLink = submitted.telegramDeepLink || submitted.telegramAppLink || null;
       step = 'done';
       proof = '';
     }
@@ -456,10 +377,6 @@ root.addEventListener('submit', async event => {
   }
   busy = false;
   render();
-  if (step === 'done' && telegramAppLink && !telegramAutoTried) {
-    telegramAutoTried = true;
-    setTimeout(() => openTelegramApp(), 400);
-  }
 });
 
 boot();

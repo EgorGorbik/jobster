@@ -8,7 +8,7 @@ if (command !== 'init') {
 }
 const filename=path.resolve(process.env.JOBSTER_DB||'var/jobster.sqlite');
 if (!process.env.JOBSTER_ADMIN_EMAIL || !process.env.JOBSTER_ADMIN_PASSWORD) {
-  console.error('Set JOBSTER_ADMIN_EMAIL and JOBSTER_ADMIN_PASSWORD (12+ characters); do not commit credentials.');
+  console.error('Set JOBSTER_ADMIN_EMAIL and JOBSTER_ADMIN_PASSWORD; do not commit credentials.');
   process.exit(2);
 }
 const db=createDatabase(filename);
