@@ -51,6 +51,12 @@ All URLs are relative to the same origin. Use a session cookie issued by `POST /
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/healthz` | Public health status (no records) |
+| GET | `/api/public/jobs/:slug` | Public job landing payload (no auth) |
+| POST | `/api/public/jobs/:slug/start` | Start email verification for apply |
+| POST | `/api/public/jobs/:slug/confirm` | Confirm code/token → proof |
+| POST | `/api/public/jobs/:slug/submit` | Submit application → candidate in `New` |
+| GET | `/apply/:slug` | Public career landing page (HTML) |
+| POST | `/api/public/telegram/webhook` | Telegram Bot updates (`/start <candidateId>` links chat) |
 | POST | `/api/auth/login` | `{email,password}`, issues HttpOnly SameSite=Strict cookie |
 | GET | `/api/session` | Current session and role |
 | POST | `/api/auth/logout` | Revoke current session |

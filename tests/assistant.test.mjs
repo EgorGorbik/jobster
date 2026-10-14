@@ -7,7 +7,7 @@ import {once} from 'node:events';
 import {createDatabase} from '../server/database.mjs';
 import {bootstrap} from '../server/auth.mjs';
 import {makeServer} from '../server/index.mjs';
-import {aggregateWorkspace,extractResponseText,validateAssistantInput} from '../server/assistant.mjs';
+import {aggregateWorkspace,extractResponseText,validateAssistantInput,resolveAssistantConfig,buildProviderRequest,executeAssistantTool} from '../server/assistant.mjs';
 
 const dir=mkdtempSync(path.join(tmpdir(),'jobster-ai-'));
 const db=createDatabase(path.join(dir,'test.sqlite'));
@@ -47,6 +47,20 @@ test('assistant helpers sanitize and extract only assistant output text',()=>{
   assert.ok(validateAssistantInput({message:'Hi',history:new Array(13).fill({role:'user',content:'Hi'})}).error);
   assert.equal(validateAssistantInput({message:'Hi',language:'ru'}).value.language,'ru');
   assert.equal(extractResponseText({output:[{type:'reasoning',content:[{type:'output_text',text:'secret'}]},{type:'message',role:'assistant',content:[{type:'output_text',text:'Hello'}]}]}),'Hello');
+  assert.equal(extractResponseText({choices:[{message:{role:'assistant',content:'OpenRouter hello'}}]}),'OpenRouter hello');
+});
+test('OpenRouter keys and bare models resolve to chat completions',()=>{
+  const cfg=resolveAssistantConfig({apiKey:'sk-or-v1-test-key',model:'gpt-4.1-mini'});
+  assert.equal(cfg.provider,'OpenRouter');
+  assert.equal(cfg.mode,'chat');
+  assert.equal(cfg.canMutate,true);
+  assert.equal(cfg.model,'openai/gpt-4.1-mini');
+  assert.equal(cfg.endpoint,'https://openrouter.ai/api/v1/chat/completions');
+  const req=buildProviderRequest(cfg,{instructions:'sys',history:[{role:'user',content:'hi'}],message:'next'});
+  assert.equal(req.url,cfg.endpoint);
+  assert.equal(req.body.messages[0].role,'system');
+  assert.equal(req.body.messages.at(-1).content,'next');
+  assert.equal(req.headers.Authorization,'Bearer sk-or-v1-test-key');
 });
 test('assistant endpoints require authentication and preserve old API behavior',async()=>{
   assert.equal((await api('/api/assistant/status','GET',undefined,{},'')).status,401);
@@ -61,7 +75,12 @@ test('assistant endpoints require authentication and preserve old API behavior',
 });
 test('authenticated status gives readiness but does not leak the key',async()=>{
   const result=await api('/api/assistant/status');assert.equal(result.status,200);
-  assert.deepEqual(result.data,{configured:true,provider:'OpenAI',model:'gpt-4.1-mini',readOnly:true});
+  assert.equal(result.data.configured,true);
+  assert.equal(result.data.provider,'OpenAI');
+  assert.equal(result.data.model,'gpt-4.1-mini');
+  assert.equal(result.data.readOnly,true);
+  assert.equal(result.data.canMutate,false);
+  assert.equal(result.data.toolCount,0);
   assert.ok(!JSON.stringify(result.data).includes('sk-fake'));
   assert.equal((await api('/api/assistant/status','POST',{})).status,405);
 });
@@ -71,8 +90,8 @@ test('chat sends server-only key, chat history, selected language and no workspa
   const payload=calls.at(-1);
   assert.equal(payload.model,'gpt-4.1-mini');assert.equal(payload.store,false);assert.equal(payload.max_output_tokens,700);
   assert.deepEqual(payload.input.map(h=>h.role),['user','assistant','user']);
-  assert.match(payload.instructions,/Respond in Russian/);
-  assert.match(payload.instructions,/NO workspace data/);
+  assert.match(payload.instructions,/entirely in Russian/);
+  assert.match(payload.instructions,/cannot run workspace tools/);
   assert.doesNotMatch(JSON.stringify(payload),/EXTRA PRIVATE RECORD/);
 });
 test('opted-in workspace summary shares only aggregated counts, never identities',async()=>{
@@ -124,7 +143,44 @@ test('without key the assistant is visibly unconfigured and never contacts OpenA
   otherServer.listen(0,'127.0.0.1');await once(otherServer,'listening');
   const oldBase=base;base=`http://127.0.0.1:${otherServer.address().port}`;
   try {
-    const status=await api('/api/assistant/status');assert.deepEqual(status.data,{configured:false,provider:'OpenAI',model:null,readOnly:true});
+    const status=await api('/api/assistant/status');
+    assert.equal(status.data.configured,false);
+    assert.equal(status.data.canMutate,false);
+    assert.equal(status.data.toolCount,0);
     const request=await chat();assert.equal(request.status,503);assert.equal(request.data.code,'NOT_CONFIGURED');
   } finally {base=oldBase;await new Promise(ok=>otherServer.close(ok));}
+});
+test('assistant tools cover navigation, reports, CRUD, pipeline moves and Screening invites',async()=>{
+  const sess=await api('/api/session');
+  const workspaceId=sess.data.user.workspaceId;
+  const actorId=sess.data.user.id;
+  const guide=await executeAssistantTool(db,workspaceId,actorId,'get_app_guide',{});
+  assert.ok(guide.guide.views.some(v=>v.route==='#/pipeline'));
+  const overview=await executeAssistantTool(db,workspaceId,actorId,'get_workspace_overview',{});
+  assert.ok(overview.counts.candidatesActive>=1);
+  const report=await executeAssistantTool(db,workspaceId,actorId,'get_hiring_report',{});
+  assert.ok(report.report.byStage);
+  const job=await executeAssistantTool(db,workspaceId,actorId,'create_job',{
+    title:'Yard Hostler',department:'Ops',location:'Dallas, TX',openings:2,description:'Move trailers'
+  });
+  assert.equal(job.workspaceChanged,true);
+  assert.match(job.applyPath,/^\/apply\//);
+  const created=await executeAssistantTool(db,workspaceId,actorId,'create_candidate',{
+    name:'Riley Tool',email:'riley.tool@example.com',jobId:job.job.id,location:'Dallas, TX',source:'Career site'
+  });
+  assert.equal(created.candidate.stage,'New');
+  const moved=await executeAssistantTool(db,workspaceId,actorId,'move_candidates',{fromStage:'New',toStage:'Screening',nameContains:'Riley'});
+  assert.equal(moved.count,1);
+  const invite=await executeAssistantTool(db,workspaceId,actorId,'invite_to_interview',{
+    nameContains:'Riley',when:'завтра после 11',sendEmail:false
+  });
+  assert.equal(invite.count,1);
+  assert.equal(invite.invited[0].candidate.stage,'Interview');
+  assert.equal(invite.invited[0].interview.duration,30);
+  const draft=await executeAssistantTool(db,workspaceId,actorId,'create_message_draft',{
+    candidateId:created.candidate.id,channel:'Email',subject:'Hello',body:'Draft from assistant'
+  });
+  assert.equal(draft.draft.status,'Draft');
+  const search=await executeAssistantTool(db,workspaceId,actorId,'search_workspace',{query:'Yard Hostler'});
+  assert.ok(search.jobs.some(j=>j.id===job.job.id));
 });

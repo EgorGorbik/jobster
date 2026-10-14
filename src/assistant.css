@@ -46,6 +46,17 @@
 #fja-root .fja-msg-user p{background:#2e704e;color:#fff;border-bottom-right-radius:3px}
 #fja-root .fja-msg-assistant p{background:#f0f5ec;color:#415b43;border:1px solid #e3eddf;border-bottom-left-radius:3px}
 #fja-root .fja-msg-wait p{font-style:italic;background:#f3f6ef;color:#7a8974}
+#fja-root .fja-msg-confirm{justify-content:flex-start}
+#fja-root .fja-confirm{width:100%;max-width:100%;background:#f7faf4;border:1px solid #c5d9b8;border-radius:12px;padding:12px 13px;color:#355040}
+#fja-root .fja-confirm strong{display:block;font-size:12px;font-weight:650;margin-bottom:6px;color:#2a5538}
+#fja-root .fja-confirm p{margin:0 0 8px;font-size:12px;line-height:1.55;white-space:pre-wrap}
+#fja-root .fja-confirm ul{margin:0 0 10px;padding-left:16px;font-size:10px;color:#5a7260;line-height:1.55}
+#fja-root .fja-confirm code{font-size:9px;background:#e8f0e2;padding:1px 4px;border-radius:3px}
+#fja-root .fja-confirm-actions{display:flex;gap:8px}
+#fja-root .fja-confirm-ok{background:#2e6d4e;color:#fff;border:1px solid #2e6d4e;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600}
+#fja-root .fja-confirm-ok:hover{background:#1a4b35}
+#fja-root .fja-confirm-no{background:#fff;color:#5a6e58;border:1px solid #c9d6c2;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600}
+#fja-root .fja-confirm-no:hover{background:#f3f6ef}
 #fja-root .fja-bottom{padding:11px 14px 12px;background:#fcfdfb;border-top:1px solid #e7ece2;flex-shrink:0}
 #fja-root .fja-summary-option{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;font-weight:600;color:#657d5c}
 #fja-root .fja-summary-option input{width:15px;height:15px;accent-color:#317a52;cursor:pointer;flex:0 0 auto}

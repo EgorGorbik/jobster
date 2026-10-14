@@ -5,6 +5,8 @@ import {fileURLToPath} from 'node:url';
 import {createDatabase} from './database.mjs';
 import {handleApi,handleError} from './api.mjs';
 import {makeAssistantHandler} from './assistant.mjs';
+import {handlePublicApply} from './apply.mjs';
+import {handleTelegramWebhook, startTelegramServices, stopTelegramServices} from './telegram.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const ASSETS=new Map([
   ['/app.js', ['app.js','text/javascript; charset=utf-8']],
@@ -16,8 +18,11 @@ const ASSETS=new Map([
   ['/src/assistant.js',['src/assistant.js','text/javascript; charset=utf-8']],
   ['/src/assistant.css',['src/assistant.css','text/css; charset=utf-8']],
   ['/src/styles.css',['src/styles.css','text/css; charset=utf-8']],
-  ['/src/theme-black-gold.css',['src/theme-black-gold.css','text/css; charset=utf-8']]
+  ['/src/theme-black-gold.css',['src/theme-black-gold.css','text/css; charset=utf-8']],
+  ['/src/apply.js',['src/apply.js','text/javascript; charset=utf-8']],
+  ['/src/apply.css',['src/apply.css','text/css; charset=utf-8']]
 ]);
+const applyHTML=fs.readFileSync(path.join(root,'apply.html'),'utf8');
 const landingHTML=fs.readFileSync(path.join(root,'index.html'),'utf8')
   .replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\s*/,'')
   .replace('interactive recruiting workspace. Local sample data, no live messaging.', 'recruiting workspace with a protected API and database.')
@@ -32,7 +37,7 @@ function sharedHeaders(res, options={}) {
   res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
   if (options.cookieSecure) res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
 }
-export function makeServer({db,allowedOrigin='',cookieSecure=false,assistantApiKey=process.env.OPENAI_API_KEY||'',assistantModel=process.env.OPENAI_MODEL||'gpt-4.1-mini',assistantFetch=fetch}={}) {
+export function makeServer({db,allowedOrigin='',cookieSecure=false,assistantApiKey=process.env.OPENROUTER_API_KEY||process.env.OPENAI_API_KEY||'',assistantModel=process.env.OPENAI_MODEL||'gpt-4.1-mini',assistantFetch=fetch}={}) {
   if (!db) throw new Error('A database connection is required');
   const options={allowedOrigin,cookieSecure};
   const handleAssistant=makeAssistantHandler({apiKey:assistantApiKey,model:assistantModel,fetchImpl:assistantFetch});
@@ -41,10 +46,13 @@ export function makeServer({db,allowedOrigin='',cookieSecure=false,assistantApiK
     try {
       const url=new URL(req.url,'http://localhost');
       if (url.pathname.startsWith('/api/assistant/')) return await handleAssistant(req,res,db,url,options);
+      if (url.pathname === '/api/public/telegram/webhook') return await handleTelegramWebhook(req,res,db);
+      if (url.pathname.startsWith('/api/public/')) return await handlePublicApply(req,res,db,url,options);
       if (url.pathname.startsWith('/api/')) return await handleApi(req,res,db,url,options);
       if (!['GET','HEAD'].includes(req.method)) {res.writeHead(405,{'Allow':'GET, HEAD'});res.end('Method not allowed');return;}
       let body,contentType;
       if (url.pathname==='/'||url.pathname==='/index.html') {body=landingHTML;contentType='text/html; charset=utf-8';}
+      else if (/^\/apply\/[a-z0-9-]{6,40}\/?$/i.test(url.pathname)) {body=applyHTML;contentType='text/html; charset=utf-8';}
       else if (ASSETS.has(url.pathname)) {
         const [filename,type]=ASSETS.get(url.pathname);
         body=fs.readFileSync(path.join(root,filename));contentType=type;
@@ -67,7 +75,13 @@ if (process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.u
   const cookieSecure=process.env.JOBSTER_COOKIE_SECURE==='true';
   if(host==='0.0.0.0'&&!cookieSecure&&process.env.NODE_ENV==='production') throw new Error('Production requires JOBSTER_COOKIE_SECURE=true with HTTPS termination');
   const server=makeServer({db,allowedOrigin:process.env.JOBSTER_ORIGIN||'',cookieSecure});
-  server.listen(port,host,()=>console.log(`Falcon Jobster API and UI running at http://${host}:${port} | SQLite: ${dbPath} | outbound applicant messages are never sent | AI assistant: ${process.env.OPENAI_API_KEY?'configured':'needs API key'}`));
-  const exit=()=>server.close(()=>{db.close();process.exit(0);});
+  const aiConfigured=!!(process.env.OPENROUTER_API_KEY||process.env.OPENAI_API_KEY);
+  const aiProvider=(process.env.OPENROUTER_API_KEY||String(process.env.OPENAI_API_KEY||'').startsWith('sk-or-'))?'OpenRouter':'OpenAI';
+  const tgConfigured=!!(process.env.TELEGRAM_BOT_TOKEN?.trim()&&process.env.TELEGRAM_BOT_USERNAME?.trim());
+  server.listen(port,host,()=>{
+    startTelegramServices(db);
+    console.log(`Falcon Jobster API and UI running at http://${host}:${port} | SQLite: ${dbPath} | AI assistant: ${aiConfigured?`configured (${aiProvider})`:'needs API key'} | Telegram: ${tgConfigured?(process.env.TELEGRAM_USE_POLLING==='true'?'polling':'webhook /api/public/telegram/webhook'):'off'}`);
+  });
+  const exit=()=>{stopTelegramServices();server.close(()=>{db.close();process.exit(0);});};
   process.on('SIGTERM',exit);process.on('SIGINT',exit);
 }

@@ -3,6 +3,8 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
 import {clone, validateWorkspace, ValidationError} from './validation.mjs';
+import {normalizeJobPublicFields} from './job-public.mjs';
+import {notifyStageChanges} from './mail.mjs';
 
 const KINDS = ['jobs', 'candidates', 'interviews', 'campaigns', 'messages', 'team', 'activity'];
 const defaults = (company = 'Falcon Jobster', member = {name:'Workspace owner', email:''}) => ({
@@ -57,6 +59,20 @@ export function createDatabase(filename) {
   const schemaVersion = db.prepare('PRAGMA user_version').get().user_version;
   if (schemaVersion > 1) throw new Error('Database schema is newer than this server.');
   if (schemaVersion === 0) db.exec('PRAGMA user_version = 1;');
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS apply_tokens (
+      token_hash TEXT PRIMARY KEY,
+      code_hash TEXT NOT NULL,
+      workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+      job_id TEXT NOT NULL,
+      email TEXT NOT NULL COLLATE NOCASE,
+      expires_at TEXT NOT NULL,
+      used_at TEXT,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS apply_tokens_job_idx ON apply_tokens(workspace_id, job_id, email);
+    CREATE INDEX IF NOT EXISTS apply_tokens_exp_idx ON apply_tokens(expires_at);
+  `);
   return db;
 }
 export function transaction(db, fn) {
@@ -96,14 +112,17 @@ export function createWorkspace(db, {company, name, email, salt, passwordHash}) 
   });
 }
 export function saveWorkspace(db, workspaceId, inputState, expectedRevision, actorId, action = 'workspace.replace') {
-  validateWorkspace(inputState);
   const state = clone(inputState);
-  return transaction(db, () => {
+  if (Array.isArray(state.jobs)) state.jobs.forEach(normalizeJobPublicFields);
+  validateWorkspace(state);
+  let previousState = null;
+  const saved = transaction(db, () => {
     const row = db.prepare('SELECT revision FROM workspaces WHERE id=?').get(workspaceId);
     if (!row) throw new ValidationError('Workspace not found', 404);
     if (expectedRevision !== undefined && expectedRevision !== row.revision) {
       throw new ValidationError('Workspace revision conflict. Reload before retrying.', 409);
     }
+    previousState = getWorkspace(db, workspaceId).state;
     replace(db, workspaceId, state);
     const revision = row.revision + 1;
     db.prepare('UPDATE workspaces SET revision=? WHERE id=?').run(revision, workspaceId);
@@ -111,6 +130,8 @@ export function saveWorkspace(db, workspaceId, inputState, expectedRevision, act
       .run(workspaceId,actorId,action,JSON.stringify({revision}),new Date().toISOString());
     return {revision, state};
   });
+  notifyStageChanges(previousState, saved.state);
+  return saved;
 }
 export function mutateWorkspace(db, workspaceId, expectedRevision, actorId, action, fn) {
   const snapshot = getWorkspace(db, workspaceId);

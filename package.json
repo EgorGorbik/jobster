@@ -14,5 +14,8 @@
     "backend:start": "node --env-file-if-exists=.env server/index.mjs",
     "backend:test": "node --test tests/server.test.mjs",
     "test:all": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "^6.10.1"
   }
 }

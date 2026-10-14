@@ -17,6 +17,10 @@ The integration uses OpenAI's **Responses API** from the **Node.js backend**. Th
    ```dotenv
    OPENAI_API_KEY=your_real_secret_key_here
    OPENAI_MODEL=gpt-4.1-mini
+
+   # OpenRouter also works: paste sk-or-v1-... into OPENAI_API_KEY
+   # (or OPENROUTER_API_KEY) and use an OpenRouter model id:
+   # OPENAI_MODEL=openai/gpt-4o-mini
    ```
 
 4. Start the server:
@@ -80,8 +84,10 @@ Failures: `401` unauthenticated; `403` forbidden/cross-origin; `405` wrong metho
 
 ## Operational and security details
 
-- Provider endpoint: `https://api.openai.com/v1/responses`.
-- Default model: `gpt-4.1-mini`, configurable using `OPENAI_MODEL`.
+- OpenAI endpoint: `https://api.openai.com/v1/responses` (keys `sk-...`).
+- OpenRouter endpoint: `https://openrouter.ai/api/v1/chat/completions` (keys `sk-or-...` or `OPENROUTER_API_KEY`).
+- Default OpenAI model: `gpt-4.1-mini`. Bare model names are auto-prefixed with `openai/` on OpenRouter.
+- Model override: `OPENAI_MODEL`.
 - Responses are requested with `store:false`; no tools/action permissions are granted.
 - Conversation input: one new user message (1–3000 characters) and up to 12 previous user/assistant messages (bounded to 10,000 characters overall).
 - Maximum output request: 700 tokens; upstream timeout: 25 seconds.

@@ -2,6 +2,10 @@ import {randomUUID} from 'node:crypto';
 import {getWorkspace,saveWorkspace,mutateWorkspace,listAudit} from './database.mjs';
 import {login,sessionUser,logout,cookieHeader,clearCookieHeader,changePassword,addUser} from './auth.mjs';
 import {clone,validateWorkspace,validateRecord,ValidationError,STAGES} from './validation.mjs';
+import {normalizeJobPublicFields} from './job-public.mjs';
+import {sendInterviewInvite} from './mail.mjs';
+import {sendInterviewTelegram} from './telegram.mjs';
+import {ensureScheduledInterview, promoteToInterview} from './interview-slot.mjs';
 
 const RESOURCES=['jobs','candidates','interviews','campaigns','messages','team'];
 const writeMethods=['POST','PUT','PATCH','DELETE'];
@@ -49,8 +53,8 @@ async function readJSON(req) {
 function makeRecord(kind,body) {
   const now=iso(), id=freshId();
   switch (kind) {
-    case 'jobs': return {id,title:asString(body.title),department:asString(body.department),location:asString(body.location),openings:body.openings??1,status:body.status||'Active',pay:asString(body.pay),owner:asString(body.owner),description:asString(body.description),createdAt:now};
-    case 'candidates': return {id,name:asString(body.name),jobId:body.jobId,location:asString(body.location),source:asString(body.source),rating:body.rating??null,stage:body.stage||'New',email:asString(body.email),phone:asString(body.phone),experience:asString(body.experience),owner:asString(body.owner),tags:body.tags??[],notes:asString(body.notes),favorite:false,archived:false,color:'#deebe6',createdAt:now,updatedAt:now,history:[{id:freshId(),type:'created',text:'Candidate created',stage:'New',at:now}]};
+    case 'jobs': return normalizeJobPublicFields({id,title:asString(body.title),department:asString(body.department),location:asString(body.location),openings:body.openings??1,status:body.status||'Active',pay:asString(body.pay),owner:asString(body.owner),description:asString(body.description),publicSlug:asString(body.publicSlug),landingLayout:body.landingLayout||'classic',publicEnabled:body.publicEnabled!==false,createdAt:now});
+    case 'candidates': return {id,name:asString(body.name),jobId:body.jobId,location:asString(body.location),source:asString(body.source),rating:body.rating??null,stage:body.stage||'New',email:asString(body.email),phone:asString(body.phone),telegram:asString(body.telegram).replace(/^@/,''),telegramChatId:asString(body.telegramChatId),telegramLinkedAt:asString(body.telegramLinkedAt),experience:asString(body.experience),owner:asString(body.owner),tags:body.tags??[],notes:asString(body.notes),favorite:false,archived:false,color:'#deebe6',createdAt:now,updatedAt:now,history:[{id:freshId(),type:'created',text:'Candidate created',stage:'New',at:now}]};
     case 'interviews':return {id,candidateId:body.candidateId,title:asString(body.title),startsAt:body.startsAt,duration:body.duration??30,format:body.format||'Video',location:asString(body.location),interviewer:asString(body.interviewer),status:'Scheduled',notes:asString(body.notes),createdAt:now};
     case 'campaigns':return {id,name:asString(body.name),message:asString(body.message),jobId:body.jobId||'All',stage:body.stage||'All',audience:body.audience||'All',channel:body.channel||'Email',status:'Draft',createdAt:now,updatedAt:now};
     case 'messages':return {id,candidateId:body.candidateId,channel:body.channel||'Email',subject:asString(body.subject),body:asString(body.body),status:'Draft',createdAt:now};
@@ -59,8 +63,8 @@ function makeRecord(kind,body) {
   }
 }
 const PATCH_FIELDS={
-  jobs:['title','department','location','openings','status','pay','owner','description'],
-  candidates:['name','jobId','location','source','rating','email','phone','experience','owner','tags','notes','favorite'],
+  jobs:['title','department','location','openings','status','pay','owner','description','publicSlug','landingLayout','publicEnabled'],
+  candidates:['name','jobId','location','source','rating','email','phone','telegram','experience','owner','tags','notes','favorite'],
   interviews:['title','candidateId','startsAt','duration','format','location','interviewer','status','notes'],
   campaigns:['name','message','jobId','stage','audience','channel','status'],
   messages:['candidateId','subject','body','channel'],
@@ -187,13 +191,45 @@ export async function handleApi(req,res,db,url,options={}) {
   }
   if (method==='POST' && !recordId) {
     const body=await readJSON(req);const revision=readRevision(req,body);
+    let mailMeta=null;
     const result=mutateWorkspace(db,user.workspaceId,revision,user.id,`${kind}.create`,state=>{
       const record=makeRecord(kind,body);
       validateRecord(kind,record,state);
       state[kind].push(record);
       log(state,`${kind} record created`);
+      if (kind==='interviews') {
+        const candidate=state.candidates.find(c=>c.id===record.candidateId);
+        if (candidate && promoteToInterview(candidate)) {
+          addHistory(candidate,'stage','Moved to Interview (interview scheduled)','Interview');
+        }
+        if (candidate) addHistory(candidate,'interview',`${record.title} scheduled`);
+        const job=candidate ? state.jobs.find(j=>j.id===candidate.jobId) : null;
+        mailMeta={
+          candidate: candidate ? {
+            name:candidate.name,
+            email:candidate.email,
+            telegramChatId:candidate.telegramChatId||''
+          } : null,
+          jobTitle: job?.title || null,
+          interview: record,
+          company: state.settings?.company || 'Falcon Jobster'
+        };
+      }
       return record;
     });
+    if (kind==='interviews' && mailMeta?.candidate) {
+      let email={skipped:true};
+      let telegram={skipped:true};
+      if (mailMeta.candidate.email) {
+        try { email=await sendInterviewInvite(mailMeta); }
+        catch (err) { email={delivered:false,error:err.message||String(err)}; }
+      }
+      if (mailMeta.candidate.telegramChatId) {
+        try { telegram=await sendInterviewTelegram(mailMeta); }
+        catch (err) { telegram={delivered:false,error:err.message||String(err)}; }
+      }
+      return json(res,201,{...result,email,telegram});
+    }
     return json(res,201,result);
   }
   if (recordId && !/^[A-Za-z0-9_-]{1,128}$/.test(recordId)) throw new ValidationError('Invalid id',400);
@@ -205,6 +241,10 @@ export async function handleApi(req,res,db,url,options={}) {
       if (command==='stage') {
         if (!STAGES.includes(body.stage)) throw new ValidationError('Unknown candidate stage');
         c.stage=body.stage;addHistory(c,'stage',`Moved to ${c.stage}`,c.stage);
+        if (body.stage==='Interview') {
+          const slot=ensureScheduledInterview(state,c);
+          if (slot) addHistory(c,'interview',`${slot.title} added to calendar`);
+        }
       }
       if (command==='archive') {
         if (typeof body.archived!=='boolean') throw new ValidationError('archived must be boolean');
@@ -226,7 +266,11 @@ export async function handleApi(req,res,db,url,options={}) {
       if (!record) notFound();
       const changes=wanted(body,PATCH_FIELDS[kind]);
       if (!Object.keys(changes).length) throw new ValidationError('No writable fields supplied');
+      if (kind==='candidates' && typeof changes.telegram==='string') {
+        changes.telegram=changes.telegram.trim().replace(/^@/,'');
+      }
       Object.assign(record,changes);
+      if (kind==='jobs') normalizeJobPublicFields(record);
       if (kind==='candidates') addHistory(record,'edited','Candidate details updated');
       if (kind==='campaigns') record.updatedAt=iso();
       log(state,`${kind} record updated`);

@@ -67,6 +67,8 @@ test('move stage, add notes, archive and restore',async()=>{
   const move=await post(`/api/candidates/${newCandidate}/stage`,{stage:'Interview'});
   assert.equal(move.status,200);assert.equal(move.data.data.stage,'Interview');
   assert.ok(move.data.data.history.some(h=>h.stage==='Interview'));
+  // Moving to Interview auto-creates a calendar appointment.
+  assert.equal((await get('/api/reports')).data.interviews.scheduled,1);
   assert.equal((await post(`/api/candidates/${newCandidate}/notes`,{notes:'Follow up on CDL'})).status,200);
   const archive=await post(`/api/candidates/${newCandidate}/archive`,{archived:true});
   assert.equal(archive.data.data.archived,true);assert.equal((await get('/api/reports')).data.candidates.total,0);
@@ -74,6 +76,7 @@ test('move stage, add notes, archive and restore',async()=>{
   assert.equal((await get('/api/reports')).data.candidates.byStage.Interview,1);
 });
 test('interviews, campaign definitions and draft messages never send',async()=>{
+  // Candidate already has the auto calendar slot from Interview stage — add a second explicit one.
   const appointment=await post('/api/interviews',{candidateId:newCandidate,title:'Technical interview',startsAt:new Date(Date.now()+86400000).toISOString(),duration:30,format:'Video',interviewer:'Test Owner'});
   assert.equal(appointment.status,201);assert.equal(appointment.data.data.status,'Scheduled');
   const campaign=await post('/api/campaigns',{name:'Driver outreach',channel:'SMS',message:'Hello {{first_name}}',jobId:newJob});
@@ -81,7 +84,7 @@ test('interviews, campaign definitions and draft messages never send',async()=>{
   const msg=await post('/api/messages',{candidateId:newCandidate,channel:'Email',subject:'Hello',body:'Draft only'});
   assert.equal(msg.status,201);assert.equal(msg.data.data.status,'Draft');
   assert.equal((await get('/api/healthz')).data.messaging,'disabled');
-  assert.equal((await get('/api/reports')).data.interviews.scheduled,1);
+  assert.equal((await get('/api/reports')).data.interviews.scheduled,2);
 });
 test('invalid references rejected atomically and linked jobs protected',async()=>{
   const beforeState=await get('/api/state');const r=await patch(`/api/candidates/${newCandidate}`,{jobId:'missing-job'});

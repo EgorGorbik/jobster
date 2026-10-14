@@ -298,7 +298,13 @@
     currentCandidateId = id; ui.drawerTab = tab;
     const appointments = state().interviews.filter(i => i.candidateId === id && i.status === 'Scheduled').sort((a, b) => a.startsAt.localeCompare(b.startsAt));
     const messages = state().messages.filter(m => m.candidateId === id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    const profile = `<section class="drawer-section"><h3>${I.t("Contact & context")}</h3><div class="contact-links">${c.email ? `<a href="mailto:${encodeURIComponent(c.email)}">${icon('mail', 15)}${esc(c.email)}</a>` : `<span class="muted">${I.t("No email added")}</span>`}${c.phone ? `<a href="tel:${esc(c.phone.replace(/[^+\d]/g, ''))}">${icon('phone', 15)}${esc(c.phone)}</a>` : `<span class="muted">${I.t("No phone added")}</span>`}</div><div class="facts"><div><span>${I.t("Experience")}</span><strong>${esc(c.experience || I.t('Not specified'))}</strong></div><div><span>${I.t("Applied")}</span><strong>${dateFormat(c.createdAt, {year: 'numeric'})}</strong></div><div><span>${I.t("Source")}</span><strong>${esc(I.t(c.source))}</strong></div><div><span>${I.t("Recruiter")}</span><strong>${esc(c.owner)}</strong></div></div><div class="tags">${c.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div></section><section class="drawer-section"><form id="notes-form" data-id="${esc(c.id)}"><label for="candidate-notes">${I.t("Recruiter notes")}</label><textarea id="candidate-notes" name="notes" rows="4" maxlength="6000" placeholder="${I.t("Keep useful context for the next conversation...")}">${esc(c.notes)}</textarea><button class="secondary" type="submit">${I.t("{0}Save note", [icon('check', 14)])}</button></form></section><section class="drawer-section">${panelHead(I.t("Scheduled conversations"), I.t("Stored in this workspace only"), iconButton(I.t("Schedule interview"), 'add-interview', 'plus', `data-candidate-id="${esc(id)}"`))}${appointments.map(i => `<button class="mini-event" data-action="interview" data-id="${esc(i.id)}">${icon('calendar', 17)}<span><strong>${esc(i.title)}</strong><small>${I.t("{0} at {1}", [dateFormat(i.startsAt), timeFormat(i.startsAt)])}</small></span>${icon('right', 14)}</button>`).join('') || `<p class="muted">${I.t("No scheduled conversations yet.")}</p>`}</section>`;
+    const tgLabel = c.telegramChatId
+      ? (c.telegram ? `@${c.telegram}` : I.t('Telegram linked'))
+      : (c.telegram ? `@${c.telegram}` : '');
+    const tgLink = c.telegram
+      ? `<a href="https://t.me/${esc(c.telegram)}" target="_blank" rel="noopener noreferrer">${icon('message', 15)}${esc(tgLabel)}${c.telegramChatId ? ` · ${I.t('bot linked')}` : ''}</a>`
+      : (c.telegramChatId ? `<span>${icon('message', 15)}${esc(I.t('Telegram linked'))}</span>` : `<span class="muted">${I.t("No Telegram")}</span>`);
+    const profile = `<section class="drawer-section"><h3>${I.t("Contact & context")}</h3><div class="contact-links">${c.email ? `<a href="mailto:${encodeURIComponent(c.email)}">${icon('mail', 15)}${esc(c.email)}</a>` : `<span class="muted">${I.t("No email added")}</span>`}${c.phone ? `<a href="tel:${esc(c.phone.replace(/[^+\d]/g, ''))}">${icon('phone', 15)}${esc(c.phone)}</a>` : `<span class="muted">${I.t("No phone added")}</span>`}${tgLink}</div><div class="facts"><div><span>${I.t("Experience")}</span><strong>${esc(c.experience || I.t('Not specified'))}</strong></div><div><span>${I.t("Applied")}</span><strong>${dateFormat(c.createdAt, {year: 'numeric'})}</strong></div><div><span>${I.t("Source")}</span><strong>${esc(I.t(c.source))}</strong></div><div><span>${I.t("Recruiter")}</span><strong>${esc(c.owner)}</strong></div></div><div class="tags">${c.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div></section><section class="drawer-section"><form id="notes-form" data-id="${esc(c.id)}"><label for="candidate-notes">${I.t("Recruiter notes")}</label><textarea id="candidate-notes" name="notes" rows="4" maxlength="6000" placeholder="${I.t("Keep useful context for the next conversation...")}">${esc(c.notes)}</textarea><button class="secondary" type="submit">${I.t("{0}Save note", [icon('check', 14)])}</button></form></section><section class="drawer-section">${panelHead(I.t("Scheduled conversations"), I.t("Stored in this workspace only"), iconButton(I.t("Schedule interview"), 'add-interview', 'plus', `data-candidate-id="${esc(id)}"`))}${appointments.map(i => `<button class="mini-event" data-action="interview" data-id="${esc(i.id)}">${icon('calendar', 17)}<span><strong>${esc(i.title)}</strong><small>${I.t("{0} at {1}", [dateFormat(i.startsAt), timeFormat(i.startsAt)])}</small></span>${icon('right', 14)}</button>`).join('') || `<p class="muted">${I.t("No scheduled conversations yet.")}</p>`}</section>`;
     const activity = `<section class="drawer-section timeline">${[...c.history].reverse().map(h => `<div><i></i><span><strong>${esc(I.message(h.text))}</strong><small>${dateFormat(h.at)} &middot; ${timeFormat(h.at)}</small></span></div>`).join('')}</section>`;
     const drafts = `<section class="drawer-section"><div class="notice">${I.t("{0} These are drafts. No email or SMS has been sent.", [icon('info', 16)])}</div>${messages.map(m => `<article class="draft-message"><header><span>${I.t("{0}{1} draft", [icon(m.channel === 'SMS' ? 'message' : 'mail', 15), esc(I.t(m.channel))])}</span><small>${dateFormat(m.createdAt)}</small></header>${m.subject ? `<strong>${esc(m.subject)}</strong>` : ''}<p>${esc(m.body)}</p>${button(I.t("Edit draft"), 'edit-message', 'edit', 'text-button', `data-id="${esc(m.id)}"`)}</article>`).join('') || empty(I.t("Start with a thoughtful draft"), I.t("Write a message and save it for review."), button(I.t("Write message"), 'message', 'message', 'primary', `data-id="${esc(id)}"`))}</section>`;
     openOverlay(`<div class="drawer-head"><span class="eyebrow">${I.t("CANDIDATE PROFILE{0}", [c.archived ? I.t(' / ARCHIVED') : ''])}</span><div>${iconButton(c.favorite ? I.t("Remove favorite") : I.t("Add favorite"), 'favorite', 'star', `data-id="${esc(id)}" aria-pressed="${!!c.favorite}"`)}${iconButton(I.t("Edit candidate"), 'edit-candidate', 'edit', `data-id="${esc(id)}"`)}${iconButton(I.t("Close profile"), 'close-overlay', 'x')}</div></div><div class="profile-lead">${avatar(c, 'large')}<div><h2 id="dialog-title">${esc(c.name)}</h2><p>${esc(jobTitle(c))}</p><span>${icon('pin', 13)}${esc(c.location)}</span></div></div><div class="profile-meta">${stageBadge(c.stage)}<span class="rating" title="${I.t("Manual recruiter rating")}">${icon('star', 12)}${c.rating ?? '&mdash;'} <small>${I.t("Manual rating")}</small></span></div><div class="drawer-actions">${button(I.t("Message draft"), 'message', 'message', 'primary', `data-id="${esc(id)}"`)}${button(I.t("Schedule"), 'add-interview', 'calendar', 'secondary', `data-candidate-id="${esc(id)}" ${c.archived ? 'disabled' : ''}`)}</div><div class="stage-progress" aria-label="${I.t("Change candidate stage")}">${STAGES.map((s, i) => `<button class="${i <= STAGES.indexOf(c.stage) ? 'done' : ''} ${s === c.stage ? 'current' : ''}" data-action="move-candidate" data-id="${esc(id)}" data-stage="${s}" aria-pressed="${s === c.stage}"><i></i><span>${I.t(s)}</span></button>`).join('')}</div><div class="drawer-tabs" role="tablist" aria-label="${I.t("Candidate profile tabs")}">${[{id: 'profile', label: I.t("Profile")}, {id: 'activity', label: I.t("Activity")}, {id: 'messages', label: I.t("Drafts ({0})", [messages.length])}].map(t => `<button role="tab" aria-selected="${tab === t.id}" class="${tab === t.id ? 'active' : ''}" data-action="drawer-tab" data-id="${esc(id)}" data-tab="${t.id}">${t.label}</button>`).join('')}</div>${tab === 'activity' ? activity : tab === 'messages' ? drafts : profile}<div class="drawer-footer">${button(c.archived ? I.t("Restore candidate") : I.t("Archive candidate"), 'archive-candidate', 'archive', 'text-button', `data-id="${esc(id)}"`)}<span>${I.t("Sample record · Local only")}</span></div>`, true);
@@ -306,16 +312,25 @@
   function openCandidateForm(id = '', stage = 'New') {
     const c = state().candidates.find(c => c.id === id);
     if (!state().jobs.length) { modal(I.t("Create a role first"), I.t("Every candidate is linked to a job record."), button(I.t("Create job"), 'add-job', 'plus', 'primary')); return; }
-    modal(c ? I.t("Edit candidate") : I.t("A new person. A new possibility."), I.t("Add sample information only. Required fields are marked with an asterisk."), `<form id="candidate-form" data-id="${esc(id)}"><div class="form-grid"><label>${I.t("Full name *")}<input name="name" required maxlength="100" value="${esc(c?.name || '')}" placeholder="${I.t("Taylor Morgan")}" autocomplete="off"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="180" value="${esc(c?.email || '')}" placeholder="${I.t("taylor@example.com")}" autocomplete="off"></label></div><label>${I.t("Job *")}<select name="jobId" required>${jobOptions(c?.jobId || (ui.job !== 'All' ? ui.job : state().jobs[0]?.id), '')}</select></label><div class="form-grid"><label>${I.t("Location *")}<input name="location" required maxlength="100" value="${esc(c?.location || '')}" placeholder="${I.t("City, ST")}"></label><label>${I.t("Phone")}<input name="phone" type="tel" maxlength="40" value="${esc(c?.phone || '')}" placeholder="(555) 555-0100"></label></div><div class="form-grid"><label>${I.t("Source")}<select name="source">${options([...new Set(['Indeed', 'Career site', 'Referral', 'LinkedIn', 'Text campaign', 'Job fair', 'Manual', ...(c ? [c.source] : [])])], c?.source || 'Manual')}</select></label><label>${I.t("Stage")}<select name="stage">${options(STAGES, c?.stage || stage)}</select></label></div><div class="form-grid"><label>${I.t("Recruiter")}<select name="owner">${ownerOptions(c?.owner || 'Zafar Safarov')}</select></label><label>${I.t("Manual rating (0-100)")}<input name="rating" type="number" min="0" max="100" step="1" value="${c?.rating ?? ''}" placeholder="${I.t("Not rated")}"></label></div><div class="form-grid"><label>${I.t("Experience")}<input name="experience" maxlength="100" value="${esc(c?.experience || '')}" placeholder="${I.t("e.g. 3 years")}"></label><label>${I.t("Tags, separated by commas")}<input name="tags" maxlength="300" value="${esc(c?.tags.join(', ') || '')}" placeholder="${I.t("Bilingual, Customer support")}"></label></div><label>${I.t("Recruiter notes")}<textarea name="notes" maxlength="6000" rows="3" placeholder="${I.t("Useful context for the next conversation...")}">${esc(c?.notes || '')}</textarea></label>${formActions(c ? I.t("Save candidate") : I.t("Add candidate"))}</form>`, true);
+    modal(c ? I.t("Edit candidate") : I.t("A new person. A new possibility."), I.t("Add sample information only. Required fields are marked with an asterisk."), `<form id="candidate-form" data-id="${esc(id)}"><div class="form-grid"><label>${I.t("Full name *")}<input name="name" required maxlength="100" value="${esc(c?.name || '')}" placeholder="${I.t("Taylor Morgan")}" autocomplete="off"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="180" value="${esc(c?.email || '')}" placeholder="${I.t("taylor@example.com")}" autocomplete="off"></label></div><label>${I.t("Job *")}<select name="jobId" required>${jobOptions(c?.jobId || (ui.job !== 'All' ? ui.job : state().jobs[0]?.id), '')}</select></label><div class="form-grid"><label>${I.t("Location *")}<input name="location" required maxlength="100" value="${esc(c?.location || '')}" placeholder="${I.t("City, ST")}"></label><label>${I.t("Phone")}<input name="phone" type="tel" maxlength="40" value="${esc(c?.phone || '')}" placeholder="(555) 555-0100"></label></div><div class="form-grid"><label>${I.t("Telegram")}<input name="telegram" maxlength="32" value="${esc(c?.telegram || '')}" placeholder="@username" autocomplete="off"></label><label>${I.t("Source")}<select name="source">${options([...new Set(['Indeed', 'Career site', 'Referral', 'LinkedIn', 'Text campaign', 'Job fair', 'Manual', ...(c ? [c.source] : [])])], c?.source || 'Manual')}</select></label></div><div class="form-grid"><label>${I.t("Stage")}<select name="stage">${options(STAGES, c?.stage || stage)}</select></label><label>${I.t("Recruiter")}<select name="owner">${ownerOptions(c?.owner || 'Zafar Safarov')}</select></label><label>${I.t("Manual rating (0-100)")}<input name="rating" type="number" min="0" max="100" step="1" value="${c?.rating ?? ''}" placeholder="${I.t("Not rated")}"></label></div><div class="form-grid"><label>${I.t("Experience")}<input name="experience" maxlength="100" value="${esc(c?.experience || '')}" placeholder="${I.t("e.g. 3 years")}"></label><label>${I.t("Tags, separated by commas")}<input name="tags" maxlength="300" value="${esc(c?.tags.join(', ') || '')}" placeholder="${I.t("Bilingual, Customer support")}"></label></div><label>${I.t("Recruiter notes")}<textarea name="notes" maxlength="6000" rows="3" placeholder="${I.t("Useful context for the next conversation...")}">${esc(c?.notes || '')}</textarea></label>${formActions(c ? I.t("Save candidate") : I.t("Add candidate"))}</form>`, true);
   }
   function openJobForm(id = '') {
     const j = state().jobs.find(j => j.id === id);
-    modal(j ? I.t("Edit job") : I.t("Create a new opportunity."), I.t("This saves a local job record. It does not publish to any job board."), `<form id="job-form" data-id="${esc(id)}"><label>${I.t("Job title *")}<input name="title" required maxlength="120" value="${esc(j?.title || '')}" placeholder="${I.t("Customer Support Specialist")}"></label><div class="form-grid"><label>${I.t("Department *")}<input name="department" required maxlength="80" value="${esc(j?.department || '')}" placeholder="${I.t("Operations")}"></label><label>${I.t("Location *")}<input name="location" required maxlength="140" value="${esc(j?.location || '')}" placeholder="${I.t("Austin, TX - Hybrid")}"></label></div><div class="form-grid"><label>${I.t("Hiring target *")}<input name="openings" type="number" required min="1" max="10000" step="1" value="${j?.openings || 1}"></label><label>${I.t("Compensation")}<input name="pay" maxlength="100" value="${esc(j?.pay || '')}" placeholder="${I.t("Not specified")}"></label></div><div class="form-grid"><label>${I.t("Owner")}<select name="owner">${ownerOptions(j?.owner || 'Zafar Safarov')}</select></label><label>${I.t("Status")}<select name="status">${options(['Active', 'Paused', 'Closed'], j?.status || 'Active')}</select></label></div><label>${I.t("Role description")}<textarea name="description" rows="4" maxlength="6000" placeholder="${I.t("Responsibilities and requirements...")}">${esc(j?.description || '')}</textarea></label>${formActions(j ? I.t("Save job") : I.t("Create job"))}</form>`);
+    modal(j ? I.t("Edit job") : I.t("Create a new opportunity."), I.t("This saves a local job record. It does not publish to any job board."), `<form id="job-form" data-id="${esc(id)}"><label>${I.t("Job title *")}<input name="title" required maxlength="120" value="${esc(j?.title || '')}" placeholder="${I.t("Customer Support Specialist")}"></label><div class="form-grid"><label>${I.t("Department *")}<input name="department" required maxlength="80" value="${esc(j?.department || '')}" placeholder="${I.t("Operations")}"></label><label>${I.t("Location *")}<input name="location" required maxlength="140" value="${esc(j?.location || '')}" placeholder="${I.t("Austin, TX - Hybrid")}"></label></div><div class="form-grid"><label>${I.t("Hiring target *")}<input name="openings" type="number" required min="1" max="10000" step="1" value="${j?.openings || 1}"></label><label>${I.t("Compensation")}<input name="pay" maxlength="100" value="${esc(j?.pay || '')}" placeholder="${I.t("Not specified")}"></label></div><div class="form-grid"><label>${I.t("Owner")}<select name="owner">${ownerOptions(j?.owner || 'Zafar Safarov')}</select></label><label>${I.t("Status")}<select name="status">${options(['Active', 'Paused', 'Closed'], j?.status || 'Active')}</select></label></div><div class="form-grid"><label>${I.t("Career page layout")}<select name="landingLayout">${options([{value:'classic',label:'Classic split'},{value:'spotlight',label:'Spotlight hero'},{value:'compact',label:'Compact card'}], j?.landingLayout || 'classic')}</select></label><label>${I.t("Public career page")}<select name="publicEnabled">${options([{value:'true',label:'Enabled — accept applications'},{value:'false',label:'Disabled'}], String(j?.publicEnabled !== false))}</select></label></div><label>${I.t("Role description")}<textarea name="description" rows="4" maxlength="6000" placeholder="${I.t("Responsibilities and requirements...")}">${esc(j?.description || '')}</textarea></label>${formActions(j ? I.t("Save job") : I.t("Create job"))}</form>`);
+  }
+  function publicApplyUrl(job) {
+    const slug = job.publicSlug || '';
+    if (!slug) return '';
+    return `${location.origin}/apply/${encodeURIComponent(slug)}`;
   }
   function openJob(id) {
     const j = state().jobs.find(j => j.id === id); if (!j) return;
     const people = active().filter(c => c.jobId === id);
-    modal(esc(j.title), `${esc(j.department)} &middot; ${esc(j.location)}`, `<div class="job-detail-meta">${badge(j.status)}<span>${esc(j.owner)}</span></div><div class="data-summary"><div><strong>${people.length}</strong><span>${I.t("Candidates")}</span></div><div><strong>${people.filter(c => c.stage === 'Hired').length}</strong><span>${I.t("Hired")}</span></div><div><strong>${j.openings}</strong><span>${I.t("Target")}</span></div></div><div class="mini-pipeline">${STAGES.map(s => `<button data-action="job-stage-candidates" data-id="${esc(id)}" data-stage="${s}">${stageBadge(s)}<strong>${people.filter(c => c.stage === s).length}</strong></button>`).join('')}</div><div class="job-description"><h3>${I.t("Compensation")}</h3><p>${esc(j.pay || I.t('Not specified'))}</p><h3>${I.t("About the role")}</h3><p>${esc(j.description || I.t('No role description added yet.'))}</p></div><div class="notice">${I.t("{0} Local record only. Not published to a job board.", [icon('info', 16)])}</div><div class="modal-actions wrap">${button(I.t("Edit job"), 'edit-job', 'edit', 'secondary', `data-id="${esc(id)}"`)}${button(j.status === 'Active' ? I.t("Pause job") : I.t("Activate job"), 'toggle-job', j.status === 'Active' ? 'pause' : 'play', 'secondary', `data-id="${esc(id)}"`)}${j.status !== 'Closed' ? button(I.t("Close role"), 'close-job', 'archive', 'text-button', `data-id="${esc(id)}"`) : ''}${button(I.t("View pipeline"), 'job-pipeline', 'kanban', 'primary', `data-id="${esc(id)}"`)}</div>`, true);
+    const applyUrl = publicApplyUrl(j);
+    const shareBlock = Store.remote
+      ? `<div class="job-description"><h3>${I.t("Career page link")}</h3><p class="muted">${j.publicEnabled === false || j.status !== 'Active' ? I.t("Enable the public page and set status to Active to accept applications.") : I.t("Share this link in ads or messages. Candidates verify email, fill the form, and land in New.")}</p>${applyUrl ? `<p><code style="word-break:break-all">${esc(applyUrl)}</code></p>` : `<p class="muted">${I.t("Save the job once to generate a public link.")}</p>`}</div>`
+      : `<div class="notice">${I.t("{0} Local record only. Not published to a job board.", [icon('info', 16)])}</div>`;
+    modal(esc(j.title), `${esc(j.department)} &middot; ${esc(j.location)}`, `<div class="job-detail-meta">${badge(j.status)}<span>${esc(j.owner)}</span>${j.landingLayout ? badge(j.landingLayout) : ''}</div><div class="data-summary"><div><strong>${people.length}</strong><span>${I.t("Candidates")}</span></div><div><strong>${people.filter(c => c.stage === 'Hired').length}</strong><span>${I.t("Hired")}</span></div><div><strong>${j.openings}</strong><span>${I.t("Target")}</span></div></div><div class="mini-pipeline">${STAGES.map(s => `<button data-action="job-stage-candidates" data-id="${esc(id)}" data-stage="${s}">${stageBadge(s)}<strong>${people.filter(c => c.stage === s).length}</strong></button>`).join('')}</div><div class="job-description"><h3>${I.t("Compensation")}</h3><p>${esc(j.pay || I.t('Not specified'))}</p><h3>${I.t("About the role")}</h3><p>${esc(j.description || I.t('No role description added yet.'))}</p></div>${shareBlock}<div class="modal-actions wrap">${button(I.t("Edit job"), 'edit-job', 'edit', 'secondary', `data-id="${esc(id)}"`)}${Store.remote && applyUrl ? button(I.t("Copy career link"), 'copy-apply-link', 'send', 'secondary', `data-id="${esc(id)}"`) : ''}${button(j.status === 'Active' ? I.t("Pause job") : I.t("Activate job"), 'toggle-job', j.status === 'Active' ? 'pause' : 'play', 'secondary', `data-id="${esc(id)}"`)}${j.status !== 'Closed' ? button(I.t("Close role"), 'close-job', 'archive', 'text-button', `data-id="${esc(id)}"`) : ''}${button(I.t("View pipeline"), 'job-pipeline', 'kanban', 'primary', `data-id="${esc(id)}"`)}</div>`, true);
   }
   function openMessage(candidateId, messageId = '') {
     const c = state().candidates.find(c => c.id === candidateId); if (!c) return;
@@ -376,11 +391,50 @@
     pendingConfirmation = callback;
     modal(title, text, `<div class="modal-actions">${button(I.t("Cancel"), 'close-overlay')}${button(label, 'confirm-action', danger ? 'archive' : 'check', danger ? 'danger-button' : 'primary')}</div>`);
   }
+  function defaultInterviewStart() {
+    const start = new Date();
+    start.setDate(start.getDate() + 1);
+    start.setHours(11, 0, 0, 0);
+    if (start.getTime() <= Date.now()) start.setDate(start.getDate() + 1);
+    return start;
+  }
+  function ensureInterviewOnBoard(d, person) {
+    const has = d.interviews.some(i => i.candidateId === person.id && i.status === 'Scheduled');
+    if (has) return null;
+    const starts = defaultInterviewStart();
+    const record = {
+      id: Store.id(),
+      candidateId: person.id,
+      title: I.t('Recruiter interview'),
+      startsAt: starts.toISOString(),
+      duration: 30,
+      format: 'Video',
+      location: 'Video call',
+      interviewer: d.settings.company || '',
+      status: 'Scheduled',
+      notes: I.language === 'ru' ? 'Добавлено при переходе в Interview' : 'Scheduled when moved to Interview',
+      createdAt: new Date().toISOString()
+    };
+    d.interviews.push(record);
+    addHistory(person, 'interview', `${record.title} added to calendar`);
+    ui.calendarDate = dateKey(starts);
+    ui.calendarMonth = ui.calendarDate.slice(0, 7);
+    return record;
+  }
   function moveCandidate(id, stage, reopen = false) {
     const c = state().candidates.find(c => c.id === id);
     if (!c || !STAGES.includes(stage)) return;
     if (c.stage === stage) return;
-    commit(d => { const person = d.candidates.find(c => c.id === id); person.stage = stage; addHistory(person, 'stage', `Moved to ${stage}`, stage); Store.log(d, `${person.name} moved to ${stage}`); }, `Moved ${c.name} to ${stage}`);
+    let slotted = false;
+    commit(d => {
+      const person = d.candidates.find(c => c.id === id);
+      person.stage = stage;
+      addHistory(person, 'stage', `Moved to ${stage}`, stage);
+      if (stage === 'Interview' && ensureInterviewOnBoard(d, person)) slotted = true;
+      Store.log(d, `${person.name} moved to ${stage}`);
+    }, slotted
+      ? (I.language === 'ru' ? `${c.name} → Interview · запись в календаре` : `${c.name} → Interview · added to calendar`)
+      : `Moved ${c.name} to ${stage}`);
     if (reopen) openDrawer(id, ui.drawerTab);
   }
   function closeMenu() { $('.sidebar')?.classList.remove('open'); document.body.classList.remove('menu-open'); }
@@ -476,6 +530,18 @@
       case 'job-pipeline': navigate('pipeline', {job: id}); break;
       case 'job-stage-candidates': navigate('candidates', {job: id, stage}); break;
       case 'toggle-job': commit(d => { const j = d.jobs.find(j => j.id === id); j.status = j.status === 'Active' ? 'Paused' : 'Active'; Store.log(d, `${j.title} is now ${j.status.toLowerCase()}`); }, 'Job status updated'); openJob(id); break;
+      case 'copy-apply-link': {
+        const job = state().jobs.find(j => j.id === id);
+        if (!job) break;
+        if (!job.publicSlug) {
+          commit(d => { const j = d.jobs.find(j => j.id === id); j.publicSlug = Store.id().replace(/-/g, '').slice(0, 10); j.landingLayout = j.landingLayout || 'classic'; if (typeof j.publicEnabled !== 'boolean') j.publicEnabled = true; }, 'Career link ready');
+        }
+        const url = publicApplyUrl(state().jobs.find(j => j.id === id));
+        if (url && navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(() => toast(I.t('Career link copied')), () => toast(url, true));
+        else if (url) toast(url);
+        openJob(id);
+        break;
+      }
       case 'close-job': confirmDialog(I.t("Close this role?"), I.t("Candidate records remain intact. You can reactivate this role later."), I.t("Close role"), () => { commit(d => { const j = d.jobs.find(j => j.id === id); j.status = 'Closed'; Store.log(d, `${j.title} closed`); }, 'Role closed'); openJob(id); }); break;
       case 'message': openMessage(id); break;
       case 'edit-message': { const m = state().messages.find(m => m.id === id); if (m) openMessage(m.candidateId, id); break; }
@@ -538,13 +604,34 @@
       const rating = d.rating === '' ? null : Number(d.rating);
       if (rating !== null && (!Number.isInteger(rating) || rating < 0 || rating > 100)) return fail('Enter a whole-number rating from 0 to 100, or leave it blank.');
       const candidateId = id || Store.id();
-      const payload = {name: d.name, email: d.email, phone: d.phone, location: d.location, jobId: d.jobId, source: d.source, stage: d.stage, owner: d.owner, rating, experience: d.experience, tags: [...new Set(d.tags.split(',').map(t => t.trim()).filter(Boolean))].slice(0, 12), notes: d.notes};
-      if (commit(s => { let c = s.candidates.find(c => c.id === id); if (c) { const oldStage = c.stage; Object.assign(c, payload); addHistory(c, 'edited', 'Candidate details updated'); if (oldStage !== c.stage) addHistory(c, 'stage', `Moved to ${c.stage}`, c.stage); } else { c = {id: candidateId, ...payload, favorite: false, archived: false, color: '#deebe6', createdAt: now, updatedAt: now, history: []}; addHistory(c, 'created', 'Candidate added to workspace', 'New'); if (c.stage !== 'New') addHistory(c, 'stage', `Added at ${c.stage}`, c.stage); s.candidates.unshift(c); } Store.log(s, `${c.name} ${id ? 'updated' : 'added to the workspace'}`); }, id ? 'Candidate updated' : 'Candidate added')) { closeOverlay(); openDrawer(candidateId); }
+      const payload = {name: d.name, email: d.email, phone: d.phone, telegram: String(d.telegram || '').trim().replace(/^@/, ''), location: d.location, jobId: d.jobId, source: d.source, stage: d.stage, owner: d.owner, rating, experience: d.experience, tags: [...new Set(d.tags.split(',').map(t => t.trim()).filter(Boolean))].slice(0, 12), notes: d.notes};
+      if (commit(s => {
+        let c = s.candidates.find(c => c.id === id);
+        if (c) {
+          const oldStage = c.stage;
+          Object.assign(c, payload);
+          addHistory(c, 'edited', 'Candidate details updated');
+          if (oldStage !== c.stage) {
+            addHistory(c, 'stage', `Moved to ${c.stage}`, c.stage);
+            if (c.stage === 'Interview') ensureInterviewOnBoard(s, c);
+          }
+        } else {
+          c = {id: candidateId, ...payload, favorite: false, archived: false, color: '#deebe6', createdAt: now, updatedAt: now, history: []};
+          addHistory(c, 'created', 'Candidate added to workspace', 'New');
+          if (c.stage !== 'New') addHistory(c, 'stage', `Added at ${c.stage}`, c.stage);
+          if (c.stage === 'Interview') ensureInterviewOnBoard(s, c);
+          s.candidates.unshift(c);
+        }
+        Store.log(s, `${c.name} ${id ? 'updated' : 'added to the workspace'}`);
+      }, id ? 'Candidate updated' : 'Candidate added')) { closeOverlay(); openDrawer(candidateId); }
     } else if (form.id === 'job-form') {
       if (!d.title || !d.department || !d.location) return fail('Title, department, and location cannot be blank.');
       const openings = Number(d.openings); if (!Number.isInteger(openings) || openings < 1 || openings > 10000) return fail('Hiring target must be a whole number between 1 and 10,000.');
-      const jobId = id || Store.id(), payload = {title: d.title, department: d.department, location: d.location, openings, pay: d.pay, owner: d.owner, status: d.status, description: d.description};
-      if (commit(s => { const j = s.jobs.find(j => j.id === id); if (j) Object.assign(j, payload); else s.jobs.unshift({id: jobId, ...payload, createdAt: now}); Store.log(s, `${d.title} ${id ? 'updated' : 'created'}`); }, 'Job saved locally. Not published.')) { closeOverlay(); navigate('jobs'); openJob(jobId); }
+      const jobId = id || Store.id();
+      const existing = state().jobs.find(j => j.id === id);
+      const publicSlug = existing?.publicSlug || (Store.id().replace(/-/g, '').slice(0, 10));
+      const payload = {title: d.title, department: d.department, location: d.location, openings, pay: d.pay, owner: d.owner, status: d.status, description: d.description, landingLayout: ['classic', 'spotlight', 'compact'].includes(d.landingLayout) ? d.landingLayout : 'classic', publicEnabled: d.publicEnabled !== 'false', publicSlug};
+      if (commit(s => { const j = s.jobs.find(j => j.id === id); if (j) Object.assign(j, payload); else s.jobs.unshift({id: jobId, ...payload, createdAt: now}); Store.log(s, `${d.title} ${id ? 'updated' : 'created'}`); }, Store.remote ? 'Job saved. Career page updated.' : 'Job saved locally. Not published.')) { closeOverlay(); navigate('jobs'); openJob(jobId); }
     } else if (form.id === 'notes-form') {
       commit(s => { const c = s.candidates.find(c => c.id === id); c.notes = d.notes; addHistory(c, 'note', 'Recruiter notes updated'); Store.log(s, `Notes updated for ${c.name}`); }, 'Recruiter notes saved');
     } else if (form.id === 'message-form') {
@@ -558,7 +645,25 @@
       if (starts.getFullYear() !== Number(d.startsAt.slice(0, 4)) || starts.getHours() !== Number(d.startsAt.slice(11, 13))) return fail('This local time is not valid. Choose another time.');
       if (state().interviews.some(i => i.id !== id && i.status === 'Scheduled' && i.interviewer === d.interviewer && starts.getTime() < new Date(i.startsAt).getTime() + i.duration * 60000 && starts.getTime() + duration * 60000 > new Date(i.startsAt).getTime())) return fail('This interviewer already has an overlapping local appointment. Choose another time or interviewer.');
       const eventId = id || Store.id();
-      if (commit(s => { const i = s.interviews.find(i => i.id === id), payload = {candidateId: d.candidateId, title: d.title, startsAt: starts.toISOString(), duration, format: d.format, location: d.location, interviewer: d.interviewer, status: 'Scheduled', notes: d.notes}; if (i) Object.assign(i, payload); else s.interviews.push({id: eventId, ...payload, createdAt: now}); const c = s.candidates.find(c => c.id === d.candidateId); addHistory(c, 'interview', `${d.title} ${id ? 'rescheduled' : 'scheduled'} (local only)`); Store.log(s, `${d.title} with ${c.name} ${id ? 'rescheduled' : 'scheduled'}`); }, 'Appointment saved. No invitation sent.')) { closeOverlay(); ui.calendarDate = dateKey(starts); ui.calendarMonth = ui.calendarDate.slice(0, 7); navigate('calendar'); openInterview(eventId); }
+      if (commit(s => {
+        const i = s.interviews.find(i => i.id === id);
+        const payload = {candidateId: d.candidateId, title: d.title, startsAt: starts.toISOString(), duration, format: d.format, location: d.location, interviewer: d.interviewer, status: 'Scheduled', notes: d.notes};
+        if (i) Object.assign(i, payload);
+        else s.interviews.push({id: eventId, ...payload, createdAt: now});
+        const c = s.candidates.find(c => c.id === d.candidateId);
+        if (c && !['Interview', 'Offer', 'Hired'].includes(c.stage)) {
+          c.stage = 'Interview';
+          addHistory(c, 'stage', 'Moved to Interview (interview scheduled)', 'Interview');
+        }
+        addHistory(c, 'interview', `${d.title} ${id ? 'rescheduled' : 'scheduled'}`);
+        Store.log(s, `${d.title} with ${c.name} ${id ? 'rescheduled' : 'scheduled'}`);
+      }, I.language === 'ru' ? 'Запись в календаре сохранена' : 'Appointment saved on calendar')) {
+        closeOverlay();
+        ui.calendarDate = dateKey(starts);
+        ui.calendarMonth = ui.calendarDate.slice(0, 7);
+        navigate('calendar');
+        openInterview(eventId);
+      }
     } else if (form.id === 'campaign-form') {
       if (!d.name || !d.message) return fail('Campaign name and message cannot be blank.');
       if (/{{(?!first_name}}|job_title}}|company}})[^}]+}}/.test(d.message)) return fail('Use only {{first_name}}, {{job_title}}, or {{company}} placeholders.');
@@ -588,7 +693,19 @@
     if (target.dataset.filter) { ui[target.dataset.filter] = target.value; ui.page = 1; ui.selected.clear(); render(); }
     if (target.dataset.selectId) { target.checked ? ui.selected.add(target.dataset.selectId) : ui.selected.delete(target.dataset.selectId); render(); }
     if (target.id === 'select-all') { filteredCandidates().slice((ui.page - 1) * ui.pageSize, ui.page * ui.pageSize).forEach(c => target.checked ? ui.selected.add(c.id) : ui.selected.delete(c.id)); render(); }
-    if (target.id === 'bulk-stage' && STAGES.includes(target.value)) { const stage = target.value, ids = [...ui.selected]; commit(s => { s.candidates.filter(c => ids.includes(c.id) && c.stage !== stage).forEach(c => { c.stage = stage; addHistory(c, 'stage', `Moved to ${stage}`, stage); }); Store.log(s, `${ids.length} candidates moved to ${stage}`); }, `${ids.length} candidates moved to ${stage}`); ui.selected.clear(); render(); }
+    if (target.id === 'bulk-stage' && STAGES.includes(target.value)) {
+      const stage = target.value, ids = [...ui.selected];
+      commit(s => {
+        s.candidates.filter(c => ids.includes(c.id) && c.stage !== stage).forEach(c => {
+          c.stage = stage;
+          addHistory(c, 'stage', `Moved to ${stage}`, stage);
+          if (stage === 'Interview') ensureInterviewOnBoard(s, c);
+        });
+        Store.log(s, `${ids.length} candidates moved to ${stage}`);
+      }, `${ids.length} candidates moved to ${stage}`);
+      ui.selected.clear();
+      render();
+    }
     if (target.id === 'logo-file') importLogo(target.files[0]);
     if (target.id === 'backup-file') importBackup(target.files[0]);
     if (target.closest('#campaign-form')) updateAudiencePreview();
@@ -628,6 +745,11 @@
     updateChrome();
     if (event.detail.status === 'saved') toast(I.language === 'ru' ? '\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u043e \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435' : 'Saved on server');
     else toast(event.detail.error || 'Server save failed', true);
+  });
+  document.addEventListener('falcon:remote-pulled', () => {
+    if (!Store.remote) return;
+    render();
+    toast(I.language === 'ru' ? 'Pipeline обновлён ассистентом' : 'Pipeline updated by assistant');
   });
   window.addEventListener('popstate', route);
   window.addEventListener('hashchange', route);

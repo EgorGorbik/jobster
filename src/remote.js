@@ -83,6 +83,13 @@
     store.restore=data=>{if(blocked) throw Error(failure);if(!store.validate(data)) throw Error('Invalid backup');state=structuredClone(data);queue();return true;};
     store.reset=()=>{throw Error('Reset is disabled for the server workspace. Use the export/restore workflow.');};
     store.reload=()=>{};
+    store.pullRemote=async()=>{
+      if(generation!==savedGeneration){location.reload();return false;}
+      const snapshot=await call('/api/state');
+      hydrate(snapshot);
+      document.dispatchEvent(new CustomEvent('falcon:remote-pulled',{detail:{revision}}));
+      return true;
+    };
     store.snapshot=()=>structuredClone(state);
     remoteBanner();
   }

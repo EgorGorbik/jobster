@@ -70,17 +70,36 @@ export function validateWorkspace(state) {
 
   const jobs = new Set(state.jobs.map(x => x.id));
   const people = new Set(state.candidates.map(x => x.id));
+  const seenSlugs = new Set();
   for (const j of state.jobs) {
     str(j.title, 'job title', 200, true); str(j.department, 'department', 120);
     str(j.location, 'job location', 240); str(j.pay, 'pay', 120);
     str(j.owner, 'job owner', 120); str(j.description, 'job description', 20000);
     date(j.createdAt, 'job createdAt'); oneOf(j.status, JOB_STATUSES, 'job status');
     if (!Number.isInteger(j.openings) || j.openings < 1 || j.openings > 100000) fail('Invalid job openings');
+    if (j.publicSlug !== undefined) {
+      str(j.publicSlug, 'job publicSlug', 40, true);
+      if (!/^[a-z0-9-]{6,40}$/i.test(j.publicSlug)) fail('Invalid job publicSlug');
+      const key = j.publicSlug.toLowerCase();
+      if (seenSlugs.has(key)) fail('Duplicate job publicSlug');
+      seenSlugs.add(key);
+    }
+    if (j.landingLayout !== undefined) oneOf(j.landingLayout, ['classic', 'spotlight', 'compact'], 'job landingLayout');
+    if (j.publicEnabled !== undefined) boolean(j.publicEnabled, 'publicEnabled');
   }
   for (const c of state.candidates) {
     id(c.jobId, 'candidate jobId'); if (!jobs.has(c.jobId)) fail('Candidate references a missing job');
     str(c.name, 'candidate name', 200, true); maybeEmail(c.email);
     str(c.phone, 'candidate phone', 120); str(c.location, 'candidate location', 240);
+    if (c.telegram !== undefined) {
+      str(c.telegram, 'candidate telegram', 32);
+      if (c.telegram && !/^[A-Za-z0-9_]{5,32}$/.test(c.telegram)) fail('Invalid candidate telegram');
+    }
+    if (c.telegramChatId !== undefined) {
+      str(c.telegramChatId, 'candidate telegramChatId', 32);
+      if (c.telegramChatId && !/^-?\d{5,20}$/.test(c.telegramChatId)) fail('Invalid candidate telegramChatId');
+    }
+    if (c.telegramLinkedAt !== undefined && c.telegramLinkedAt) date(c.telegramLinkedAt, 'candidate telegramLinkedAt');
     str(c.source, 'candidate source', 120); str(c.owner, 'candidate owner', 120);
     str(c.experience, 'candidate experience', 120); str(c.notes, 'candidate notes', 20000);
     str(c.color, 'candidate color', 10); if (!/^#[0-9a-fA-F]{6}$/.test(c.color)) fail('Invalid candidate color');
@@ -105,6 +124,9 @@ export function validateWorkspace(state) {
     oneOf(i.status, INTERVIEW_STATUSES, 'interview status');
     date(i.startsAt, 'interview startsAt'); date(i.createdAt, 'interview createdAt');
     if (!Number.isInteger(i.duration) || i.duration < 15 || i.duration > 240) fail('Invalid interview duration');
+    if (i.telegramReminderSentAt !== undefined && i.telegramReminderSentAt) {
+      date(i.telegramReminderSentAt, 'interview telegramReminderSentAt');
+    }
   }
   for (const m of state.messages) {
     id(m.candidateId, 'draft candidateId'); if (!people.has(m.candidateId)) fail('Draft references a missing candidate');
