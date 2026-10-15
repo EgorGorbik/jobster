@@ -7,6 +7,7 @@ import {mailConfigured, sendInterviewInvite, withSuppressedInterviewStageNotify}
 import {sendInterviewSms, smsConfigured} from './sms.mjs';
 import {botUsername, sendInterviewTelegram, telegramConfigured} from './telegram.mjs';
 import {ensureScheduledInterview, promoteToInterview} from './interview-slot.mjs';
+import {sendCampaignBlast} from './campaign-send.mjs';
 
 const RESOURCES=['jobs','candidates','interviews','campaigns','messages','team'];
 const writeMethods=['POST','PUT','PATCH','DELETE'];
@@ -54,8 +55,8 @@ async function readJSON(req) {
 function makeRecord(kind,body) {
   const now=iso(), id=freshId();
   switch (kind) {
-    case 'jobs': return normalizeJobPublicFields({id,title:asString(body.title),department:asString(body.department),location:asString(body.location),openings:body.openings??1,status:body.status||'Active',pay:asString(body.pay),owner:asString(body.owner),description:asString(body.description),publicSlug:asString(body.publicSlug),landingLayout:body.landingLayout||'classic',publicEnabled:body.publicEnabled!==false,createdAt:now});
-    case 'candidates': return {id,name:asString(body.name),jobId:body.jobId,location:asString(body.location),source:asString(body.source),rating:body.rating??null,stage:body.stage||'New',email:asString(body.email),phone:asString(body.phone),telegram:asString(body.telegram).replace(/^@/,''),telegramChatId:asString(body.telegramChatId),telegramLinkedAt:asString(body.telegramLinkedAt),experience:asString(body.experience),owner:asString(body.owner),tags:body.tags??[],notes:asString(body.notes),favorite:false,archived:false,color:'#deebe6',createdAt:now,updatedAt:now,history:[{id:freshId(),type:'created',text:'Candidate created',stage:'New',at:now}]};
+    case 'jobs': return normalizeJobPublicFields({id,title:asString(body.title),department:asString(body.department),location:asString(body.location),openings:body.openings??1,status:body.status||'Active',pay:asString(body.pay),owner:asString(body.owner),description:asString(body.description),assignment:asString(body.assignment),assignmentRequired:body.assignmentRequired===true||body.assignmentRequired==='true',publicSlug:asString(body.publicSlug),landingLayout:body.landingLayout||'classic',publicEnabled:body.publicEnabled!==false,createdAt:now});
+    case 'candidates': return {id,name:asString(body.name),jobId:body.jobId,location:asString(body.location),source:asString(body.source),rating:body.rating??null,stage:body.stage||'New',email:asString(body.email),phone:asString(body.phone),telegram:asString(body.telegram).replace(/^@/,''),telegramChatId:asString(body.telegramChatId),telegramLinkedAt:asString(body.telegramLinkedAt),experience:asString(body.experience),assignmentUrl:asString(body.assignmentUrl),owner:asString(body.owner),tags:body.tags??[],notes:asString(body.notes),favorite:false,archived:false,color:'#deebe6',createdAt:now,updatedAt:now,history:[{id:freshId(),type:'created',text:'Candidate created',stage:'New',at:now}]};
     case 'interviews':return {id,candidateId:body.candidateId,title:asString(body.title),startsAt:body.startsAt,duration:body.duration??30,format:body.format||'Video',location:asString(body.location),interviewer:asString(body.interviewer),status:'Scheduled',notes:asString(body.notes),createdAt:now};
     case 'campaigns':return {id,name:asString(body.name),message:asString(body.message),jobId:body.jobId||'All',stage:body.stage||'All',audience:body.audience||'All',channel:body.channel||'Email',status:'Draft',createdAt:now,updatedAt:now};
     case 'messages':return {id,candidateId:body.candidateId,channel:body.channel||'Email',subject:asString(body.subject),body:asString(body.body),status:'Draft',createdAt:now};
@@ -64,8 +65,8 @@ function makeRecord(kind,body) {
   }
 }
 const PATCH_FIELDS={
-  jobs:['title','department','location','openings','status','pay','owner','description','publicSlug','landingLayout','publicEnabled'],
-  candidates:['name','jobId','location','source','rating','email','phone','telegram','experience','owner','tags','notes','favorite'],
+  jobs:['title','department','location','openings','status','pay','owner','description','assignment','assignmentRequired','publicSlug','landingLayout','publicEnabled'],
+  candidates:['name','jobId','location','source','rating','email','phone','telegram','experience','assignmentUrl','owner','tags','notes','favorite'],
   interviews:['title','candidateId','startsAt','duration','format','location','interviewer','status','notes'],
   campaigns:['name','message','jobId','stage','audience','channel','status'],
   messages:['candidateId','subject','body','channel'],
@@ -113,15 +114,14 @@ export async function handleApi(req,res,db,url,options={}) {
     return json(res,200,{
       status:'ok',
       database:'sqlite',
-      // Campaign blast channel is still draft-only; transactional email/SMS/Telegram use providers below.
-      messaging:'disabled',
+      messaging:(email || sms) ? 'configured' : 'disabled',
       providers:{
         api:true,
         email,
         telegram,
         telegramBot:telegram?botUsername():null,
         sms,
-        calendar:false
+        campaigns:email || sms
       }
     });
   }
@@ -285,6 +285,36 @@ export async function handleApi(req,res,db,url,options={}) {
     });
     return json(res,200,result);
   }
+  if (recordId && method==='POST' && kind==='campaigns' && command==='send') {
+    const body=await readOptionalBody(req);
+    const revision=readRevision(req,body);
+    const snapshot=getWorkspace(db,user.workspaceId);
+    const campaign=snapshot.state.campaigns.find(c=>c.id===recordId);
+    if (!campaign) notFound();
+    const summary=await sendCampaignBlast(snapshot.state,campaign);
+    const result=mutateWorkspace(db,user.workspaceId,revision,user.id,'campaign.send',state=>{
+      const c=state.campaigns.find(x=>x.id===recordId);
+      if (!c) notFound();
+      const sentAt=iso();
+      c.status='Completed';
+      c.updatedAt=sentAt;
+      c.lastSentAt=sentAt;
+      c.sentCount=summary.sent;
+      c.failedCount=summary.failed;
+      c.skippedCount=summary.skipped;
+      c.lastSend={
+        channel:summary.channel,
+        total:summary.total,
+        sent:summary.sent,
+        failed:summary.failed,
+        skipped:summary.skipped,
+        results:summary.results.slice(0,20)
+      };
+      log(state,`Campaign sent: ${c.name} (${summary.sent} delivered, ${summary.failed} failed, ${summary.skipped} skipped)`);
+      return {campaign:c, send:summary};
+    });
+    return json(res,200,result);
+  }
   if (recordId && !command && method==='PATCH') {
     const body=await readJSON(req);const revision=readRevision(req,body);
     const result=mutateWorkspace(db,user.workspaceId,revision,user.id,`${kind}.update`,state=>{
@@ -296,7 +326,15 @@ export async function handleApi(req,res,db,url,options={}) {
         changes.telegram=changes.telegram.trim().replace(/^@/,'');
       }
       Object.assign(record,changes);
-      if (kind==='jobs') normalizeJobPublicFields(record);
+      if (kind==='jobs') {
+        if (Object.hasOwn(changes,'assignmentRequired')) {
+          record.assignmentRequired = changes.assignmentRequired===true || changes.assignmentRequired==='true';
+        }
+        if (Object.hasOwn(changes,'assignment') && typeof changes.assignment!=='string') {
+          record.assignment = asString(changes.assignment);
+        }
+        normalizeJobPublicFields(record);
+      }
       if (kind==='candidates') addHistory(record,'edited','Candidate details updated');
       if (kind==='campaigns') record.updatedAt=iso();
       log(state,`${kind} record updated`);

@@ -145,7 +145,7 @@ export function saveWorkspace(db, workspaceId, inputState, expectedRevision, act
       .run(workspaceId,actorId,action,JSON.stringify({revision}),new Date().toISOString());
     return {revision, state};
   });
-  notifyStageChanges(previousState, saved.state);
+  notifyStageChanges(previousState, saved.state, {db, workspaceId});
   return saved;
 }
 export function mutateWorkspace(db, workspaceId, expectedRevision, actorId, action, fn) {

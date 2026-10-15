@@ -147,6 +147,26 @@ h1,h2,h3,p{overflow-wrap:anywhere;margin:0}
 }
 .pay span{display:block;font-size:11px;letter-spacing:1.2px;
   text-transform:uppercase;font-weight:700;color:#9ecbb5;margin-bottom:6px}
+.assignment-block{
+  margin-top:28px;padding:18px 18px 16px;
+  border-radius:12px;border:1px solid #ffffff28;
+  background:#0d1f1888;
+}
+.assignment-block.is-light{
+  background:#eef4ed;border-color:#c8d7c4;
+}
+.assignment-head{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  margin-bottom:10px;font-size:11px;letter-spacing:1.2px;
+  text-transform:uppercase;font-weight:700;color:#9ecbb5;
+}
+.assignment-block.is-light .assignment-head{color:#4d6a52}
+.assignment-req{
+  letter-spacing:0;text-transform:none;font-size:12px;font-weight:650;
+  padding:3px 8px;border-radius:999px;background:#edf0cd;color:#3f4a1f;
+}
+.assignment-body{max-width:none;margin:0;font-size:15px}
+.assignment-block.is-light .assignment-body{color:#314538}
 
 .apply-stage-classic .form-rail{
   display:flex;align-items:center;justify-content:center;

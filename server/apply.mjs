@@ -61,6 +61,8 @@ function publicJobPayload(found) {
       location: job.location,
       pay: job.pay,
       description: job.description,
+      assignment: job.assignment || '',
+      assignmentRequired: !!job.assignmentRequired,
       openings: job.openings,
       landingLayout: job.landingLayout || 'classic',
       slug: job.publicSlug
@@ -268,6 +270,7 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
     const location = asString(body.location);
     const experience = asString(body.experience);
     const notes = asString(body.notes);
+    const assignmentUrl = asString(body.assignmentUrl).trim();
     let telegram = '';
     try {
       telegram = normalizeTelegramUsername(body.telegram);
@@ -280,6 +283,14 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
     if (phone.length > 40) throw new ValidationError('Phone is too long.', 400);
     if (experience.length > 100) throw new ValidationError('Experience is too long.', 400);
     if (notes.length > 4000) throw new ValidationError('Notes are too long.', 400);
+    if (assignmentUrl.length > 500) throw new ValidationError('Assignment link is too long.', 400);
+    if (assignmentUrl && !/^https?:\/\/[^\s<>"']+$/i.test(assignmentUrl)) {
+      throw new ValidationError('Assignment link must be an http(s) URL.', 400);
+    }
+    const needsAssignment = !!(found.job.assignmentRequired && String(found.job.assignment || '').trim());
+    if (needsAssignment && !assignmentUrl) {
+      throw new ValidationError('Attach a link to your test assignment (GitHub, GitLab, Drive, etc.).', 400);
+    }
 
     const now = iso();
     const result = mutateWorkspace(db, found.workspaceId, undefined, null, 'candidate.apply', state => {
@@ -290,6 +301,7 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
         notes,
         experience ? `Experience: ${experience}` : '',
         telegram ? `Telegram: @${telegram}` : '',
+        assignmentUrl ? `Test assignment: ${assignmentUrl}` : '',
         'Submitted via public career page after email verification.'
       ].filter(Boolean).join('\n');
       const candidate = {
@@ -306,8 +318,9 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
         rating: null,
         stage: 'New',
         experience,
+        assignmentUrl,
         owner: found.job.owner || found.settings.company,
-        tags: ['career-page'],
+        tags: ['career-page', ...(assignmentUrl ? ['assignment'] : [])],
         notes: applicationNote,
         favorite: false,
         archived: false,
@@ -317,7 +330,9 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
         history: [{
           id: freshId(),
           type: 'created',
-          text: 'Applied via career page (email verified)',
+          text: assignmentUrl
+            ? 'Applied via career page (email verified) with test assignment link'
+            : 'Applied via career page (email verified)',
           stage: 'New',
           at: now
         }]

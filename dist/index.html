@@ -80,6 +80,11 @@ html[lang=ru] .primary,html[lang=ru] .secondary,html[lang=ru] .danger-button{whi
 #jobster-remote-banner button{background:#eff5e9;color:#1c4d32;border:0;border-radius:5px;padding:8px 10px;font-size:11px}
 @media(max-width:760px){#jobster-remote-banner{width:calc(100% - 20px);flex-wrap:wrap;bottom:10px}.remote-entry-panel{padding:26px 23px}}
 @media(max-width:760px){.topbar .remote-logout{display:none}}
+.company-switcher .session-meta{display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.2;text-align:left;min-width:0}
+.company-switcher .session-meta strong{display:block;font-size:12px;font-weight:600;color:#2f4a35;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.company-switcher .session-meta small{display:block;font-size:10px;font-weight:500;color:#7b906e;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1080px){.company-switcher #company-name{display:block!important}.company-switcher .session-meta small{display:none}}
+@media(max-width:380px){.company-switcher{display:flex!important}.company-switcher .session-meta{display:none}}
 
 </style>
   <style>
@@ -131,6 +136,17 @@ html[lang=ru] .primary,html[lang=ru] .secondary,html[lang=ru] .danger-button{whi
 #fja-root .fja-msg-user p{background:#2e704e;color:#fff;border-bottom-right-radius:3px}
 #fja-root .fja-msg-assistant p{background:#f0f5ec;color:#415b43;border:1px solid #e3eddf;border-bottom-left-radius:3px}
 #fja-root .fja-msg-wait p{font-style:italic;background:#f3f6ef;color:#7a8974}
+#fja-root .fja-msg-confirm{justify-content:flex-start}
+#fja-root .fja-confirm{width:100%;max-width:100%;background:#f7faf4;border:1px solid #c5d9b8;border-radius:12px;padding:12px 13px;color:#355040}
+#fja-root .fja-confirm strong{display:block;font-size:12px;font-weight:650;margin-bottom:6px;color:#2a5538}
+#fja-root .fja-confirm p{margin:0 0 8px;font-size:12px;line-height:1.55;white-space:pre-wrap}
+#fja-root .fja-confirm ul{margin:0 0 10px;padding-left:16px;font-size:10px;color:#5a7260;line-height:1.55}
+#fja-root .fja-confirm code{font-size:9px;background:#e8f0e2;padding:1px 4px;border-radius:3px}
+#fja-root .fja-confirm-actions{display:flex;gap:8px}
+#fja-root .fja-confirm-ok{background:#2e6d4e;color:#fff;border:1px solid #2e6d4e;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600}
+#fja-root .fja-confirm-ok:hover{background:#1a4b35}
+#fja-root .fja-confirm-no{background:#fff;color:#5a6e58;border:1px solid #c9d6c2;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600}
+#fja-root .fja-confirm-no:hover{background:#f3f6ef}
 #fja-root .fja-bottom{padding:11px 14px 12px;background:#fcfdfb;border-top:1px solid #e7ece2;flex-shrink:0}
 #fja-root .fja-summary-option{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;font-weight:600;color:#657d5c}
 #fja-root .fja-summary-option input{width:15px;height:15px;accent-color:#317a52;cursor:pointer;flex:0 0 auto}
@@ -363,6 +379,7 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Archive selected": "В архив",
   "Archive selected candidates?": "Архивировать выбранных кандидатов?",
   "Arizona (Phoenix)": "Аризона (Финикс)",
+  "Audience and copy are ready. Send delivers real email or SMS to everyone in the segment.": "Аудитория и текст готовы. Отправка доставит реальные email или SMS всем в сегменте.",
   "Audience": "Аудитория",
   "Austin, TX - Hybrid": "Остин, Техас — гибридный формат",
   "Available fields:": "Доступные поля:",
@@ -372,11 +389,16 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Board": "Доска",
   "Browse templates": "Выбрать шаблон",
   "Build a more personal campaign.": "Создание кампании",
+  "Build segments and personalize a message. Sending requires server mode with Resend or Twilio.": "Соберите сегмент и текст. Отправка доступна в режиме сервера с Resend или Twilio.",
   "Build segments, personalize a message, and preview every campaign before connecting a provider.": "Выберите аудиторию, подготовьте сообщение и проверьте кампанию перед подключением провайдера.",
+  "Build segments, personalize a message, then send via Resend or Twilio.": "Соберите сегмент, подготовьте текст и отправьте через Resend или Twilio.",
   "Bulk move stage": "Этап для выбранных кандидатов",
   "CANDIDATE PROFILE{0}": "ПРОФИЛЬ КАНДИДАТА{0}",
   "Calendar file exported. No invitation was sent.": "Файл календаря экспортирован. Приглашение не отправлено.",
   "Campaign drafts": "Черновики кампаний",
+  "Campaign send failed.": "Не удалось отправить кампанию.",
+  "Campaign send requires server mode with Resend or Twilio configured.": "Отправка кампании нужна в режиме сервера с настроенными Resend или Twilio.",
+  "Campaign sent: {0} delivered, {1} failed, {2} skipped.": "Кампания отправлена: {0} доставлено, {1} ошибок, {2} пропущено.",
   "Campaign name *": "Название кампании *",
   "Campaigns": "Кампании",
   "Cancel": "Отмена",
@@ -508,6 +530,7 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Local appointments, displayed in {0}. No external calendar is connected.": "Локальные встречи, часовой пояс: {0}. Внешний календарь не подключён.",
   "Local demo": "Демоверсия",
   "Local drafts and explicitly labeled simulations": "Локальные черновики и явно отмеченные симуляции",
+  "Local drafts — send from server mode": "Локальные черновики — отправка в режиме сервера",
   "Local only": "Только локально",
   "Location *": "Местоположение *",
   "MAKE IT YOUR WORKSPACE": "ВАШИ НАСТРОЙКИ",
@@ -549,6 +572,10 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "No jobs match": "Вакансии не найдены",
   "No matching people, jobs, or campaigns.": "Кандидаты, вакансии или кампании не найдены.",
   "No phone added": "Телефон не указан",
+  "No Telegram": "Telegram не указан",
+  "Telegram": "Telegram",
+  "Telegram linked": "Telegram подключён",
+  "bot linked": "бот связан",
   "No provider is connected": "Провайдер не подключён",
   "No provider is connected in this build. Never place API secrets in frontend code or browser storage.": "В этой сборке нет подключённых провайдеров. Не храните секретные API-ключи во фронтенде или в браузере.",
   "No real email, SMS, job posting, calendar invitations, authentication, or AI scoring is connected. Use fictional information only.": "Отправка email и SMS, публикация вакансий, приглашения, авторизация и ИИ-оценка не подключены. Используйте только вымышленные данные.",
@@ -589,7 +616,9 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "RIGHT MESSAGE. HUMAN CONNECTION.": "НУЖНЫЕ СЛОВА. ЖИВОЕ ОБЩЕНИЕ.",
   "Rating": "Оценка",
   "Reached this stage or a later stage; not step-by-step conversion": "Достигли этого или более позднего этапа; не пошаговая конверсия",
+  "READY TO SEND": "ГОТОВО К ОТПРАВКЕ",
   "Ready to review": "Готовы к проверке",
+  "Requires server mode": "Нужен режим сервера",
   "Recently updated": "Недавно обновлённые",
   "Records are stored in this browser, not in a cloud database.": "Записи хранятся в этом браузере, а не в облачной базе данных.",
   "Recruiter": "Рекрутер",
@@ -620,6 +649,14 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Role": "Роль",
   "Role & location": "Вакансия и местоположение",
   "Role description": "Описание вакансии",
+  "Test assignment (shown on career page)": "Тестовое задание (на career page)",
+  "Describe the take-home task. Leave empty to hide.": "Опишите take-home. Пустое поле — блок скрыт.",
+  "Require assignment link": "Требовать ссылку на решение",
+  "Optional": "Необязательно",
+  "Required — candidate must attach a link": "Обязательно — кандидат должен приложить ссылку",
+  "Test assignment": "Тестовое задание",
+  "Candidates must attach a solution link.": "Кандидат обязан приложить ссылку на решение.",
+  "Assignment link is optional.": "Ссылка на решение необязательна.",
   "Sample data · No live messaging": "Тестовые данные · Без отправки сообщений",
   "Sample record · Local only": "Тестовая запись · Только локально",
   "Sample role": "Тестовая вакансия",
@@ -633,7 +670,15 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Save job": "Сохранить вакансию",
   "Save member": "Сохранить участника",
   "Saved for a future integration. This demo does not send notifications.": "Сохраняется для будущей интеграции. Демоверсия не отправляет уведомления.",
+  "Emails go to team directory + login accounts via Resend when enabled.": "Письма уходят на email из команды и аккаунтов входа через Resend, если включено.",
+  "Morning summary (~08:00 in display timezone) with funnel and upcoming interviews.": "Утренняя сводка (~08:00 по timezone) — воронка и ближайшие собеседования.",
+  "Team emails 24 hours and 1 hour before each scheduled interview.": "Письма команде за 24 часа и за 1 час до каждого запланированного собеседования.",
+  "Email the team when a candidate moves to the Offer stage.": "Письмо команде, когда кандидат переходит на этап Offer.",
+  "A morning overview of the hiring workspace.": "Утренний обзор рабочего пространства.",
+  "A reminder preference for upcoming conversations.": "Напоминания о предстоящих собеседованиях.",
+  "Updates when a candidate reaches an offer stage.": "Обновления при переходе кандидата на этап предложения.",
   "Saved in this browser": "Сохранено в этом браузере",
+  "Saved on server": "Сохранено на сервере",
   "Schedule": "Назначить",
   "Schedule a conversation from any candidate profile.": "Назначьте собеседование из профиля кандидата.",
   "Schedule interview": "Назначить собеседование",
@@ -653,6 +698,13 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Select {0}": "Выбрать: {0}",
   "Settings sections": "Разделы настроек",
   "Share of active candidate records": "Доля активных записей кандидатов",
+  "Send again": "Отправить снова",
+  "Send campaign": "Отправить кампанию",
+  "Send now": "Отправить",
+  "Send this campaign?": "Отправить эту кампанию?",
+  "Sending campaign...": "Отправка кампании…",
+  "Sent {0}": "Отправлено {0}",
+  "Server workspace": "Серверное пространство",
   "Simulate campaign": "Симуляция кампании",
   "Skip to workspace": "Перейти к содержимому",
   "Sort by": "Сортировка",
@@ -670,6 +722,7 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Status": "Статус",
   "Stored in this workspace only": "Хранится только в этом рабочем пространстве",
   "Stored only in the demo calendar. No meeting invitation is sent.": "Сохраняется только в локальном календаре. Приглашение не отправляется.",
+  "Saves to the workspace calendar. Resend/Twilio/Telegram invite when configured.": "Сохраняется в календаре воркспейса. Приглашение через Resend/Twilio/Telegram, если настроено.",
   "Subject (email)": "Тема письма",
   "TALENT DATABASE": "БАЗА КАНДИДАТОВ",
   "THE HIRING WORKSPACE": "ПРОСТРАНСТВО ДЛЯ НАЙМА",
@@ -694,6 +747,7 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "This only updates the local directory. Roles do not enforce permissions and no invitation is sent.": "Обновляется только локальный справочник. Роли не ограничивают доступ, приглашение не отправляется.",
   "This saves a local job record. It does not publish to any job board.": "Вакансия сохраняется локально и не публикуется на сайтах поиска работы.",
   "This segment is empty.": "Этот сегмент пуст.",
+  "This sends real {0} to {1} candidate{2} via Resend or Twilio. Skips people missing email/phone.": "Будет отправлено реальное {0} {1} кандидат{2} через Resend или Twilio. Без email/телефона — пропуск.",
   "Today": "Сегодня",
   "Try a different search or clear your filters.": "Измените запрос или сбросьте фильтры.",
   "Try another status or search term.": "Выберите другой статус или поисковый запрос.",
@@ -741,8 +795,10 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "{0} Invitations are saved as local drafts. No invitation email is sent.": "{0} Приглашения сохраняются как локальные черновики. Письма не отправляются.",
   "{0} Jobs saved here are not published to Indeed, LinkedIn, or any external job board.": "{0} Сохранённые вакансии не публикуются на Indeed, LinkedIn или других сайтах поиска работы.",
   "{0} Keep people at the center.": "{0} В центре внимания — люди.",
+  "{0} Last send: {1} delivered, {2} failed, {3} skipped ({4}).": "{0} Последняя отправка: {1} доставлено, {2} ошибок, {3} пропущено ({4}).",
   "{0} Local record only. Not published to a job board.": "{0} Только локальная запись. Вакансия не опубликована.",
   "{0} No provider is connected. A simulation changes only the status; no messages are sent, no delivery or reply metrics are fabricated.": "{0} Провайдер не подключён. Симуляция меняет только статус: без отправки сообщений и вымышленных показателей доставки или ответов.",
+  "{0} Send delivers real {1} to everyone in this segment via Resend or Twilio.": "{0} Отправка доставит реальное {1} всем в сегменте через Resend или Twilio.",
   "{0} Not saved to browser storage.": "{0} Не сохранено в хранилище браузера.",
   "{0} Ratings are manually entered sample scores. No AI evaluation is running.": "{0} Оценки в тестовых данных введены вручную. ИИ-оценка не выполняется.",
   "{0} Saved in this browser": "{0} Сохранено в этом браузере",
@@ -831,7 +887,52 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "On-site": "Очно",
   "Email": "Эл. почта",
   "Admin": "Администратор",
+  "Admin: full UI. Recruiter/Viewer: API access; full UI still needs Owner or Admin.": "Admin: полный интерфейс. Recruiter/Viewer: доступ через API; полный UI только у Owner или Admin.",
+  "Admin/Recruiter: full hiring UI. Only Owner creates accounts. Viewer: API read-only.": "Admin/Recruiter: полный UI найма. Аккаунты создаёт только Owner. Viewer: только чтение API.",
+  "Admin/Recruiter: full hiring UI. Only Owner creates accounts.": "Admin/Recruiter: полный UI найма. Аккаунты создаёт только Owner.",
+  "Choose Admin or Recruiter.": "Выберите Admin или Recruiter.",
+  "API write access. Full web UI requires Owner or Admin.": "Запись через API. Полный веб-интерфейс доступен Owner или Admin.",
+  "Full hiring UI. Cannot create login accounts.": "Полный UI найма. Не может создавать учётные записи.",
+  "Read-only API access. No full web UI.": "Только чтение через API. Без полного веб-интерфейса.",
+  "At least 12 characters. Not a common default password.": "Не меньше 12 символов. Не используйте распространённые пароли по умолчанию.",
+  "Available in server mode only.": "Доступно только в режиме сервера.",
+  "Confirm password *": "Подтвердите пароль *",
+  "Could not create login account.": "Не удалось создать учётную запись.",
+  "Could not load login accounts.": "Не удалось загрузить учётные записи.",
+  "Create account": "Создать аккаунт",
+  "Create login account": "Создать учётную запись",
+  "Directory only — cannot log in. Use Login accounts above for real access.": "Только справочник — войти нельзя. Для доступа используйте «Учётные записи» выше.",
+  "Full access, can create login accounts.": "Полный доступ, может создавать учётные записи.",
+  "Full web UI. Cannot create login accounts.": "Полный веб-интерфейс. Не может создавать учётные записи.",
+  "Loading accounts...": "Загрузка учётных записей...",
+  "Login account created. They can sign in with this email and password.": "Учётная запись создана. Можно входить с этим email и паролем.",
+  "Login accounts": "Учётные записи",
+  "Add teammate": "Добавить в команду",
+  "Creates a sign-in account and adds them to the hiring team list.": "Создаёт вход в систему и добавляет человека в список команды найма.",
+  "People who can sign in. Password is set here; no invite email.": "Кто может войти. Пароль задаётся здесь; письмо-приглашение не уходит.",
+  "One list: login + appears in owner/interviewer picks. Owner creates accounts; share password securely.": "Один список: логин + появляется в выборе owner/интервьюера. Owner создаёт аккаунты; пароль передайте безопасно.",
+  "{0} One list: login + appears in owner/interviewer picks. Owner creates accounts; share password securely.": "{0} Один список: логин + появляется в выборе owner/интервьюера. Owner создаёт аккаунты; пароль передайте безопасно.",
+  "Local demo only. In server mode this becomes real login accounts.": "Только локальное демо. В server mode здесь будут реальные учётные записи.",
+  "{0} Local demo only. In server mode this becomes real login accounts.": "{0} Только локальное демо. В server mode здесь будут реальные учётные записи.",
+  "Teammate added. They can sign in with this email and password.": "Участник добавлен. Можно входить с этим email и паролем.",
+  "Name, email, and password are required.": "Нужны имя, email и пароль.",
+  "No login accounts yet.": "Учётных записей пока нет.",
+  "Only Owner or Admin can view login accounts.": "Просмотр учётных записей доступен Owner или Admin.",
+  "Only the Owner can create login accounts.": "Создавать учётные записи может только Owner.",
+  "Owner creates accounts here. Password is set now — no invite email is sent. Share credentials securely.": "Owner создаёт аккаунты здесь. Пароль задаётся сразу — письмо-приглашение не отправляется. Передайте данные безопасно.",
+  "Password *": "Пароль *",
+  "Password must contain 12-256 characters and must not be a common default": "Пароль: 12–256 символов, без распространённых значений по умолчанию",
+  "Passwords do not match.": "Пароли не совпадают.",
+  "Choose Admin, Recruiter, or Viewer.": "Выберите Admin, Recruiter или Viewer.",
+  "Read-only API access.": "Только чтение через API.",
+  "Real sign-in users with passwords. Separate from the team directory below.": "Реальные пользователи с паролем. Отдельно от справочника команды ниже.",
+  "Sets email and password now. The person can sign in immediately. No invitation email is sent.": "Сразу задаются email и пароль. Можно входить сразу. Письмо-приглашение не отправляется.",
+  "Start the backend and sign in to manage accounts that can log into Jobster.": "Запустите backend и войдите, чтобы управлять аккаунтами для входа в Jobster.",
+  "Via Resend / Twilio": "Через Resend / Twilio",
   "Viewer": "Наблюдатель",
+  "{0} Directory only — cannot log in. Use Login accounts above for real access.": "{0} Только справочник — войти нельзя. Для доступа используйте «Учётные записи» выше.",
+  "{0} Owner creates accounts here. Password is set now — no invite email is sent. Share credentials securely.": "{0} Owner создаёт аккаунты здесь. Пароль задаётся сразу — письмо-приглашение не отправляется. Передайте данные безопасно.",
+  "{0} Start the backend and sign in to manage accounts that can log into Jobster.": "{0} Запустите backend и войдите, чтобы управлять аккаунтами для входа в Jobster.",
   "Draft invite": "Черновик приглашения",
   "Sample member": "Тестовый участник",
   "Local owner": "Локальный владелец",
@@ -843,6 +944,7 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Move promising people into screening": "Переведите подходящих кандидатов на этап отбора",
   "No new applications waiting for review": "Нет новых откликов на рассмотрение",
   "DEMO SIMULATION IN PROGRESS": "ЛОКАЛЬНАЯ СИМУЛЯЦИЯ ЗАПУЩЕНА",
+  "Drafts, ready campaigns, and send results": "Черновики, готовые кампании и результаты отправки",
   "A LITTLE PERSONAL GOES A LONG WAY": "ЛИЧНЫЙ ПОДХОД К КАЖДОМУ",
   "Your next conversation starts here.": "Здесь начинается следующий разговор.",
   "This campaign is running only as a local simulation. No messages have been sent or delivered.": "Кампания работает только как локальная симуляция. Сообщения не отправлялись и не доставлялись.",
@@ -866,11 +968,30 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Enter a valid whole number.": "Введите корректное целое число.",
   "Check this field and try again.": "Проверьте это поле и попробуйте снова.",
   "Backend API": "API бэкенда",
+  "Connect external services": "Подключение внешних сервисов",
+  "Telegram bot": "Telegram-бот",
+  "Resend API from .env — apply codes, stage and interview emails.": "Resend API из .env — коды apply, письма по этапам и инвайты.",
+  "Bot token in .env — interview invites and day-before reminders.": "Токен бота в .env — инвайты и напоминание за день.",
+  "Set RESEND_API_KEY in server .env (https://resend.com/api-keys).": "Задайте RESEND_API_KEY в .env сервера (https://resend.com/api-keys).",
+  "JOBSTER_MAIL_FROM: onboarding@resend.dev until your domain is verified, then hiring@yourdomain.com.": "JOBSTER_MAIL_FROM: onboarding@resend.dev пока домен не верифицирован, потом hiring@yourdomain.com.",
+  "Used for apply verification codes, Interview/Offer/Hired stage mail, and interview invites.": "Используется для кодов apply, писем Interview/Offer/Hired и инвайтов на интервью.",
+  "Never put API keys in frontend code or browser storage.": "Не храните API-ключи во фронтенде или в браузере.",
+  "Create a bot with @BotFather and set TELEGRAM_BOT_TOKEN + TELEGRAM_BOT_USERNAME in .env.": "Создайте бота в @BotFather и задайте TELEGRAM_BOT_TOKEN + TELEGRAM_BOT_USERNAME в .env.",
+  "Candidates link via apply deep-link /start=<candidateId> (or paste /start in the bot).": "Кандидаты линкуются через deep-link /start=<candidateId> (или вставляют /start в бота).",
+  "Interview invites and day-before reminders go to linked chat_id.": "Инвайты и напоминания за день уходят на привязанный chat_id.",
+  "Local: TELEGRAM_USE_POLLING=true. Production: set webhook to /api/public/telegram/webhook.": "Локально: TELEGRAM_USE_POLLING=true. Прод: webhook на /api/public/telegram/webhook.",
+  "Email integration": "Интеграция email",
   "SMS provider": "SMS-провайдер",
   "Email provider": "Email-провайдер",
   "External calendar": "Внешний календарь",
   "Authentication, records, audit trail and permissions.": "Авторизация, записи, журнал действий и права доступа.",
   "Server-side sending, consent checks and delivery events.": "Серверная отправка, проверка согласий и события доставки.",
+  "Twilio from .env — stage and interview SMS when the candidate has a phone.": "Twilio из .env — SMS по этапам и инвайтам, если у кандидата есть телефон.",
+  "Set TWILIO_ACCOUNT_SID (AC… from Console dashboard), TWILIO_API_KEY (SK…), TWILIO_API_SECRET, and TWILIO_FROM_NUMBER in .env.": "Задайте TWILIO_ACCOUNT_SID (AC… с дашборда), TWILIO_API_KEY (SK…), TWILIO_API_SECRET и TWILIO_FROM_NUMBER в .env.",
+  "From number must be a Twilio number in E.164, e.g. +15551234567.": "Исходящий номер — Twilio в E.164, напр. +15551234567.",
+  "Sends on Interview / Offer / Hired and interview invites when the candidate has a phone — same moments as Resend email.": "Шлётся на Interview / Offer / Hired и инвайты на интервью, если есть телефон — те же моменты, что и email через Resend.",
+  "Campaign and draft SMS stay draft-only until a separate blast workflow is added.": "Кампании и черновики SMS по-прежнему не отправляются, пока нет отдельного blast-флоу.",
+  "Campaign Send (SMS channel) blasts the segment via Twilio. Per-candidate message drafts stay draft-only.": "Send кампании (канал SMS) шлёт сегмент через Twilio. Черновики сообщений кандидату остаются черновиками.",
   "Server-side templates, sending and delivery events.": "Серверные шаблоны, отправка и события доставки.",
   "Account connection and two-way event synchronization.": "Подключение аккаунта и двусторонняя синхронизация встреч.",
   "SMS integration": "Интеграция SMS",
@@ -926,6 +1047,24 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Workspace logo removed": "Логотип удалён",
   "Activity marked as read": "История отмечена как прочитанная",
   "Job saved locally. Not published.": "Вакансия сохранена локально. Не опубликована.",
+  "Job saved. Career page updated.": "Вакансия сохранена. Карьерная страница обновлена.",
+  "Career page layout": "Макет карьерной страницы",
+  "Public career page": "Публичная карьерная страница",
+  "Classic split": "Классический сплит",
+  "Spotlight hero": "Hero-баннер",
+  "Compact card": "Компактная карточка",
+  "Enabled — accept applications": "Включено — принимать отклики",
+  "Disabled": "Выключено",
+  "Career page link": "Ссылка на карьерную страницу",
+  "Share this link in ads or messages. Candidates verify email, fill the form, and land in New.": "Делитесь ссылкой в рекламе или сообщениях. Кандидат подтверждает email, заполняет анкету и попадает в New.",
+  "Enable the public page and set status to Active to accept applications.": "Включите публичную страницу и статус Active, чтобы принимать отклики.",
+  "Save the job once to generate a public link.": "Сохраните вакансию, чтобы получить публичную ссылку.",
+  "Copy career link": "Копировать ссылку",
+  "Career link copied": "Ссылка скопирована",
+  "Career link ready": "Ссылка готова",
+  "classic": "classic",
+  "spotlight": "spotlight",
+  "compact": "compact",
   "Recruiter notes saved": "Заметки рекрутера сохранены",
   "Message draft saved. Nothing was sent.": "Черновик сообщения сохранён. Ничего не отправлено.",
   "Appointment saved. No invitation sent.": "Встреча сохранена. Приглашение не отправлено.",
@@ -1006,7 +1145,9 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   "Indeed": "Indeed",
   "LinkedIn": "LinkedIn",
   "SMS": "SMS",
-  "Workspace owner": "Владелец"
+  "Workspace owner": "Владелец",
+  "Signed-in account": "Аккаунт входа",
+  "Signed in as {0}": "Вы вошли как {0}"
 };
   const KEY = 'falcon-jobster:locale:v1';
   let language = 'en';
@@ -1152,8 +1293,39 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   const heading = (kicker, title, text, actions = '') => `<div class="page-heading"><div><span class="eyebrow">${kicker}</span><h1>${title}</h1><p>${text}</p></div><div class="heading-actions">${actions}</div></div>`;
   const panelHead = (title, subtitle, action = '') => `<div class="section-title"><div><h2>${title}</h2><p>${subtitle}</p></div>${action}</div>`;
   const today = dateKey(new Date());
-  const ui = {view: 'overview', search: '', job: 'All', stage: 'All', source: 'All', candidateTab: 'All', jobStatus: 'All', sort: 'updated', page: 1, pageSize: 10, selected: new Set(), reportDays: 30, flowDays: 14, settingsTab: 'workspace', calendarDate: today, calendarMonth: today.slice(0, 7), calendarFilter: 'All', drawerTab: 'profile'};
+  const ui = {view: 'overview', search: '', job: 'All', stage: 'All', source: 'All', candidateTab: 'All', jobStatus: 'All', sort: 'updated', page: 1, pageSize: 10, selected: new Set(), reportDays: 30, flowDays: 14, settingsTab: 'workspace', calendarDate: today, calendarMonth: today.slice(0, 7), calendarFilter: 'All', drawerTab: 'profile', accounts: {items: null, loading: false, error: ''}, providers: null, providersLoading: false};
   let dragId = null, lastFocus = null, currentCandidateId = null;
+  const sessionRole = () => window.FalconSession?.role || '';
+  const isOwner = () => sessionRole() === 'Owner';
+  const isAdminOrOwner = () => ['Owner', 'Admin'].includes(sessionRole());
+  async function apiJson(url, options = {}) {
+    const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', ...options});
+    let result = {};
+    try { result = await response.json(); } catch { /* ignore */ }
+    if (!response.ok) {
+      const error = new Error(result.error || `Server error (${response.status})`);
+      error.status = response.status;
+      throw error;
+    }
+    return result;
+  }
+  async function loadAccounts({force = false} = {}) {
+    if (!Store.remote || !isAdminOrOwner()) return;
+    if (ui.accounts.loading) return;
+    if (!force && Array.isArray(ui.accounts.items)) return;
+    ui.accounts.loading = true;
+    ui.accounts.error = '';
+    try {
+      const result = await apiJson('/api/users');
+      ui.accounts.items = Array.isArray(result.items) ? result.items : [];
+    } catch (err) {
+      ui.accounts.error = err.message || I.t('Could not load login accounts.');
+      ui.accounts.items = [];
+    } finally {
+      ui.accounts.loading = false;
+      if (ui.view === 'settings' && ui.settingsTab === 'team') render();
+    }
+  }
 
   function languageSwitcher() {
     return `<div class="language-switcher" role="group" aria-label="${esc(I.t('Interface language'))}"><button type="button" data-action="set-language" data-language="en" lang="en" title="English" aria-label="English" aria-pressed="${I.language === 'en'}">EN</button><button type="button" data-action="set-language" data-language="ru" lang="ru" title="\u0420\u0443\u0441\u0441\u043a\u0438\u0439" aria-label="\u0420\u0443\u0441\u0441\u043a\u0438\u0439" aria-pressed="${I.language === 'ru'}">RU</button></div>`;
@@ -1196,7 +1368,7 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   }
 
   function shell() {
-    $('#root').innerHTML = `<a class="skip-link" href="#workspace">${I.t("Skip to workspace")}</a><div class="app-shell"><aside class="sidebar" aria-label="${I.t("Main navigation")}"><a class="brand" href="#/overview" data-action="navigate" data-view="overview"><span class="brand-mark"><svg viewBox="0 0 32 32" width="25" height="25" aria-hidden="true"><path d="M5 6h25L12 17h13L8 28l4-15Z" fill="currentColor"/></svg></span><span>${I.t("Falcon")} <b>${I.t("Jobster")}</b><small>${I.t("THE HIRING WORKSPACE")}</small></span></a><button type="button" class="icon-button mobile-close" data-action="close-menu" aria-label="${I.t("Close navigation")}">${icon('x', 17)}</button><nav class="main-nav"><span class="nav-caption">${I.t("WORKSPACE")}</span>${['overview', 'pipeline', 'candidates', 'jobs', 'calendar'].map(navItem).join('')}<span class="nav-caption second">${I.t("ENGAGE & MEASURE")}</span>${['campaigns', 'reports'].map(navItem).join('')}</nav><div class="sidebar-bottom"><div class="workspace-note"><span class="live-dot"></span><strong>${Store.remote ? state().settings.company : I.t("Your local workspace")}</strong><p>${Store.remote ? (I.language === "ru" ? "\u0414\u0430\u043d\u043d\u044b\u0435 \u0445\u0440\u0430\u043d\u044f\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435." : "Records are stored on the server.") : I.t("Explore freely. Sample data stays in this browser.")}</p><button data-action="help">${Store.remote ? (I.language === "ru" ? "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441\u043f\u0440\u0430\u0432\u043a\u0443" : "View help") : I.t("Explore the demo {0}", [icon('arrow', 13)])}</button></div>${navItem('settings')}${Store.remote ? `<button type="button" class="nav-item remote-sidebar-logout" data-action="remote-logout">${icon("x", 16)}${I.language === "ru" ? "\u0412\u044b\u0439\u0442\u0438" : "Sign out"}</button>` : ""}<button class="workspace-user" data-action="navigate" data-view="settings"><span class="avatar small">${Store.remote ? esc(initials(window.FalconSession?.name || "Admin")) : I.t("ZS")}</span><span><strong>${Store.remote ? esc(window.FalconSession?.name || "Admin") : I.t("Zafar Safarov")}</strong><small>${Store.remote ? esc(window.FalconSession?.role || "Owner") : I.t("Demo administrator")}</small></span>${icon('chevron', 15)}</button></div></aside><button class="sidebar-scrim" aria-label="${I.t("Close navigation")}" data-action="close-menu"></button><main><header class="topbar"><button class="icon-button mobile-menu" data-action="open-menu" aria-label="${I.t("Open navigation")}">${icon('menu', 21)}</button><div class="breadcrumb"><span>${I.t("Workspace")}</span>${icon('right', 12)}<strong id="breadcrumb-view">${I.t("Overview")}</strong></div><div class="global-search-wrap"><label class="global-search">${icon('search', 17)}<input id="global-search" autocomplete="off" placeholder="${I.t("Search your workspace...")}" aria-label="${I.t("Search candidates, jobs and campaigns")}" aria-controls="global-results" aria-expanded="false"><kbd><span class="shortcut-mod">${I.t("Ctrl")}</span> ${I.t("K")}</kbd></label><div id="global-results" class="global-results" hidden></div></div><div class="top-actions">${languageSwitcher()}<span class="demo-pill"><span></span>${Store.remote ? (I.language === "ru" ? "\u0421\u0435\u0440\u0432\u0435\u0440" : "Server mode") : I.t("Local demo")}</span>${Store.remote ? `<button type="button" class="secondary remote-logout" data-action="remote-logout">${I.language === "ru" ? "\u0412\u044b\u0439\u0442\u0438" : "Sign out"}</button>` : ""}<button class="icon-button notification" data-action="notifications" aria-label="${I.t("Activity notifications")}">${icon('bell', 19)}<i id="notification-dot"></i></button><button class="company-switcher" data-action="navigate" data-view="settings" aria-label="${I.t("Open workspace settings")}"><span id="company-logo" class="company-logo">${I.t("FS")}</span><span id="company-name">${I.t("Falcon Staffing")}</span>${icon('chevron', 13)}</button></div></header><div id="storage-warning" role="alert" hidden></div><section class="workspace" id="workspace" tabindex="-1"></section><footer class="app-footer"><span>${I.t("FALCON JOBSTER")} <i>/</i> ${I.t("Recruiting, thoughtfully connected.")}</span><span>${Store.remote ? (I.language === "ru" ? "\u041d\u0435\u0442 \u043e\u0442\u043f\u0440\u0430\u0432\u043a\u0438 SMS/email" : "No live SMS/email sending") : I.t("Sample data · No live messaging")}</span></footer></main></div>`;
+    $('#root').innerHTML = `<a class="skip-link" href="#workspace">${I.t("Skip to workspace")}</a><div class="app-shell"><aside class="sidebar" aria-label="${I.t("Main navigation")}"><a class="brand" href="#/overview" data-action="navigate" data-view="overview"><span class="brand-mark"><svg viewBox="0 0 32 32" width="25" height="25" aria-hidden="true"><path d="M5 6h25L12 17h13L8 28l4-15Z" fill="currentColor"/></svg></span><span>${I.t("Falcon")} <b>${I.t("Jobster")}</b><small>${I.t("THE HIRING WORKSPACE")}</small></span></a><button type="button" class="icon-button mobile-close" data-action="close-menu" aria-label="${I.t("Close navigation")}">${icon('x', 17)}</button><nav class="main-nav"><span class="nav-caption">${I.t("WORKSPACE")}</span>${['overview', 'pipeline', 'candidates', 'jobs', 'calendar'].map(navItem).join('')}<span class="nav-caption second">${I.t("ENGAGE & MEASURE")}</span>${['campaigns', 'reports'].map(navItem).join('')}</nav><div class="sidebar-bottom"><div class="workspace-note"><span class="live-dot"></span><strong>${Store.remote ? state().settings.company : I.t("Your local workspace")}</strong><p>${Store.remote ? (I.language === "ru" ? "\u0414\u0430\u043d\u043d\u044b\u0435 \u0445\u0440\u0430\u043d\u044f\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435." : "Records are stored on the server.") : I.t("Explore freely. Sample data stays in this browser.")}</p><button data-action="help">${Store.remote ? (I.language === "ru" ? "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441\u043f\u0440\u0430\u0432\u043a\u0443" : "View help") : I.t("Explore the demo {0}", [icon('arrow', 13)])}</button></div>${navItem('settings')}${Store.remote ? `<button type="button" class="nav-item remote-sidebar-logout" data-action="remote-logout">${icon("x", 16)}${I.language === "ru" ? "\u0412\u044b\u0439\u0442\u0438" : "Sign out"}</button>` : ""}</div></aside><button class="sidebar-scrim" aria-label="${I.t("Close navigation")}" data-action="close-menu"></button><main><header class="topbar"><button class="icon-button mobile-menu" data-action="open-menu" aria-label="${I.t("Open navigation")}">${icon('menu', 21)}</button><div class="breadcrumb"><span>${I.t("Workspace")}</span>${icon('right', 12)}<strong id="breadcrumb-view">${I.t("Overview")}</strong></div><div class="global-search-wrap"><label class="global-search">${icon('search', 17)}<input id="global-search" autocomplete="off" placeholder="${I.t("Search your workspace...")}" aria-label="${I.t("Search candidates, jobs and campaigns")}" aria-controls="global-results" aria-expanded="false"><kbd><span class="shortcut-mod">${I.t("Ctrl")}</span> ${I.t("K")}</kbd></label><div id="global-results" class="global-results" hidden></div></div><div class="top-actions">${languageSwitcher()}<span class="demo-pill"><span></span>${Store.remote ? (I.language === "ru" ? "\u0421\u0435\u0440\u0432\u0435\u0440" : "Server mode") : I.t("Local demo")}</span>${Store.remote ? `<button type="button" class="secondary remote-logout" data-action="remote-logout">${I.language === "ru" ? "\u0412\u044b\u0439\u0442\u0438" : "Sign out"}</button>` : ""}<button class="icon-button notification" data-action="notifications" aria-label="${I.t("Activity notifications")}">${icon('bell', 19)}<i id="notification-dot"></i></button><button class="company-switcher" data-action="navigate" data-view="settings" aria-label="${Store.remote ? I.t("Signed-in account") : I.t("Open workspace settings")}"><span id="company-logo" class="company-logo">${I.t("FS")}</span><span class="session-meta"><strong id="company-name">${I.t("Falcon Staffing")}</strong><small id="session-subtitle"></small></span>${icon('chevron', 13)}</button></div></header><div id="storage-warning" role="alert" hidden></div><section class="workspace" id="workspace" tabindex="-1"></section><footer class="app-footer"><span>${I.t("FALCON JOBSTER")} <i>/</i> ${I.t("Recruiting, thoughtfully connected.")}</span><span>${Store.remote ? (I.language === "ru" ? "Email / SMS \u0447\u0435\u0440\u0435\u0437 Resend \u0438 Twilio" : "Email / SMS via Resend & Twilio") : I.t("Sample data · No live messaging")}</span></footer></main></div>`;
     if (/Mac|iPhone|iPad/.test(navigator.platform)) $('.shortcut-mod').textContent = '\u2318';
     render();
   }
@@ -1205,8 +1377,25 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
     $$('.nav-item').forEach(b => { const isCurrent = b.dataset.view === ui.view; b.classList.toggle('active', isCurrent); isCurrent ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'); });
     $$('[data-nav-count]').forEach(el => { const v = el.dataset.navCount; el.textContent = v === 'candidates' ? active().length : v === 'jobs' ? state().jobs.filter(j => j.status === 'Active').length : ''; el.hidden = !['candidates', 'jobs'].includes(v); });
     $('#breadcrumb-view').textContent = I.t(VIEWS[ui.view]);
-    $('#company-name').textContent = state().settings.company;
-    $('#company-logo').innerHTML = state().settings.logo ? `<img src="${esc(state().settings.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(state().settings.company));
+    const session = Store.remote ? window.FalconSession : null;
+    const subtitle = $('#session-subtitle');
+    if (session?.email || session?.name) {
+      const label = session.name || session.email;
+      $('#company-name').textContent = label;
+      if (subtitle) {
+        subtitle.textContent = I.t(session.role === 'Owner' ? 'Workspace owner' : (session.role || 'Admin'));
+        subtitle.hidden = false;
+      }
+      $('#company-logo').innerHTML = esc(initials(label));
+      $('.company-switcher')?.setAttribute('aria-label', I.t('Signed in as {0}', [label]));
+    } else {
+      $('#company-name').textContent = state().settings.company;
+      if (subtitle) {
+        subtitle.textContent = I.t('Local demo');
+        subtitle.hidden = false;
+      }
+      $('#company-logo').innerHTML = state().settings.logo ? `<img src="${esc(state().settings.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(state().settings.company));
+    }
     $('#notification-dot').hidden = !state().activity.some(a => !a.read);
     const warning = $('#storage-warning'); warning.hidden = !Store.warning; warning.textContent = I.t(Store.warning);
     document.documentElement.lang = I.language;
@@ -1328,9 +1517,13 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   function campaignsView() {
     const q = ui.search.toLowerCase().trim();
     const list = state().campaigns.filter(c => !q || `${c.name} ${c.channel} ${c.message}`.toLowerCase().includes(q));
-    const running = state().campaigns.find(c => c.status === 'Running');
-    const featured = running || state().campaigns.find(c => c.status === 'Ready') || state().campaigns[0];
-    return `${heading(I.t("THOUGHTFUL OUTREACH"), I.t("Start a better conversation."), I.t("Build segments, personalize a message, and preview every campaign before connecting a provider."), button(I.t("Templates"), 'templates', 'message') + button(I.t("New campaign"), 'add-campaign', 'plus', 'primary'))}<section class="campaign-hero"><div class="campaign-hero-content"><span class="eyebrow light">${I.t(running ? 'DEMO SIMULATION IN PROGRESS' : 'A LITTLE PERSONAL GOES A LONG WAY')}</span><h2>${featured ? esc(featured.name) : I.t('Your next conversation starts here.')}</h2><p>${I.t(running ? 'This campaign is running only as a local simulation. No messages have been sent or delivered.' : 'Keep the context. Write like a person. Preview your audience and message in one place.')}</p><div>${featured ? button(I.t("Preview campaign"), 'campaign', 'arrow', 'light-button', `data-id="${esc(featured.id)}"`) : button(I.t("Create campaign"), 'add-campaign', 'plus', 'light-button')}${button(I.t("Browse templates"), 'templates', '', 'ghost-light')}</div></div><div class="campaign-art" aria-hidden="true"><div class="message-bubble"><span class="bubble-avatar">${icon('message', 19)}</span><span>${I.t("A more personal hello.")}<i></i><i></i></span></div><div class="message-bubble reply"><span>${I.t("{0} Keep people at the center.", [icon('checkCircle', 18)])}</span></div><span class="art-caption">${I.t("RIGHT MESSAGE. HUMAN CONNECTION.")}</span></div></section><div class="campaign-stats"><div><span>${I.t("Campaign drafts")}</span><strong>${state().campaigns.filter(c => c.status === 'Draft').length}</strong><small>${I.t("Saved in this browser")}</small></div><div><span>${I.t("Ready to review")}</span><strong>${state().campaigns.filter(c => c.status === 'Ready').length}</strong><small>${I.t("Message and segment prepared")}</small></div><div><span>${I.t("Live messages sent")}</span><strong>0</strong><small>${I.t("No provider is connected")}</small></div></div><section class="panel campaign-table">${panelHead(I.t("Your campaigns"), I.t("Local drafts and explicitly labeled simulations"), `<label class="local-search narrow">${icon('search', 15)}<input id="local-search" value="${esc(ui.search)}" placeholder="${I.t("Find a campaign...")}" aria-label="${I.t("Search campaigns")}"></label>`)}<div class="campaign-rows">${list.map(c => `<button class="campaign-row" data-action="campaign" data-id="${esc(c.id)}"><span class="channel-icon">${icon(c.channel === 'SMS' ? 'message' : 'mail', 20)}</span><span class="campaign-name"><strong>${esc(c.name)}</strong><small>${I.t("{0} · Updated {1}", [esc(I.t(c.channel)), relative(c.updatedAt)])}</small></span>${badge(c.status === 'Running' ? 'Demo running' : c.status)}<span class="campaign-audience"><strong>${campaignAudience(c).length}</strong><small>${I.t("in audience")}</small></span>${icon('right', 16)}</button>`).join('') || empty(I.t("No campaigns yet"), I.t("Start with a template or a new draft."), button(I.t("New campaign"), 'add-campaign', 'plus'))}</div></section>`;
+    const ready = state().campaigns.find(c => c.status === 'Ready');
+    const featured = ready || state().campaigns.find(c => c.status === 'Completed') || state().campaigns[0];
+    const liveSent = state().campaigns.reduce((n, c) => n + (Number(c.sentCount) || 0), 0);
+    const lead = Store.remote
+      ? I.t('Build segments, personalize a message, then send via Resend or Twilio.')
+      : I.t('Build segments and personalize a message. Sending requires server mode with Resend or Twilio.');
+    return `${heading(I.t("THOUGHTFUL OUTREACH"), I.t("Start a better conversation."), lead, button(I.t("Templates"), 'templates', 'message') + button(I.t("New campaign"), 'add-campaign', 'plus', 'primary'))}<section class="campaign-hero"><div class="campaign-hero-content"><span class="eyebrow light">${I.t(ready ? 'READY TO SEND' : 'A LITTLE PERSONAL GOES A LONG WAY')}</span><h2>${featured ? esc(featured.name) : I.t('Your next conversation starts here.')}</h2><p>${I.t(ready ? 'Audience and copy are ready. Send delivers real email or SMS to everyone in the segment.' : 'Keep the context. Write like a person. Preview your audience and message in one place.')}</p><div>${featured ? button(I.t("Preview campaign"), 'campaign', 'arrow', 'light-button', `data-id="${esc(featured.id)}"`) : button(I.t("Create campaign"), 'add-campaign', 'plus', 'light-button')}${button(I.t("Browse templates"), 'templates', '', 'ghost-light')}</div></div><div class="campaign-art" aria-hidden="true"><div class="message-bubble"><span class="bubble-avatar">${icon('message', 19)}</span><span>${I.t("A more personal hello.")}<i></i><i></i></span></div><div class="message-bubble reply"><span>${I.t("{0} Keep people at the center.", [icon('checkCircle', 18)])}</span></div><span class="art-caption">${I.t("RIGHT MESSAGE. HUMAN CONNECTION.")}</span></div></section><div class="campaign-stats"><div><span>${I.t("Campaign drafts")}</span><strong>${state().campaigns.filter(c => c.status === 'Draft').length}</strong><small>${Store.remote ? I.t('Saved on server') : I.t('Saved in this browser')}</small></div><div><span>${I.t("Ready to review")}</span><strong>${state().campaigns.filter(c => c.status === 'Ready').length}</strong><small>${I.t("Message and segment prepared")}</small></div><div><span>${I.t("Live messages sent")}</span><strong>${liveSent}</strong><small>${Store.remote ? I.t('Via Resend / Twilio') : I.t('Requires server mode')}</small></div></div><section class="panel campaign-table">${panelHead(I.t("Your campaigns"), Store.remote ? I.t('Drafts, ready campaigns, and send results') : I.t('Local drafts — send from server mode'), `<label class="local-search narrow">${icon('search', 15)}<input id="local-search" value="${esc(ui.search)}" placeholder="${I.t("Find a campaign...")}" aria-label="${I.t("Search campaigns")}"></label>`)}<div class="campaign-rows">${list.map(c => `<button class="campaign-row" data-action="campaign" data-id="${esc(c.id)}"><span class="channel-icon">${icon(c.channel === 'SMS' ? 'message' : 'mail', 20)}</span><span class="campaign-name"><strong>${esc(c.name)}</strong><small>${I.t("{0} · Updated {1}", [esc(I.t(c.channel)), relative(c.updatedAt)])}</small></span>${badge(c.status)}<span class="campaign-audience"><strong>${campaignAudience(c).length}</strong><small>${I.t("in audience")}</small></span>${icon('right', 16)}</button>`).join('') || empty(I.t("No campaigns yet"), I.t("Start with a template or a new draft."), button(I.t("New campaign"), 'add-campaign', 'plus'))}</div></section>`;
   }
   function reportData() {
     const people = active().filter(c => ui.reportDays === 0 || new Date(c.createdAt).getTime() >= Date.now() - ui.reportDays * 86400000);
@@ -1347,17 +1540,127 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   }
   function toggle(name, title, description, checked) { return `<label class="toggle-row"><span><strong>${title}</strong><small>${description}</small></span><input type="checkbox" name="${name}" ${checked ? 'checked' : ''}><i aria-hidden="true"></i></label>`; }
   function settingsView() {
-    return `${heading(I.t("MAKE IT YOUR WORKSPACE"), I.t("The details behind the work."), (Store.remote ? (I.language === "ru" ? "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u044e\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0412\u043d\u0435\u0448\u043d\u0438\u0435 \u0441\u0435\u0440\u0432\u0438\u0441\u044b \u043d\u0435 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u044b." : "Settings are stored on the server. External providers are not connected.") : I.t("Workspace preferences are local. Team roles and notification settings do not activate backend services.")))}<div class="settings-layout"><nav class="settings-nav" aria-label="${I.t("Settings sections")}">${[{id: 'workspace', label: I.t("Workspace"), ico: 'briefcase'}, {id: 'team', label: I.t("Team & roles"), ico: 'users'}, {id: 'integrations', label: I.t("Integrations"), ico: 'link'}, {id: 'data', label: I.t("Data & privacy"), ico: 'shield'}].map(x => `<button class="${ui.settingsTab === x.id ? 'active' : ''}" data-action="settings-tab" data-tab="${x.id}" ${ui.settingsTab === x.id ? 'aria-current="page"' : ''}>${icon(x.ico, 17)}${x.label}</button>`).join('')}</nav><div class="settings-content">${({workspace: workspaceSettings, team: teamSettings, integrations: integrationSettings, data: dataSettings}[ui.settingsTab] || workspaceSettings)()}</div></div>`;
+    return `${heading(I.t("MAKE IT YOUR WORKSPACE"), I.t("The details behind the work."), settingsLead())}<div class="settings-layout"><nav class="settings-nav" aria-label="${I.t("Settings sections")}">${[{id: 'workspace', label: I.t("Workspace"), ico: 'briefcase'}, {id: 'team', label: I.t("Team & roles"), ico: 'users'}, {id: 'integrations', label: I.t("Integrations"), ico: 'link'}, {id: 'data', label: I.t("Data & privacy"), ico: 'shield'}].map(x => `<button class="${ui.settingsTab === x.id ? 'active' : ''}" data-action="settings-tab" data-tab="${x.id}" ${ui.settingsTab === x.id ? 'aria-current="page"' : ''}>${icon(x.ico, 17)}${x.label}</button>`).join('')}</nav><div class="settings-content">${({workspace: workspaceSettings, team: teamSettings, integrations: integrationSettings, data: dataSettings}[ui.settingsTab] || workspaceSettings)()}</div></div>`;
   }
   function workspaceSettings() {
     const s = state().settings;
-    return `<form id="settings-form" class="settings-section"><div class="language-settings"><div><h2>${I.t('Interface language')}</h2><p>${I.t('Choose the interface language. Your records and draft messages stay unchanged.')}</p></div><label for="workspace-language">${I.t('Language')}<select id="workspace-language" data-language-control><option value="en" lang="en" ${I.language === 'en' ? 'selected' : ''}>English</option><option value="ru" lang="ru" ${I.language === 'ru' ? 'selected' : ''}>Русский</option></select></label></div><hr><div><h2>${I.t("Workspace details")}</h2><p>${I.t("The name your team sees throughout the demo.")}</p></div><div class="logo-upload"><span>${s.logo ? `<img src="${esc(s.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(s.company))}</span><div><label class="secondary upload-label" for="logo-file">${I.t("{0}Upload logo", [icon('upload', 15)])}</label><input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><small>${I.t("PNG, JPG or WebP. Up to 512 KB.")}</small></div>${s.logo ? button(I.t("Remove"), 'remove-logo', 'x', 'text-button') : ''}</div><label>${I.t("Company name")}<input name="company" value="${esc(s.company)}" required maxlength="80" autocomplete="organization"></label><div class="form-grid"><label>${I.t("Company website")}<input name="website" value="${esc(s.website)}" type="url" placeholder="${I.t("https://example.com")}" maxlength="250"></label><label>${I.t("Display timezone")}<select name="timezone">${options([{value: 'America/New_York', label: I.t("Eastern Time (New York)")}, {value: 'America/Chicago', label: I.t("Central Time (Chicago)")}, {value: 'America/Denver', label: I.t("Mountain Time (Denver)")}, {value: 'America/Los_Angeles', label: I.t("Pacific Time (Los Angeles)")}, {value: 'America/Phoenix', label: I.t("Arizona (Phoenix)")}, {value: 'UTC', label: I.t("UTC")}], s.timezone)}</select></label></div><hr><div><h2>${I.t("Notification preferences")}</h2><p>${I.t("Saved for a future integration. This demo does not send notifications.")}</p></div>${toggle('digest', I.t("Daily recruiting digest"), I.t("A morning overview of the hiring workspace."), s.digest)}${toggle('interview', I.t("Interview reminders"), I.t("A reminder preference for upcoming conversations."), s.interview)}${toggle('offers', I.t("Offer activity"), I.t("Updates when a candidate reaches an offer stage."), s.offers)}<p class="form-error" role="alert" hidden></p><div class="settings-actions"><span class="muted">${Store.remote ? `${icon("database", 14)} ${I.language === "ru" ? "\u0425\u0440\u0430\u043d\u0438\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435" : "Stored on server"}` : I.t("{0} Saved in this browser", [icon('database', 14)])}</span><button class="primary" type="submit">${I.t("{0}Save changes", [icon('check', 16)])}</button></div></form>`;
+    return `<form id="settings-form" class="settings-section"><div class="language-settings"><div><h2>${I.t('Interface language')}</h2><p>${I.t('Choose the interface language. Your records and draft messages stay unchanged.')}</p></div><label for="workspace-language">${I.t('Language')}<select id="workspace-language" data-language-control><option value="en" lang="en" ${I.language === 'en' ? 'selected' : ''}>English</option><option value="ru" lang="ru" ${I.language === 'ru' ? 'selected' : ''}>Русский</option></select></label></div><hr><div><h2>${I.t("Workspace details")}</h2><p>${I.t("The name your team sees throughout the demo.")}</p></div><div class="logo-upload"><span>${s.logo ? `<img src="${esc(s.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(s.company))}</span><div><label class="secondary upload-label" for="logo-file">${I.t("{0}Upload logo", [icon('upload', 15)])}</label><input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><small>${I.t("PNG, JPG or WebP. Up to 512 KB.")}</small></div>${s.logo ? button(I.t("Remove"), 'remove-logo', 'x', 'text-button') : ''}</div><label>${I.t("Company name")}<input name="company" value="${esc(s.company)}" required maxlength="80" autocomplete="organization"></label><div class="form-grid"><label>${I.t("Company website")}<input name="website" value="${esc(s.website)}" type="url" placeholder="${I.t("https://example.com")}" maxlength="250"></label><label>${I.t("Display timezone")}<select name="timezone">${options([{value: 'America/New_York', label: I.t("Eastern Time (New York)")}, {value: 'America/Chicago', label: I.t("Central Time (Chicago)")}, {value: 'America/Denver', label: I.t("Mountain Time (Denver)")}, {value: 'America/Los_Angeles', label: I.t("Pacific Time (Los Angeles)")}, {value: 'America/Phoenix', label: I.t("Arizona (Phoenix)")}, {value: 'UTC', label: I.t("UTC")}], s.timezone)}</select></label></div><hr><div><h2>${I.t("Notification preferences")}</h2><p>${I.t("Emails go to team directory + login accounts via Resend when enabled.")}</p></div>${toggle('digest', I.t("Daily recruiting digest"), I.t("Morning summary (~08:00 in display timezone) with funnel and upcoming interviews."), s.digest)}${toggle('interview', I.t("Interview reminders"), I.t("Team emails 24 hours and 1 hour before each scheduled interview."), s.interview)}${toggle('offers', I.t("Offer activity"), I.t("Email the team when a candidate moves to the Offer stage."), s.offers)}<p class="form-error" role="alert" hidden></p><div class="settings-actions"><span class="muted">${Store.remote ? `${icon("database", 14)} ${I.language === "ru" ? "\u0425\u0440\u0430\u043d\u0438\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435" : "Stored on server"}` : I.t("{0} Saved in this browser", [icon('database', 14)])}</span><button class="primary" type="submit">${I.t("{0}Save changes", [icon('check', 16)])}</button></div></form>`;
+  }
+  function roleHint(role) {
+    if (role === 'Owner') return I.t('Full access, can create login accounts.');
+    if (role === 'Admin') return I.t('Full web UI. Cannot create login accounts.');
+    if (role === 'Recruiter') return I.t('Full hiring UI. Cannot create login accounts.');
+    if (role === 'Viewer') return I.t('Read-only API access. No full web UI.');
+    return '';
+  }
+  function syncTeamDirectoryFromUser({name, email, role}) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!normalized || !name) return;
+    commit(s => {
+      const existing = s.team.find(t => String(t.email || '').toLowerCase() === normalized);
+      if (existing) {
+        const oldName = existing.name;
+        existing.name = name;
+        existing.role = role === 'Owner' ? 'Owner' : role;
+        existing.status = 'Active';
+        if (oldName !== name) {
+          s.candidates.forEach(c => { if (c.owner === oldName) c.owner = name; });
+          s.jobs.forEach(j => { if (j.owner === oldName) j.owner = name; });
+          s.interviews.forEach(i => { if (i.interviewer === oldName) i.interviewer = name; });
+        }
+      } else {
+        s.team.push({id: Store.id(), name, email: normalized, role: role === 'Owner' ? 'Owner' : role, status: 'Active'});
+      }
+      Store.log(s, `Team directory synced: ${name}`);
+    });
+  }
+  function accountsSettings() {
+    if (!isAdminOrOwner()) {
+      return `<section class="settings-section">${panelHead(I.t("Team & roles"), I.t("Only Owner or Admin can view login accounts."))}</section>`;
+    }
+    const createBtn = isOwner() ? button(I.t("Add teammate"), 'add-account', 'plus', 'primary') : '';
+    const body = ui.accounts.loading && !ui.accounts.items
+      ? `<p class="muted">${I.t("Loading accounts...")}</p>`
+      : ui.accounts.error
+        ? `<div class="notice">${esc(ui.accounts.error)}</div>`
+        : `<div class="team-list">${(ui.accounts.items || []).map(u => `<div>${avatar({name: u.name, color: '#deebe6'})}<span><strong>${esc(u.name)}</strong><small>${esc(u.email)}${u.disabled ? ` &middot; ${esc(I.t('Disabled'))}` : ''}</small></span><em title="${esc(roleHint(u.role))}">${esc(I.t(u.role === 'Owner' ? 'Workspace owner' : u.role))}</em></div>`).join('') || `<p class="muted">${I.t("No login accounts yet.")}</p>`}</div>`;
+    return `<section class="settings-section">${panelHead(I.t("Team & roles"), I.t("People who can sign in. Password is set here; no invite email."), createBtn)}<div class="notice">${I.t("{0} One list: login + appears in owner/interviewer picks. Owner creates accounts; share password securely.", [icon('shield', 17)])}</div>${body}</section>`;
   }
   function teamSettings() {
-    return `<section class="settings-section">${panelHead(I.t("People behind the hiring"), I.t("Sample team directory. Roles are labels, not enforced permissions."), button(I.t("Add member"), 'add-member', 'plus', 'primary'))}<div class="notice">${I.t("{0} Invitations are saved as local drafts. No invitation email is sent.", [icon('info', 17)])}</div><div class="team-list">${state().team.map(t => `<div>${avatar({...t, color: '#deebe6'})}<span><strong>${esc(t.name)}</strong><small>${esc(t.email || I.t('Email not configured'))} &middot; ${esc(I.t(t.status))}</small></span><em>${esc(I.t(t.role === 'Owner' ? 'Workspace owner' : t.role))}</em>${iconButton(I.t("Edit ") + t.name, 'edit-member', 'edit', `data-id="${esc(t.id)}"`)}</div>`).join('')}</div></section>`;
+    if (!Store.remote) {
+      return `<section class="settings-section">${panelHead(I.t("People behind the hiring"), I.t("Sample team directory. Roles are labels, not enforced permissions."), button(I.t("Add member"), 'add-member', 'plus', 'primary'))}<div class="notice">${I.t("{0} Local demo only. In server mode this becomes real login accounts.", [icon('info', 17)])}</div><div class="team-list">${state().team.map(t => `<div>${avatar({...t, color: '#deebe6'})}<span><strong>${esc(t.name)}</strong><small>${esc(t.email || I.t('Email not configured'))} &middot; ${esc(I.t(t.status))}</small></span><em>${esc(I.t(t.role === 'Owner' ? 'Workspace owner' : t.role))}</em>${iconButton(I.t("Edit ") + t.name, 'edit-member', 'edit', `data-id="${esc(t.id)}"`)}</div>`).join('')}</div></section>`;
+    }
+    if (isAdminOrOwner()) void loadAccounts();
+    return accountsSettings();
+  }
+  function openAccountForm() {
+    if (!Store.remote || !isOwner()) {
+      toast(I.t('Only the Owner can create login accounts.'), true);
+      return;
+    }
+    modal(I.t("Add teammate"), I.t("Creates a sign-in account and adds them to the hiring team list."), `<form id="account-form"><label>${I.t("Name *")}<input name="name" required maxlength="200" autocomplete="name"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="254" autocomplete="off" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Password *")}<input name="password" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Confirm password *")}<input name="confirm" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Role")}<select name="role">${options(['Admin', 'Recruiter'], 'Admin')}</select></label><p class="field-hint">${I.t("Admin/Recruiter: full hiring UI. Only Owner creates accounts.")}</p>${formActions(I.t("Add teammate"))}</form>`);
+  }
+  function providerOn(id) {
+    if (id === 'api') return !!Store.remote;
+    return !!(ui.providers && ui.providers[id]);
+  }
+  function settingsLead() {
+    if (!Store.remote) return I.t("Workspace preferences are local. Team roles and notification settings do not activate backend services.");
+    const p = ui.providers;
+    if (!p) return I.language === 'ru' ? 'Настройки сохраняются на сервере. Проверяем интеграции…' : 'Settings are stored on the server. Checking integrations…';
+    const on = [p.email && 'Email', p.sms && 'SMS', p.telegram && 'Telegram'].filter(Boolean);
+    if (!on.length) {
+      return I.language === 'ru'
+        ? 'Настройки сохраняются на сервере. Resend, Twilio и Telegram пока не настроены в .env.'
+        : 'Settings are stored on the server. Resend, Twilio and Telegram are not configured in .env yet.';
+    }
+    return I.language === 'ru'
+      ? `Настройки на сервере. Подключено: ${on.join(', ')}. Секреты только в .env.`
+      : `Settings on server. Connected: ${on.join(', ')}. Keep secrets in .env only.`;
+  }
+  async function refreshProviders() {
+    if (!Store.remote) {
+      ui.providers = {api: false, email: false, telegram: false, sms: false};
+      return;
+    }
+    if (ui.providersLoading) return;
+    ui.providersLoading = true;
+    try {
+      const res = await fetch('/api/healthz', {credentials: 'same-origin', cache: 'no-store'});
+      const data = await res.json().catch(() => ({}));
+      ui.providers = {
+        api: true,
+        email: !!data.providers?.email,
+        telegram: !!data.providers?.telegram,
+        telegramBot: data.providers?.telegramBot || null,
+        sms: !!data.providers?.sms
+      };
+    } catch {
+      ui.providers = {api: true, email: false, telegram: false, sms: false};
+    } finally {
+      ui.providersLoading = false;
+    }
   }
   function integrationSettings() {
-    return `<section class="settings-section"><div><h2>${Store.remote ? "Connect external services" : I.t("Connect when your backend is ready")}</h2><p>${Store.remote ? "The backend API is connected; SMS, email, and calendar providers are not connected. Keep API secrets on the server." : I.t("No provider is connected in this build. Never place API secrets in frontend code or browser storage.")}</p></div><div class="integration-grid">${[{id: 'api', name: 'Backend API', text: 'Authentication, records, audit trail and permissions.', ico: 'database'}, {id: 'sms', name: 'SMS provider', text: 'Server-side sending, consent checks and delivery events.', ico: 'message'}, {id: 'email', name: 'Email provider', text: 'Server-side templates, sending and delivery events.', ico: 'mail'}, {id: 'calendar', name: 'External calendar', text: 'Account connection and two-way event synchronization.', ico: 'calendar'}].map(i => `<article><span class="integration-icon">${icon(i.ico, 23)}</span><h3>${I.t(i.name)}</h3><p>${I.t(i.text)}</p><span class="badge ${i.id === "api" && Store.remote ? "active" : "not-connected"}">${i.id === "api" && Store.remote ? (I.language === "ru" ? "\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u043e" : "Connected") : I.t("Not connected")}</span>${button(I.t("View requirements"), 'integration-info', 'arrow', 'text-button', `data-integration="${i.id}"`)}</article>`).join('')}</div></section>`;
+    if (Store.remote && !ui.providers && !ui.providersLoading) void refreshProviders().then(() => render());
+    const p = ui.providers || {};
+    const cards = [
+      {id: 'api', name: 'Backend API', text: 'Authentication, records, audit trail and permissions.', ico: 'database'},
+      {id: 'email', name: 'Email provider', text: 'Resend API from .env — apply codes, stage and interview emails.', ico: 'mail'},
+      {id: 'telegram', name: 'Telegram bot', text: p.telegramBot ? `Bot @${p.telegramBot} — interview invites and day-before reminders.` : 'Bot token in .env — interview invites and day-before reminders.', ico: 'message'},
+      {id: 'sms', name: 'SMS provider', text: 'Twilio from .env — stage and interview SMS when the candidate has a phone.', ico: 'message'}
+    ];
+    const summary = !Store.remote
+      ? I.t("No provider is connected in this build. Never place API secrets in frontend code or browser storage.")
+      : !ui.providers
+        ? (I.language === 'ru' ? 'Загружаем статус провайдеров…' : 'Loading provider status…')
+        : (I.language === 'ru'
+          ? 'Статус берётся с сервера (/api/healthz). Секреты не показываются во фронтенде.'
+          : 'Status comes from the server (/api/healthz). Secrets never appear in the frontend.');
+    return `<section class="settings-section"><div><h2>${Store.remote ? I.t("Connect external services") : I.t("Connect when your backend is ready")}</h2><p>${summary}</p></div><div class="integration-grid">${cards.map(i => {
+      const on = providerOn(i.id);
+      return `<article><span class="integration-icon">${icon(i.ico, 23)}</span><h3>${I.t(i.name)}</h3><p>${I.t(i.text)}</p><span class="badge ${on ? 'active' : 'not-connected'}">${on ? (I.language === 'ru' ? 'Подключено' : 'Connected') : I.t('Not connected')}</span>${button(I.t("View requirements"), 'integration-info', 'arrow', 'text-button', `data-integration="${i.id}"`)}</article>`;
+    }).join('')}</div></section>`;
   }
   function dataSettings() {
     return `<section class="settings-section"><div><h2>${Store.remote ? (I.language === "ru" ? "\u0414\u0430\u043d\u043d\u044b\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u044b" : "Workspace data") : I.t("Your demo data")}</h2><p>${Store.remote ? (I.language === "ru" ? "\u0417\u0430\u043f\u0438\u0441\u0438 \u0445\u0440\u0430\u043d\u044f\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435." : "Records are stored in the SQLite database.") : I.t("Records are stored in this browser, not in a cloud database.")}</p></div><div class="notice">${Store.remote ? `${icon("shield", 19)} ${I.language === "ru" ? "\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 \u0442\u0435\u0441\u0442\u043e\u0432\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435 \u0434\u043e \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438 \u0438 \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438." : "Use test data until security and privacy review is complete."}` : I.t("{0} Do not enter real applicant data, identification documents, medical information, or secret keys. This frontend has no authentication or access control.", [icon('shield', 19)])}</div><div class="data-summary"><div><strong>${state().candidates.length}</strong><span>${I.t("Candidate records")}</span></div><div><strong>${state().jobs.length}</strong><span>${I.t("Job records")}</span></div><div><strong>${state().interviews.length}</strong><span>${I.t("Appointments")}</span></div></div><div class="data-action-row"><span><strong>${I.t("Export a backup")}</strong><small>${(Store.remote ? "Includes the current workspace records and settings as JSON." : I.t("Includes all local records and settings as JSON."))}</small></span>${button(I.t("Export JSON"), 'export-backup', 'download')}</div><div class="data-action-row"><span><strong>${I.t("Restore a backup")}</strong><small>${(Store.remote ? "Replaces the entire server workspace after confirmation." : I.t("Replaces this demo workspace after confirmation."))}</small></span><label class="secondary upload-label" for="backup-file">${I.t("{0}Import JSON", [icon('upload', 15)])}</label><input id="backup-file" type="file" accept="application/json,.json" hidden></div>${Store.remote ? "" : `<div class="data-action-row danger-zone"><span><strong>${I.t("Reset demo workspace")}</strong><small>${I.t("Replace Jobster records with the original sample data. Other browser data is not cleared.")}</small></span>${button(I.t("Reset demo"), 'confirm-reset', 'refresh', 'danger-button')}</div>`}</section>`;
@@ -1391,7 +1694,16 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
     currentCandidateId = id; ui.drawerTab = tab;
     const appointments = state().interviews.filter(i => i.candidateId === id && i.status === 'Scheduled').sort((a, b) => a.startsAt.localeCompare(b.startsAt));
     const messages = state().messages.filter(m => m.candidateId === id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    const profile = `<section class="drawer-section"><h3>${I.t("Contact & context")}</h3><div class="contact-links">${c.email ? `<a href="mailto:${encodeURIComponent(c.email)}">${icon('mail', 15)}${esc(c.email)}</a>` : `<span class="muted">${I.t("No email added")}</span>`}${c.phone ? `<a href="tel:${esc(c.phone.replace(/[^+\d]/g, ''))}">${icon('phone', 15)}${esc(c.phone)}</a>` : `<span class="muted">${I.t("No phone added")}</span>`}</div><div class="facts"><div><span>${I.t("Experience")}</span><strong>${esc(c.experience || I.t('Not specified'))}</strong></div><div><span>${I.t("Applied")}</span><strong>${dateFormat(c.createdAt, {year: 'numeric'})}</strong></div><div><span>${I.t("Source")}</span><strong>${esc(I.t(c.source))}</strong></div><div><span>${I.t("Recruiter")}</span><strong>${esc(c.owner)}</strong></div></div><div class="tags">${c.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div></section><section class="drawer-section"><form id="notes-form" data-id="${esc(c.id)}"><label for="candidate-notes">${I.t("Recruiter notes")}</label><textarea id="candidate-notes" name="notes" rows="4" maxlength="6000" placeholder="${I.t("Keep useful context for the next conversation...")}">${esc(c.notes)}</textarea><button class="secondary" type="submit">${I.t("{0}Save note", [icon('check', 14)])}</button></form></section><section class="drawer-section">${panelHead(I.t("Scheduled conversations"), I.t("Stored in this workspace only"), iconButton(I.t("Schedule interview"), 'add-interview', 'plus', `data-candidate-id="${esc(id)}"`))}${appointments.map(i => `<button class="mini-event" data-action="interview" data-id="${esc(i.id)}">${icon('calendar', 17)}<span><strong>${esc(i.title)}</strong><small>${I.t("{0} at {1}", [dateFormat(i.startsAt), timeFormat(i.startsAt)])}</small></span>${icon('right', 14)}</button>`).join('') || `<p class="muted">${I.t("No scheduled conversations yet.")}</p>`}</section>`;
+    const tgLabel = c.telegramChatId
+      ? (c.telegram ? `@${c.telegram}` : I.t('Telegram linked'))
+      : (c.telegram ? `@${c.telegram}` : '');
+    const tgLink = c.telegram
+      ? `<a href="https://t.me/${esc(c.telegram)}" target="_blank" rel="noopener noreferrer">${icon('message', 15)}${esc(tgLabel)}${c.telegramChatId ? ` · ${I.t('bot linked')}` : ''}</a>`
+      : (c.telegramChatId ? `<span>${icon('message', 15)}${esc(I.t('Telegram linked'))}</span>` : `<span class="muted">${I.t("No Telegram")}</span>`);
+    const assignmentLink = c.assignmentUrl
+      ? `<div class="facts"><div><span>${I.t("Test assignment")}</span><strong><a href="${esc(c.assignmentUrl)}" target="_blank" rel="noopener noreferrer">${esc(c.assignmentUrl)}</a></strong></div></div>`
+      : '';
+    const profile = `<section class="drawer-section"><h3>${I.t("Contact & context")}</h3><div class="contact-links">${c.email ? `<a href="mailto:${encodeURIComponent(c.email)}">${icon('mail', 15)}${esc(c.email)}</a>` : `<span class="muted">${I.t("No email added")}</span>`}${c.phone ? `<a href="tel:${esc(c.phone.replace(/[^+\d]/g, ''))}">${icon('phone', 15)}${esc(c.phone)}</a>` : `<span class="muted">${I.t("No phone added")}</span>`}${tgLink}</div><div class="facts"><div><span>${I.t("Experience")}</span><strong>${esc(c.experience || I.t('Not specified'))}</strong></div><div><span>${I.t("Applied")}</span><strong>${dateFormat(c.createdAt, {year: 'numeric'})}</strong></div><div><span>${I.t("Source")}</span><strong>${esc(I.t(c.source))}</strong></div><div><span>${I.t("Recruiter")}</span><strong>${esc(c.owner)}</strong></div></div>${assignmentLink}<div class="tags">${c.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div></section><section class="drawer-section"><form id="notes-form" data-id="${esc(c.id)}"><label for="candidate-notes">${I.t("Recruiter notes")}</label><textarea id="candidate-notes" name="notes" rows="4" maxlength="6000" placeholder="${I.t("Keep useful context for the next conversation...")}">${esc(c.notes)}</textarea><button class="secondary" type="submit">${I.t("{0}Save note", [icon('check', 14)])}</button></form></section><section class="drawer-section">${panelHead(I.t("Scheduled conversations"), I.t("Stored in this workspace only"), iconButton(I.t("Schedule interview"), 'add-interview', 'plus', `data-candidate-id="${esc(id)}"`))}${appointments.map(i => `<button class="mini-event" data-action="interview" data-id="${esc(i.id)}">${icon('calendar', 17)}<span><strong>${esc(i.title)}</strong><small>${I.t("{0} at {1}", [dateFormat(i.startsAt), timeFormat(i.startsAt)])}</small></span>${icon('right', 14)}</button>`).join('') || `<p class="muted">${I.t("No scheduled conversations yet.")}</p>`}</section>`;
     const activity = `<section class="drawer-section timeline">${[...c.history].reverse().map(h => `<div><i></i><span><strong>${esc(I.message(h.text))}</strong><small>${dateFormat(h.at)} &middot; ${timeFormat(h.at)}</small></span></div>`).join('')}</section>`;
     const drafts = `<section class="drawer-section"><div class="notice">${I.t("{0} These are drafts. No email or SMS has been sent.", [icon('info', 16)])}</div>${messages.map(m => `<article class="draft-message"><header><span>${I.t("{0}{1} draft", [icon(m.channel === 'SMS' ? 'message' : 'mail', 15), esc(I.t(m.channel))])}</span><small>${dateFormat(m.createdAt)}</small></header>${m.subject ? `<strong>${esc(m.subject)}</strong>` : ''}<p>${esc(m.body)}</p>${button(I.t("Edit draft"), 'edit-message', 'edit', 'text-button', `data-id="${esc(m.id)}"`)}</article>`).join('') || empty(I.t("Start with a thoughtful draft"), I.t("Write a message and save it for review."), button(I.t("Write message"), 'message', 'message', 'primary', `data-id="${esc(id)}"`))}</section>`;
     openOverlay(`<div class="drawer-head"><span class="eyebrow">${I.t("CANDIDATE PROFILE{0}", [c.archived ? I.t(' / ARCHIVED') : ''])}</span><div>${iconButton(c.favorite ? I.t("Remove favorite") : I.t("Add favorite"), 'favorite', 'star', `data-id="${esc(id)}" aria-pressed="${!!c.favorite}"`)}${iconButton(I.t("Edit candidate"), 'edit-candidate', 'edit', `data-id="${esc(id)}"`)}${iconButton(I.t("Close profile"), 'close-overlay', 'x')}</div></div><div class="profile-lead">${avatar(c, 'large')}<div><h2 id="dialog-title">${esc(c.name)}</h2><p>${esc(jobTitle(c))}</p><span>${icon('pin', 13)}${esc(c.location)}</span></div></div><div class="profile-meta">${stageBadge(c.stage)}<span class="rating" title="${I.t("Manual recruiter rating")}">${icon('star', 12)}${c.rating ?? '&mdash;'} <small>${I.t("Manual rating")}</small></span></div><div class="drawer-actions">${button(I.t("Message draft"), 'message', 'message', 'primary', `data-id="${esc(id)}"`)}${button(I.t("Schedule"), 'add-interview', 'calendar', 'secondary', `data-candidate-id="${esc(id)}" ${c.archived ? 'disabled' : ''}`)}</div><div class="stage-progress" aria-label="${I.t("Change candidate stage")}">${STAGES.map((s, i) => `<button class="${i <= STAGES.indexOf(c.stage) ? 'done' : ''} ${s === c.stage ? 'current' : ''}" data-action="move-candidate" data-id="${esc(id)}" data-stage="${s}" aria-pressed="${s === c.stage}"><i></i><span>${I.t(s)}</span></button>`).join('')}</div><div class="drawer-tabs" role="tablist" aria-label="${I.t("Candidate profile tabs")}">${[{id: 'profile', label: I.t("Profile")}, {id: 'activity', label: I.t("Activity")}, {id: 'messages', label: I.t("Drafts ({0})", [messages.length])}].map(t => `<button role="tab" aria-selected="${tab === t.id}" class="${tab === t.id ? 'active' : ''}" data-action="drawer-tab" data-id="${esc(id)}" data-tab="${t.id}">${t.label}</button>`).join('')}</div>${tab === 'activity' ? activity : tab === 'messages' ? drafts : profile}<div class="drawer-footer">${button(c.archived ? I.t("Restore candidate") : I.t("Archive candidate"), 'archive-candidate', 'archive', 'text-button', `data-id="${esc(id)}"`)}<span>${I.t("Sample record · Local only")}</span></div>`, true);
@@ -1399,16 +1711,28 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   function openCandidateForm(id = '', stage = 'New') {
     const c = state().candidates.find(c => c.id === id);
     if (!state().jobs.length) { modal(I.t("Create a role first"), I.t("Every candidate is linked to a job record."), button(I.t("Create job"), 'add-job', 'plus', 'primary')); return; }
-    modal(c ? I.t("Edit candidate") : I.t("A new person. A new possibility."), I.t("Add sample information only. Required fields are marked with an asterisk."), `<form id="candidate-form" data-id="${esc(id)}"><div class="form-grid"><label>${I.t("Full name *")}<input name="name" required maxlength="100" value="${esc(c?.name || '')}" placeholder="${I.t("Taylor Morgan")}" autocomplete="off"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="180" value="${esc(c?.email || '')}" placeholder="${I.t("taylor@example.com")}" autocomplete="off"></label></div><label>${I.t("Job *")}<select name="jobId" required>${jobOptions(c?.jobId || (ui.job !== 'All' ? ui.job : state().jobs[0]?.id), '')}</select></label><div class="form-grid"><label>${I.t("Location *")}<input name="location" required maxlength="100" value="${esc(c?.location || '')}" placeholder="${I.t("City, ST")}"></label><label>${I.t("Phone")}<input name="phone" type="tel" maxlength="40" value="${esc(c?.phone || '')}" placeholder="(555) 555-0100"></label></div><div class="form-grid"><label>${I.t("Source")}<select name="source">${options([...new Set(['Indeed', 'Career site', 'Referral', 'LinkedIn', 'Text campaign', 'Job fair', 'Manual', ...(c ? [c.source] : [])])], c?.source || 'Manual')}</select></label><label>${I.t("Stage")}<select name="stage">${options(STAGES, c?.stage || stage)}</select></label></div><div class="form-grid"><label>${I.t("Recruiter")}<select name="owner">${ownerOptions(c?.owner || 'Zafar Safarov')}</select></label><label>${I.t("Manual rating (0-100)")}<input name="rating" type="number" min="0" max="100" step="1" value="${c?.rating ?? ''}" placeholder="${I.t("Not rated")}"></label></div><div class="form-grid"><label>${I.t("Experience")}<input name="experience" maxlength="100" value="${esc(c?.experience || '')}" placeholder="${I.t("e.g. 3 years")}"></label><label>${I.t("Tags, separated by commas")}<input name="tags" maxlength="300" value="${esc(c?.tags.join(', ') || '')}" placeholder="${I.t("Bilingual, Customer support")}"></label></div><label>${I.t("Recruiter notes")}<textarea name="notes" maxlength="6000" rows="3" placeholder="${I.t("Useful context for the next conversation...")}">${esc(c?.notes || '')}</textarea></label>${formActions(c ? I.t("Save candidate") : I.t("Add candidate"))}</form>`, true);
+    modal(c ? I.t("Edit candidate") : I.t("A new person. A new possibility."), I.t("Add sample information only. Required fields are marked with an asterisk."), `<form id="candidate-form" data-id="${esc(id)}"><div class="form-grid"><label>${I.t("Full name *")}<input name="name" required maxlength="100" value="${esc(c?.name || '')}" placeholder="${I.t("Taylor Morgan")}" autocomplete="off"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="180" value="${esc(c?.email || '')}" placeholder="${I.t("taylor@example.com")}" autocomplete="off"></label></div><label>${I.t("Job *")}<select name="jobId" required>${jobOptions(c?.jobId || (ui.job !== 'All' ? ui.job : state().jobs[0]?.id), '')}</select></label><div class="form-grid"><label>${I.t("Location *")}<input name="location" required maxlength="100" value="${esc(c?.location || '')}" placeholder="${I.t("City, ST")}"></label><label>${I.t("Phone")}<input name="phone" type="tel" maxlength="40" value="${esc(c?.phone || '')}" placeholder="(555) 555-0100"></label></div><div class="form-grid"><label>${I.t("Telegram")}<input name="telegram" maxlength="32" value="${esc(c?.telegram || '')}" placeholder="@username" autocomplete="off"></label><label>${I.t("Source")}<select name="source">${options([...new Set(['Indeed', 'Career site', 'Referral', 'LinkedIn', 'Text campaign', 'Job fair', 'Manual', ...(c ? [c.source] : [])])], c?.source || 'Manual')}</select></label></div><div class="form-grid"><label>${I.t("Stage")}<select name="stage">${options(STAGES, c?.stage || stage)}</select></label><label>${I.t("Recruiter")}<select name="owner">${ownerOptions(c?.owner || 'Zafar Safarov')}</select></label><label>${I.t("Manual rating (0-100)")}<input name="rating" type="number" min="0" max="100" step="1" value="${c?.rating ?? ''}" placeholder="${I.t("Not rated")}"></label></div><div class="form-grid"><label>${I.t("Experience")}<input name="experience" maxlength="100" value="${esc(c?.experience || '')}" placeholder="${I.t("e.g. 3 years")}"></label><label>${I.t("Tags, separated by commas")}<input name="tags" maxlength="300" value="${esc(c?.tags.join(', ') || '')}" placeholder="${I.t("Bilingual, Customer support")}"></label></div><label>${I.t("Recruiter notes")}<textarea name="notes" maxlength="6000" rows="3" placeholder="${I.t("Useful context for the next conversation...")}">${esc(c?.notes || '')}</textarea></label>${formActions(c ? I.t("Save candidate") : I.t("Add candidate"))}</form>`, true);
   }
   function openJobForm(id = '') {
     const j = state().jobs.find(j => j.id === id);
-    modal(j ? I.t("Edit job") : I.t("Create a new opportunity."), I.t("This saves a local job record. It does not publish to any job board."), `<form id="job-form" data-id="${esc(id)}"><label>${I.t("Job title *")}<input name="title" required maxlength="120" value="${esc(j?.title || '')}" placeholder="${I.t("Customer Support Specialist")}"></label><div class="form-grid"><label>${I.t("Department *")}<input name="department" required maxlength="80" value="${esc(j?.department || '')}" placeholder="${I.t("Operations")}"></label><label>${I.t("Location *")}<input name="location" required maxlength="140" value="${esc(j?.location || '')}" placeholder="${I.t("Austin, TX - Hybrid")}"></label></div><div class="form-grid"><label>${I.t("Hiring target *")}<input name="openings" type="number" required min="1" max="10000" step="1" value="${j?.openings || 1}"></label><label>${I.t("Compensation")}<input name="pay" maxlength="100" value="${esc(j?.pay || '')}" placeholder="${I.t("Not specified")}"></label></div><div class="form-grid"><label>${I.t("Owner")}<select name="owner">${ownerOptions(j?.owner || 'Zafar Safarov')}</select></label><label>${I.t("Status")}<select name="status">${options(['Active', 'Paused', 'Closed'], j?.status || 'Active')}</select></label></div><label>${I.t("Role description")}<textarea name="description" rows="4" maxlength="6000" placeholder="${I.t("Responsibilities and requirements...")}">${esc(j?.description || '')}</textarea></label>${formActions(j ? I.t("Save job") : I.t("Create job"))}</form>`);
+    modal(j ? I.t("Edit job") : I.t("Create a new opportunity."), I.t("This saves a local job record. It does not publish to any job board."), `<form id="job-form" data-id="${esc(id)}"><label>${I.t("Job title *")}<input name="title" required maxlength="120" value="${esc(j?.title || '')}" placeholder="${I.t("Customer Support Specialist")}"></label><div class="form-grid"><label>${I.t("Department *")}<input name="department" required maxlength="80" value="${esc(j?.department || '')}" placeholder="${I.t("Operations")}"></label><label>${I.t("Location *")}<input name="location" required maxlength="140" value="${esc(j?.location || '')}" placeholder="${I.t("Austin, TX - Hybrid")}"></label></div><div class="form-grid"><label>${I.t("Hiring target *")}<input name="openings" type="number" required min="1" max="10000" step="1" value="${j?.openings || 1}"></label><label>${I.t("Compensation")}<input name="pay" maxlength="100" value="${esc(j?.pay || '')}" placeholder="${I.t("Not specified")}"></label></div><div class="form-grid"><label>${I.t("Owner")}<select name="owner">${ownerOptions(j?.owner || 'Zafar Safarov')}</select></label><label>${I.t("Status")}<select name="status">${options(['Active', 'Paused', 'Closed'], j?.status || 'Active')}</select></label></div><div class="form-grid"><label>${I.t("Career page layout")}<select name="landingLayout">${options([{value:'classic',label:'Classic split'},{value:'spotlight',label:'Spotlight hero'},{value:'compact',label:'Compact card'}], j?.landingLayout || 'classic')}</select></label><label>${I.t("Public career page")}<select name="publicEnabled">${options([{value:'true',label:'Enabled — accept applications'},{value:'false',label:'Disabled'}], String(j?.publicEnabled !== false))}</select></label></div><label>${I.t("Role description")}<textarea name="description" rows="4" maxlength="6000" placeholder="${I.t("Responsibilities and requirements...")}">${esc(j?.description || '')}</textarea></label><label>${I.t("Test assignment (shown on career page)")}<textarea name="assignment" rows="5" maxlength="8000" placeholder="${I.t("Describe the take-home task. Leave empty to hide.")}">${esc(j?.assignment || '')}</textarea></label><label>${I.t("Require assignment link")}<select name="assignmentRequired">${options([{value:'false',label:'Optional'},{value:'true',label:'Required — candidate must attach a link'}], String(!!j?.assignmentRequired))}</select></label>${formActions(j ? I.t("Save job") : I.t("Create job"))}</form>`);
+  }
+  function publicApplyUrl(job) {
+    const slug = job.publicSlug || '';
+    if (!slug) return '';
+    return `${location.origin}/apply/${encodeURIComponent(slug)}`;
   }
   function openJob(id) {
     const j = state().jobs.find(j => j.id === id); if (!j) return;
     const people = active().filter(c => c.jobId === id);
-    modal(esc(j.title), `${esc(j.department)} &middot; ${esc(j.location)}`, `<div class="job-detail-meta">${badge(j.status)}<span>${esc(j.owner)}</span></div><div class="data-summary"><div><strong>${people.length}</strong><span>${I.t("Candidates")}</span></div><div><strong>${people.filter(c => c.stage === 'Hired').length}</strong><span>${I.t("Hired")}</span></div><div><strong>${j.openings}</strong><span>${I.t("Target")}</span></div></div><div class="mini-pipeline">${STAGES.map(s => `<button data-action="job-stage-candidates" data-id="${esc(id)}" data-stage="${s}">${stageBadge(s)}<strong>${people.filter(c => c.stage === s).length}</strong></button>`).join('')}</div><div class="job-description"><h3>${I.t("Compensation")}</h3><p>${esc(j.pay || I.t('Not specified'))}</p><h3>${I.t("About the role")}</h3><p>${esc(j.description || I.t('No role description added yet.'))}</p></div><div class="notice">${I.t("{0} Local record only. Not published to a job board.", [icon('info', 16)])}</div><div class="modal-actions wrap">${button(I.t("Edit job"), 'edit-job', 'edit', 'secondary', `data-id="${esc(id)}"`)}${button(j.status === 'Active' ? I.t("Pause job") : I.t("Activate job"), 'toggle-job', j.status === 'Active' ? 'pause' : 'play', 'secondary', `data-id="${esc(id)}"`)}${j.status !== 'Closed' ? button(I.t("Close role"), 'close-job', 'archive', 'text-button', `data-id="${esc(id)}"`) : ''}${button(I.t("View pipeline"), 'job-pipeline', 'kanban', 'primary', `data-id="${esc(id)}"`)}</div>`, true);
+    const applyUrl = publicApplyUrl(j);
+    const shareBlock = Store.remote
+      ? `<div class="job-description"><h3>${I.t("Career page link")}</h3><p class="muted">${j.publicEnabled === false || j.status !== 'Active' ? I.t("Enable the public page and set status to Active to accept applications.") : I.t("Share this link in ads or messages. Candidates verify email, fill the form, and land in New.")}</p>${applyUrl ? `<p><code style="word-break:break-all">${esc(applyUrl)}</code></p>` : `<p class="muted">${I.t("Save the job once to generate a public link.")}</p>`}</div>`
+      : `<div class="notice">${I.t("{0} Local record only. Not published to a job board.", [icon('info', 16)])}</div>`;
+    const assignmentBlock = j.assignment
+      ? `<h3>${I.t("Test assignment")}</h3><p class="pre-wrap">${esc(j.assignment)}</p><p class="muted">${j.assignmentRequired ? I.t("Candidates must attach a solution link.") : I.t("Assignment link is optional.")}</p>`
+      : '';
+    modal(esc(j.title), `${esc(j.department)} &middot; ${esc(j.location)}`, `<div class="job-detail-meta">${badge(j.status)}<span>${esc(j.owner)}</span>${j.landingLayout ? badge(j.landingLayout) : ''}</div><div class="data-summary"><div><strong>${people.length}</strong><span>${I.t("Candidates")}</span></div><div><strong>${people.filter(c => c.stage === 'Hired').length}</strong><span>${I.t("Hired")}</span></div><div><strong>${j.openings}</strong><span>${I.t("Target")}</span></div></div><div class="mini-pipeline">${STAGES.map(s => `<button data-action="job-stage-candidates" data-id="${esc(id)}" data-stage="${s}">${stageBadge(s)}<strong>${people.filter(c => c.stage === s).length}</strong></button>`).join('')}</div><div class="job-description"><h3>${I.t("Compensation")}</h3><p>${esc(j.pay || I.t('Not specified'))}</p><h3>${I.t("About the role")}</h3><p>${esc(j.description || I.t('No role description added yet.'))}</p>${assignmentBlock}</div>${shareBlock}<div class="modal-actions wrap">${button(I.t("Edit job"), 'edit-job', 'edit', 'secondary', `data-id="${esc(id)}"`)}${Store.remote && applyUrl ? button(I.t("Copy career link"), 'copy-apply-link', 'send', 'secondary', `data-id="${esc(id)}"`) : ''}${button(j.status === 'Active' ? I.t("Pause job") : I.t("Activate job"), 'toggle-job', j.status === 'Active' ? 'pause' : 'play', 'secondary', `data-id="${esc(id)}"`)}${j.status !== 'Closed' ? button(I.t("Close role"), 'close-job', 'archive', 'text-button', `data-id="${esc(id)}"`) : ''}${button(I.t("View pipeline"), 'job-pipeline', 'kanban', 'primary', `data-id="${esc(id)}"`)}</div>`, true);
   }
   function openMessage(candidateId, messageId = '') {
     const c = state().candidates.find(c => c.id === candidateId); if (!c) return;
@@ -1424,7 +1748,11 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
     else if (ui.view === 'calendar') initial = new Date(ui.calendarDate + 'T10:00:00');
     const localValue = new Date(initial.getTime() - initial.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    modal(event ? I.t("Reschedule conversation") : I.t("Make time for a conversation."), I.t("Stored only in the demo calendar. No meeting invitation is sent."), `<form id="interview-form" data-id="${esc(id)}"><label>${I.t("Candidate *")}<select name="candidateId" required>${options(people.map(c => ({value: c.id, label: `${c.name} - ${jobTitle(c)}`})), event?.candidateId || candidateId || people[0].id, null, false)}</select></label><label>${I.t("Conversation title *")}<input name="title" required maxlength="150" value="${esc(event?.title || I.t('Recruiter interview'))}"></label><div class="form-grid"><label>${I.t("Date and time *")}<input name="startsAt" type="datetime-local" required value="${localValue}"></label><label>${I.t("Duration")}<select name="duration">${options([15, 30, 45, 60, 90, 120].map(n => ({value: String(n), label: I.count('minute', n)})), String(event?.duration || 30))}</select></label></div><p class="field-hint">${I.t("Enter time in this device's timezone:")} <strong>${esc(deviceZone)}</strong>${I.t(". The workspace displays appointments in {0}.", [esc(state().settings.timezone)])}</p><div class="form-grid"><label>${I.t("Format")}<select name="format">${options(['Video', 'Phone', 'On-site'], event?.format || 'Video')}</select></label><label>${I.t("Interviewer")}<select name="interviewer">${ownerOptions(event?.interviewer || 'Zafar Safarov')}</select></label></div><label>${I.t("Meeting link or location")}<input name="location" maxlength="500" value="${esc(event?.location || '')}" placeholder="${I.t("Optional meeting link or address")}"></label><label>${I.t("Notes")}<textarea name="notes" maxlength="4000" rows="3">${esc(event?.notes || '')}</textarea></label>${formActions(event ? I.t("Save appointment") : I.t("Schedule interview"))}</form>`);
+    const interviewLead = Store.remote
+      ? I.t('Saves to the workspace calendar. Resend/Twilio/Telegram invite when configured.')
+      : I.t('Stored only in the demo calendar. No meeting invitation is sent.');
+    const defaultInterviewer = event?.interviewer || state().team[0]?.name || state().settings.company || '';
+    modal(event ? I.t("Reschedule conversation") : I.t("Make time for a conversation."), interviewLead, `<form id="interview-form" data-id="${esc(id)}"><label>${I.t("Candidate *")}<select name="candidateId" required>${options(people.map(c => ({value: c.id, label: `${c.name} - ${jobTitle(c)}`})), event?.candidateId || candidateId || people[0].id, null, false)}</select></label><label>${I.t("Conversation title *")}<input name="title" required maxlength="150" value="${esc(event?.title || I.t('Recruiter interview'))}"></label><div class="form-grid"><label>${I.t("Date and time *")}<input name="startsAt" type="datetime-local" required value="${localValue}"></label><label>${I.t("Duration")}<select name="duration">${options([15, 30, 45, 60, 90, 120].map(n => ({value: String(n), label: I.count('minute', n)})), String(event?.duration || 30))}</select></label></div><p class="field-hint">${I.t("Enter time in this device's timezone:")} <strong>${esc(deviceZone)}</strong>${I.t(". The workspace displays appointments in {0}.", [esc(state().settings.timezone)])}</p><div class="form-grid"><label>${I.t("Format")}<select name="format">${options(['Video', 'Phone', 'On-site'], event?.format || 'Video')}</select></label><label>${I.t("Interviewer")}<select name="interviewer">${ownerOptions(defaultInterviewer)}</select></label></div><label>${I.t("Meeting link or location")}<input name="location" maxlength="500" value="${esc(event?.location || '')}" placeholder="${I.t("Optional meeting link or address")}"></label><label>${I.t("Notes")}<textarea name="notes" maxlength="4000" rows="3">${esc(event?.notes || '')}</textarea></label>${formActions(event ? I.t("Save appointment") : I.t("Schedule interview"))}</form>`);
   }
   function openInterview(id) {
     const i = state().interviews.find(i => i.id === id); if (!i) return;
@@ -1454,11 +1782,43 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   function openCampaign(id) {
     const c = state().campaigns.find(c => c.id === id); if (!c) return;
     const people = campaignAudience(c);
-    modal(esc(c.name), I.t("{0} &middot; {1} people in the current segment", [esc(I.t(c.channel)), people.length]), `<div class="job-detail-meta">${badge(c.status === 'Running' ? 'Demo running' : c.status)}<span>${I.t("Local only")}</span></div><div class="notice">${I.t("{0} No provider is connected. A simulation changes only the status; no messages are sent, no delivery or reply metrics are fabricated.", [icon('info', 17)])}</div><div class="campaign-detail"><h3>${I.t("Audience")}</h3><p>${c.jobId === 'All' ? I.t('All jobs') : esc(state().jobs.find(j => j.id === c.jobId)?.title)} &middot; ${c.stage === 'All' ? I.t('All stages') : esc(I.t(c.stage))} &middot; ${I.t(c.audience === 'Favorites' ? 'Favorites only' : 'All non-archived candidates')}</p><div class="audience-people">${people.slice(0, 8).map(p => `<button data-action="candidate" data-id="${esc(p.id)}">${avatar(p, 'small')}<span>${esc(p.name)}</span></button>`).join('') || `<p class="muted">${I.t("This segment is empty.")}</p>`}</div><h3>${I.t("Message preview{0}", [people[0] ? I.t(' for {0}', [esc(people[0].name.split(' ')[0])]) : ''])}</h3><div class="message-preview"><p>${esc(messagePreview(c.message, people[0]))}</p></div></div><div class="modal-actions wrap">${button(I.t("Edit campaign"), 'edit-campaign', 'edit', 'secondary', `data-id="${esc(id)}"`)}${c.status === 'Running' ? button(I.t("Pause simulation"), 'pause-campaign', 'pause', 'primary', `data-id="${esc(id)}"`) : button(c.status === 'Paused' ? I.t("Resume demo") : I.t("Simulate campaign"), 'simulate-campaign', 'play', 'primary', `data-id="${esc(id)}" ${people.length ? '' : 'disabled'}`)}</div>`, true);
+    const last = c.lastSend;
+    const resultNote = last
+      ? `<div class="notice">${I.t("{0} Last send: {1} delivered, {2} failed, {3} skipped ({4}).", [icon('checkCircle', 17), last.sent || 0, last.failed || 0, last.skipped || 0, I.t(last.channel || c.channel)])}</div>`
+      : `<div class="notice">${I.t("{0} Send delivers real {1} to everyone in this segment via Resend or Twilio.", [icon('info', 17), I.t(c.channel)])}</div>`;
+    const sendLabel = c.status === 'Completed' ? I.t('Send again') : I.t('Send campaign');
+    modal(esc(c.name), I.t("{0} &middot; {1} people in the current segment", [esc(I.t(c.channel)), people.length]), `<div class="job-detail-meta">${badge(c.status)}${c.lastSentAt ? `<span>${I.t('Sent {0}', [relative(c.lastSentAt)])}</span>` : `<span>${Store.remote ? I.t('Server workspace') : I.t('Local draft')}</span>`}</div>${resultNote}<div class="campaign-detail"><h3>${I.t("Audience")}</h3><p>${c.jobId === 'All' ? I.t('All jobs') : esc(state().jobs.find(j => j.id === c.jobId)?.title)} &middot; ${c.stage === 'All' ? I.t('All stages') : esc(I.t(c.stage))} &middot; ${I.t(c.audience === 'Favorites' ? 'Favorites only' : 'All non-archived candidates')}</p><div class="audience-people">${people.slice(0, 8).map(p => `<button data-action="candidate" data-id="${esc(p.id)}">${avatar(p, 'small')}<span>${esc(p.name)}</span></button>`).join('') || `<p class="muted">${I.t("This segment is empty.")}</p>`}</div><h3>${I.t("Message preview{0}", [people[0] ? I.t(' for {0}', [esc(people[0].name.split(' ')[0])]) : ''])}</h3><div class="message-preview"><p>${esc(messagePreview(c.message, people[0]))}</p></div></div><div class="modal-actions wrap">${button(I.t("Edit campaign"), 'edit-campaign', 'edit', 'secondary', `data-id="${esc(id)}"`)}${button(sendLabel, 'send-campaign', 'send', 'primary', `data-id="${esc(id)}" ${people.length ? '' : 'disabled'}`)}</div>`, true);
+  }
+  async function sendCampaignNow(id) {
+    const c = state().campaigns.find(x => x.id === id);
+    if (!c) return;
+    const people = campaignAudience(c);
+    if (!people.length) { toast(I.t('This segment is empty.'), true); return; }
+    if (!Store.remote) {
+      toast(I.t('Campaign send requires server mode with Resend or Twilio configured.'), true);
+      return;
+    }
+    toast(I.t('Sending campaign...'));
+    try {
+      if (typeof Store.pullRemote === 'function') await Store.pullRemote();
+      const snap = await apiJson('/api/state');
+      const result = await apiJson(`/api/campaigns/${id}/send`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'If-Match': `"${snap.revision}"`},
+        body: JSON.stringify({revision: snap.revision})
+      });
+      if (typeof Store.pullRemote === 'function') await Store.pullRemote();
+      const s = result.data?.send || {};
+      toast(I.t('Campaign sent: {0} delivered, {1} failed, {2} skipped.', [s.sent || 0, s.failed || 0, s.skipped || 0]));
+      openCampaign(id);
+      render();
+    } catch (err) {
+      toast(err.message || I.t('Campaign send failed.'), true);
+    }
   }
   function openMemberForm(id = '') {
     const t = state().team.find(t => t.id === id);
-    modal(t ? I.t("Edit team member") : I.t("Add a demo team member"), I.t("This only updates the local directory. Roles do not enforce permissions and no invitation is sent."), `<form id="member-form" data-id="${esc(id)}"><label>${I.t("Name *")}<input name="name" required maxlength="100" value="${esc(t?.name || '')}"></label><label>${I.t("Email {0}", [t?.role === 'Owner' ? '' : '*'])}<input name="email" type="email" ${t?.role === 'Owner' ? '' : 'required'} maxlength="180" value="${esc(t?.email || '')}" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Role")}<select name="role">${options(t?.role === 'Owner' ? ['Owner'] : ['Admin', 'Recruiter', 'Viewer'], t?.role || 'Recruiter')}</select></label>${formActions(t ? I.t("Save member") : I.t("Save draft invitation"))}</form>`);
+    modal(t ? I.t("Edit team member") : I.t("Add a demo team member"), I.t("This only updates the local directory. Roles do not enforce permissions and no invitation is sent."), `<form id="member-form" data-id="${esc(id)}"><label>${I.t("Name *")}<input name="name" required maxlength="100" value="${esc(t?.name || '')}"></label><label>${I.t("Email {0}", [t?.role === 'Owner' ? '' : '*'])}<input name="email" type="email" ${t?.role === 'Owner' ? '' : 'required'} maxlength="180" value="${esc(t?.email || '')}" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Role")}<select name="role">${options(t?.role === 'Owner' ? ['Owner'] : ['Admin', 'Recruiter'], t?.role === 'Viewer' ? 'Recruiter' : (t?.role || 'Recruiter'))}</select></label>${formActions(t ? I.t("Save member") : I.t("Save draft invitation"))}</form>`);
   }
   function notifications() {
     modal(I.t("Your workspace, in motion."), I.t("Activity recorded by this local demo. No external notification service is connected."), `<div class="notification-list">${state().activity.map(a => `<div class="${a.read ? '' : 'unread'}"><span class="activity-dot"></span><p>${esc(I.message(a.text))}<small>${dateFormat(a.at)} &middot; ${timeFormat(a.at)}</small></p></div>`).join('') || empty(I.t("No activity yet"), I.t("Changes in the workspace will appear here."))}</div><div class="modal-actions">${button(I.t("Mark all as read"), 'read-notifications', 'check', 'primary')}</div>`);
@@ -1469,11 +1829,53 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
     pendingConfirmation = callback;
     modal(title, text, `<div class="modal-actions">${button(I.t("Cancel"), 'close-overlay')}${button(label, 'confirm-action', danger ? 'archive' : 'check', danger ? 'danger-button' : 'primary')}</div>`);
   }
+  function defaultInterviewStart() {
+    const start = new Date();
+    start.setDate(start.getDate() + 1);
+    start.setHours(11, 0, 0, 0);
+    if (start.getTime() <= Date.now()) start.setDate(start.getDate() + 1);
+    return start;
+  }
+  function ensureInterviewOnBoard(d, person) {
+    const has = d.interviews.some(i => i.candidateId === person.id && i.status === 'Scheduled');
+    if (has) return null;
+    const starts = defaultInterviewStart();
+    const record = {
+      id: Store.id(),
+      candidateId: person.id,
+      title: I.t('Recruiter interview'),
+      startsAt: starts.toISOString(),
+      duration: 30,
+      format: 'Video',
+      location: 'Video call',
+      interviewer: d.settings.company || '',
+      status: 'Scheduled',
+      notes: I.language === 'ru' ? 'Добавлено при переходе в Interview' : 'Scheduled when moved to Interview',
+      createdAt: new Date().toISOString()
+    };
+    d.interviews.push(record);
+    addHistory(person, 'interview', `${record.title} added to calendar`);
+    ui.calendarDate = dateKey(starts);
+    ui.calendarMonth = ui.calendarDate.slice(0, 7);
+    return record;
+  }
+  function promptScheduleInterview(candidateId) {
+    const has = state().interviews.some(i => i.candidateId === candidateId && i.status === 'Scheduled');
+    if (has) return false;
+    openInterviewForm(candidateId);
+    return true;
+  }
   function moveCandidate(id, stage, reopen = false) {
     const c = state().candidates.find(c => c.id === id);
     if (!c || !STAGES.includes(stage)) return;
     if (c.stage === stage) return;
-    commit(d => { const person = d.candidates.find(c => c.id === id); person.stage = stage; addHistory(person, 'stage', `Moved to ${stage}`, stage); Store.log(d, `${person.name} moved to ${stage}`); }, `Moved ${c.name} to ${stage}`);
+    commit(d => {
+      const person = d.candidates.find(c => c.id === id);
+      person.stage = stage;
+      addHistory(person, 'stage', `Moved to ${stage}`, stage);
+      Store.log(d, `${person.name} moved to ${stage}`);
+    }, `Moved ${c.name} to ${stage}`);
+    if (stage === 'Interview' && promptScheduleInterview(id)) return;
     if (reopen) openDrawer(id, ui.drawerTab);
   }
   function closeMenu() { $('.sidebar')?.classList.remove('open'); document.body.classList.remove('menu-open'); }
@@ -1569,6 +1971,18 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
       case 'job-pipeline': navigate('pipeline', {job: id}); break;
       case 'job-stage-candidates': navigate('candidates', {job: id, stage}); break;
       case 'toggle-job': commit(d => { const j = d.jobs.find(j => j.id === id); j.status = j.status === 'Active' ? 'Paused' : 'Active'; Store.log(d, `${j.title} is now ${j.status.toLowerCase()}`); }, 'Job status updated'); openJob(id); break;
+      case 'copy-apply-link': {
+        const job = state().jobs.find(j => j.id === id);
+        if (!job) break;
+        if (!job.publicSlug) {
+          commit(d => { const j = d.jobs.find(j => j.id === id); j.publicSlug = Store.id().replace(/-/g, '').slice(0, 10); j.landingLayout = j.landingLayout || 'classic'; if (typeof j.publicEnabled !== 'boolean') j.publicEnabled = true; }, 'Career link ready');
+        }
+        const url = publicApplyUrl(state().jobs.find(j => j.id === id));
+        if (url && navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(() => toast(I.t('Career link copied')), () => toast(url, true));
+        else if (url) toast(url);
+        openJob(id);
+        break;
+      }
       case 'close-job': confirmDialog(I.t("Close this role?"), I.t("Candidate records remain intact. You can reactivate this role later."), I.t("Close role"), () => { commit(d => { const j = d.jobs.find(j => j.id === id); j.status = 'Closed'; Store.log(d, `${j.title} closed`); }, 'Role closed'); openJob(id); }); break;
       case 'message': openMessage(id); break;
       case 'edit-message': { const m = state().messages.find(m => m.id === id); if (m) openMessage(m.candidateId, id); break; }
@@ -1588,14 +2002,29 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
       case 'campaign': openCampaign(id); break;
       case 'templates': openTemplates(); break;
       case 'use-template': openCampaignForm('', Number(target.dataset.template)); break;
-      case 'simulate-campaign': confirmDialog(I.t("Start a local simulation?"), I.t("This only changes the campaign status to Demo running. No messages are sent, and no delivery or reply counts will be generated."), I.t("Start simulation"), () => { commit(d => { const c = d.campaigns.find(c => c.id === id); c.status = 'Running'; c.updatedAt = new Date().toISOString(); Store.log(d, `Local simulation started: ${c.name}`); }, 'Demo simulation started. No messages sent.'); openCampaign(id); }); break;
-      case 'pause-campaign': commit(d => { const c = d.campaigns.find(c => c.id === id); c.status = 'Paused'; c.updatedAt = new Date().toISOString(); Store.log(d, `Simulation paused: ${c.name}`); }, 'Simulation paused'); openCampaign(id); break;
+      case 'send-campaign': {
+        const camp = state().campaigns.find(c => c.id === id);
+        const n = camp ? campaignAudience(camp).length : 0;
+        confirmDialog(
+          I.t('Send this campaign?'),
+          I.t('This sends real {0} to {1} candidate{2} via Resend or Twilio. Skips people missing email/phone.', [camp ? I.t(camp.channel) : 'messages', n, n === 1 ? '' : 's']),
+          I.t('Send now'),
+          () => { void sendCampaignNow(id); }
+        );
+        break;
+      }
       case 'report-period': ui.reportDays = Number(target.dataset.days); render(); break;
       case 'export-report': exportReport(); break;
-      case 'settings-tab': ui.settingsTab = tab; render(); break;
+      case 'settings-tab':
+        ui.settingsTab = tab;
+        if (tab === 'team') ui.accounts.items = null;
+        if (tab === 'integrations' && Store.remote) void refreshProviders().then(() => render());
+        render();
+        break;
       case 'remove-logo': commit(d => { d.settings.logo = ''; }, 'Workspace logo removed'); break;
       case 'add-member': openMemberForm(); break;
       case 'edit-member': openMemberForm(id); break;
+      case 'add-account': openAccountForm(); break;
       case 'export-backup': exportBackup(); break;
       case 'confirm-reset': confirmDialog(I.t("Reset this demo workspace?"), I.t("All Jobster records and preferences in this browser will be replaced with fresh sample data. Export a JSON backup first to keep your changes. Other browser storage is not affected."), I.t("Reset Jobster demo"), () => { Store.reset(); ui.selected.clear(); ui.settingsTab = 'workspace'; navigate('overview'); toast(I.t("Demo reset. Other browser data was not changed.")); }, true); break;
       case 'confirm-action': { const callback = pendingConfirmation; pendingConfirmation = null; closeOverlay(); if (callback) callback(); break; }
@@ -1608,16 +2037,16 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
   function integrationInfo(type) {
     const info = {
       api: {title: 'Backend API', steps: ['Authenticated sessions and server-enforced roles.', 'Candidate and job endpoints with stable IDs and tenant isolation.', 'Input validation, audit events, backups, and a database.', 'Replace the local store behind the data boundary; never expose secret keys.']},
-      sms: {title: 'SMS integration', steps: ['Connect a messaging provider on the server, not in the browser.', 'Check recipient eligibility and consent before sending.', 'Implement opt-out handling, rate limits, idempotency, and delivery callbacks.', 'Replace draft-only controls with an explicit, reviewed send workflow.']},
-      email: {title: 'Email integration', steps: ['Configure an authenticated sending domain and a server-side provider.', 'Render templates safely and validate recipients on the server.', 'Handle delivery, bounce, and unsubscribe events.', 'Keep provider credentials outside the frontend.']},
-      calendar: {title: 'External calendar', steps: ['Use an authenticated account connection.', 'Create and update events on the server with timezone handling.', 'Implement availability checks and synchronization.', 'Ask for an explicit action before sending real invitations.']}
+      sms: {title: 'SMS integration', steps: ['Set TWILIO_ACCOUNT_SID (AC… from Console dashboard), TWILIO_API_KEY (SK…), TWILIO_API_SECRET, and TWILIO_FROM_NUMBER in .env.', 'From number must be a Twilio number in E.164, e.g. +15551234567.', 'Sends on Interview / Offer / Hired and interview invites when the candidate has a phone — same moments as Resend email.', 'Campaign Send (SMS channel) blasts the segment via Twilio. Per-candidate message drafts stay draft-only.']},
+      email: {title: 'Email integration', steps: ['Set RESEND_API_KEY in server .env (https://resend.com/api-keys).', 'JOBSTER_MAIL_FROM: onboarding@resend.dev until your domain is verified, then hiring@yourdomain.com.', 'Used for apply verification, stage mail, interview invites, team digests, and Campaign Send (Email channel).', 'Never put API keys in frontend code or browser storage.']},
+      telegram: {title: 'Telegram bot', steps: ['Create a bot with @BotFather and set TELEGRAM_BOT_TOKEN + TELEGRAM_BOT_USERNAME in .env.', 'Candidates link via apply deep-link /start=<candidateId> (or paste /start in the bot).', 'Interview invites and day-before reminders go to linked chat_id.', 'Local: TELEGRAM_USE_POLLING=true. Production: set webhook to /api/public/telegram/webhook.']}
     }[type];
-    if (info) modal(I.t(info.title), I.t("Integration requirements. No service is connected by this dialog."), `<div class="integration-requirements">${info.steps.map((s, i) => `<div><b>${i + 1}</b><p>${I.t(s)}</p></div>`).join('')}</div><div class="modal-actions">${button(I.t("Understood"), 'close-overlay', 'check', 'primary')}</div>`);
+    if (info) modal(I.t(info.title), providerOn(type) ? (I.language === 'ru' ? 'Провайдер настроен на сервере.' : 'This provider is configured on the server.') : I.t("Integration requirements. No service is connected by this dialog."), `<div class="integration-requirements">${info.steps.map((s, i) => `<div><b>${i + 1}</b><p>${I.t(s)}</p></div>`).join('')}</div><div class="modal-actions">${button(I.t("Understood"), 'close-overlay', 'check', 'primary')}</div>`);
   }
 
   document.addEventListener('submit', event => {
     const form = event.target;
-    const supported = ['candidate-form', 'job-form', 'notes-form', 'message-form', 'interview-form', 'campaign-form', 'member-form', 'settings-form'];
+    const supported = ['candidate-form', 'job-form', 'notes-form', 'message-form', 'interview-form', 'campaign-form', 'member-form', 'account-form', 'settings-form'];
     if (!supported.includes(form.id)) return;
     event.preventDefault();
     if (!validateForm(form)) return;
@@ -1625,19 +2054,71 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
     Object.keys(d).forEach(k => { if (typeof d[k] === 'string') d[k] = d[k].trim(); });
     const id = form.dataset.id || '', now = new Date().toISOString();
     const fail = text => showFormError(form, I.t(text));
+    if (form.id === 'account-form') {
+      if (!isOwner()) return fail('Only the Owner can create login accounts.');
+      if (!d.name || !d.email || !d.password) return fail('Name, email, and password are required.');
+      if (d.password !== d.confirm) return fail('Passwords do not match.');
+      if (!['Admin', 'Recruiter'].includes(d.role)) return fail('Choose Admin or Recruiter.');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+      void (async () => {
+        try {
+          await apiJson('/api/users', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: d.name, email: d.email, password: d.password, role: d.role})
+          });
+          syncTeamDirectoryFromUser({name: d.name, email: d.email, role: d.role});
+          closeOverlay();
+          ui.accounts.items = null;
+          await loadAccounts({force: true});
+          toast(I.t('Teammate added. They can sign in with this email and password.'));
+        } catch (err) {
+          showFormError(form, err.message || I.t('Could not create login account.'));
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      })();
+      return;
+    }
     if (form.id === 'candidate-form') {
       if (!d.name || !d.location || !d.email) return fail('Name, email, and location cannot be blank.');
       if (state().candidates.some(c => c.id !== id && c.email.toLowerCase() === d.email.toLowerCase())) return fail('A candidate with this email already exists, including archived records.');
       const rating = d.rating === '' ? null : Number(d.rating);
       if (rating !== null && (!Number.isInteger(rating) || rating < 0 || rating > 100)) return fail('Enter a whole-number rating from 0 to 100, or leave it blank.');
       const candidateId = id || Store.id();
-      const payload = {name: d.name, email: d.email, phone: d.phone, location: d.location, jobId: d.jobId, source: d.source, stage: d.stage, owner: d.owner, rating, experience: d.experience, tags: [...new Set(d.tags.split(',').map(t => t.trim()).filter(Boolean))].slice(0, 12), notes: d.notes};
-      if (commit(s => { let c = s.candidates.find(c => c.id === id); if (c) { const oldStage = c.stage; Object.assign(c, payload); addHistory(c, 'edited', 'Candidate details updated'); if (oldStage !== c.stage) addHistory(c, 'stage', `Moved to ${c.stage}`, c.stage); } else { c = {id: candidateId, ...payload, favorite: false, archived: false, color: '#deebe6', createdAt: now, updatedAt: now, history: []}; addHistory(c, 'created', 'Candidate added to workspace', 'New'); if (c.stage !== 'New') addHistory(c, 'stage', `Added at ${c.stage}`, c.stage); s.candidates.unshift(c); } Store.log(s, `${c.name} ${id ? 'updated' : 'added to the workspace'}`); }, id ? 'Candidate updated' : 'Candidate added')) { closeOverlay(); openDrawer(candidateId); }
+      const payload = {name: d.name, email: d.email, phone: d.phone, telegram: String(d.telegram || '').trim().replace(/^@/, ''), location: d.location, jobId: d.jobId, source: d.source, stage: d.stage, owner: d.owner, rating, experience: d.experience, tags: [...new Set(d.tags.split(',').map(t => t.trim()).filter(Boolean))].slice(0, 12), notes: d.notes};
+      let landedInterview = false;
+      if (commit(s => {
+        let c = s.candidates.find(c => c.id === id);
+        if (c) {
+          const oldStage = c.stage;
+          Object.assign(c, payload);
+          addHistory(c, 'edited', 'Candidate details updated');
+          if (oldStage !== c.stage) {
+            addHistory(c, 'stage', `Moved to ${c.stage}`, c.stage);
+            if (c.stage === 'Interview') landedInterview = true;
+          }
+        } else {
+          c = {id: candidateId, ...payload, favorite: false, archived: false, color: '#deebe6', createdAt: now, updatedAt: now, history: []};
+          addHistory(c, 'created', 'Candidate added to workspace', 'New');
+          if (c.stage !== 'New') addHistory(c, 'stage', `Added at ${c.stage}`, c.stage);
+          if (c.stage === 'Interview') landedInterview = true;
+          s.candidates.unshift(c);
+        }
+        Store.log(s, `${c.name} ${id ? 'updated' : 'added to the workspace'}`);
+      }, id ? 'Candidate updated' : 'Candidate added')) {
+        closeOverlay();
+        if (landedInterview && promptScheduleInterview(candidateId)) return;
+        openDrawer(candidateId);
+      }
     } else if (form.id === 'job-form') {
       if (!d.title || !d.department || !d.location) return fail('Title, department, and location cannot be blank.');
       const openings = Number(d.openings); if (!Number.isInteger(openings) || openings < 1 || openings > 10000) return fail('Hiring target must be a whole number between 1 and 10,000.');
-      const jobId = id || Store.id(), payload = {title: d.title, department: d.department, location: d.location, openings, pay: d.pay, owner: d.owner, status: d.status, description: d.description};
-      if (commit(s => { const j = s.jobs.find(j => j.id === id); if (j) Object.assign(j, payload); else s.jobs.unshift({id: jobId, ...payload, createdAt: now}); Store.log(s, `${d.title} ${id ? 'updated' : 'created'}`); }, 'Job saved locally. Not published.')) { closeOverlay(); navigate('jobs'); openJob(jobId); }
+      const jobId = id || Store.id();
+      const existing = state().jobs.find(j => j.id === id);
+      const publicSlug = existing?.publicSlug || (Store.id().replace(/-/g, '').slice(0, 10));
+      const payload = {title: d.title, department: d.department, location: d.location, openings, pay: d.pay, owner: d.owner, status: d.status, description: d.description, assignment: d.assignment || '', assignmentRequired: d.assignmentRequired === 'true', landingLayout: ['classic', 'spotlight', 'compact'].includes(d.landingLayout) ? d.landingLayout : 'classic', publicEnabled: d.publicEnabled !== 'false', publicSlug};
+      if (commit(s => { const j = s.jobs.find(j => j.id === id); if (j) Object.assign(j, payload); else s.jobs.unshift({id: jobId, ...payload, createdAt: now}); Store.log(s, `${d.title} ${id ? 'updated' : 'created'}`); }, Store.remote ? 'Job saved. Career page updated.' : 'Job saved locally. Not published.')) { closeOverlay(); navigate('jobs'); openJob(jobId); }
     } else if (form.id === 'notes-form') {
       commit(s => { const c = s.candidates.find(c => c.id === id); c.notes = d.notes; addHistory(c, 'note', 'Recruiter notes updated'); Store.log(s, `Notes updated for ${c.name}`); }, 'Recruiter notes saved');
     } else if (form.id === 'message-form') {
@@ -1651,7 +2132,25 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
       if (starts.getFullYear() !== Number(d.startsAt.slice(0, 4)) || starts.getHours() !== Number(d.startsAt.slice(11, 13))) return fail('This local time is not valid. Choose another time.');
       if (state().interviews.some(i => i.id !== id && i.status === 'Scheduled' && i.interviewer === d.interviewer && starts.getTime() < new Date(i.startsAt).getTime() + i.duration * 60000 && starts.getTime() + duration * 60000 > new Date(i.startsAt).getTime())) return fail('This interviewer already has an overlapping local appointment. Choose another time or interviewer.');
       const eventId = id || Store.id();
-      if (commit(s => { const i = s.interviews.find(i => i.id === id), payload = {candidateId: d.candidateId, title: d.title, startsAt: starts.toISOString(), duration, format: d.format, location: d.location, interviewer: d.interviewer, status: 'Scheduled', notes: d.notes}; if (i) Object.assign(i, payload); else s.interviews.push({id: eventId, ...payload, createdAt: now}); const c = s.candidates.find(c => c.id === d.candidateId); addHistory(c, 'interview', `${d.title} ${id ? 'rescheduled' : 'scheduled'} (local only)`); Store.log(s, `${d.title} with ${c.name} ${id ? 'rescheduled' : 'scheduled'}`); }, 'Appointment saved. No invitation sent.')) { closeOverlay(); ui.calendarDate = dateKey(starts); ui.calendarMonth = ui.calendarDate.slice(0, 7); navigate('calendar'); openInterview(eventId); }
+      if (commit(s => {
+        const i = s.interviews.find(i => i.id === id);
+        const payload = {candidateId: d.candidateId, title: d.title, startsAt: starts.toISOString(), duration, format: d.format, location: d.location, interviewer: d.interviewer, status: 'Scheduled', notes: d.notes};
+        if (i) Object.assign(i, payload);
+        else s.interviews.push({id: eventId, ...payload, createdAt: now});
+        const c = s.candidates.find(c => c.id === d.candidateId);
+        if (c && !['Interview', 'Offer', 'Hired'].includes(c.stage)) {
+          c.stage = 'Interview';
+          addHistory(c, 'stage', 'Moved to Interview (interview scheduled)', 'Interview');
+        }
+        addHistory(c, 'interview', `${d.title} ${id ? 'rescheduled' : 'scheduled'}`);
+        Store.log(s, `${d.title} with ${c.name} ${id ? 'rescheduled' : 'scheduled'}`);
+      }, I.language === 'ru' ? 'Запись в календаре сохранена' : 'Appointment saved on calendar')) {
+        closeOverlay();
+        ui.calendarDate = dateKey(starts);
+        ui.calendarMonth = ui.calendarDate.slice(0, 7);
+        navigate('calendar');
+        openInterview(eventId);
+      }
     } else if (form.id === 'campaign-form') {
       if (!d.name || !d.message) return fail('Campaign name and message cannot be blank.');
       if (/{{(?!first_name}}|job_title}}|company}})[^}]+}}/.test(d.message)) return fail('Use only {{first_name}}, {{job_title}}, or {{company}} placeholders.');
@@ -1681,7 +2180,19 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
     if (target.dataset.filter) { ui[target.dataset.filter] = target.value; ui.page = 1; ui.selected.clear(); render(); }
     if (target.dataset.selectId) { target.checked ? ui.selected.add(target.dataset.selectId) : ui.selected.delete(target.dataset.selectId); render(); }
     if (target.id === 'select-all') { filteredCandidates().slice((ui.page - 1) * ui.pageSize, ui.page * ui.pageSize).forEach(c => target.checked ? ui.selected.add(c.id) : ui.selected.delete(c.id)); render(); }
-    if (target.id === 'bulk-stage' && STAGES.includes(target.value)) { const stage = target.value, ids = [...ui.selected]; commit(s => { s.candidates.filter(c => ids.includes(c.id) && c.stage !== stage).forEach(c => { c.stage = stage; addHistory(c, 'stage', `Moved to ${stage}`, stage); }); Store.log(s, `${ids.length} candidates moved to ${stage}`); }, `${ids.length} candidates moved to ${stage}`); ui.selected.clear(); render(); }
+    if (target.id === 'bulk-stage' && STAGES.includes(target.value)) {
+      const stage = target.value, ids = [...ui.selected];
+      commit(s => {
+        s.candidates.filter(c => ids.includes(c.id) && c.stage !== stage).forEach(c => {
+          c.stage = stage;
+          addHistory(c, 'stage', `Moved to ${stage}`, stage);
+          if (stage === 'Interview') ensureInterviewOnBoard(s, c);
+        });
+        Store.log(s, `${ids.length} candidates moved to ${stage}`);
+      }, `${ids.length} candidates moved to ${stage}`);
+      ui.selected.clear();
+      render();
+    }
     if (target.id === 'logo-file') importLogo(target.files[0]);
     if (target.id === 'backup-file') importBackup(target.files[0]);
     if (target.closest('#campaign-form')) updateAudiencePreview();
@@ -1722,6 +2233,11 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
     if (event.detail.status === 'saved') toast(I.language === 'ru' ? '\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u043e \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435' : 'Saved on server');
     else toast(event.detail.error || 'Server save failed', true);
   });
+  document.addEventListener('falcon:remote-pulled', () => {
+    if (!Store.remote) return;
+    render();
+    toast(I.language === 'ru' ? 'Pipeline обновлён ассистентом' : 'Pipeline updated by assistant');
+  });
   window.addEventListener('popstate', route);
   window.addEventListener('hashchange', route);
   window.addEventListener('storage', event => { if (event.key === I.KEY) { changeLanguage(event.newValue || 'en', false); }
@@ -1731,7 +2247,7 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
 
 </script>
   <script>
-/* Falcon Jobster: opt-in, read-only AI assistant. No API key in the browser. */
+/* Falcon Jobster AI assistant — agent: api_get + auto-applied mutations. */
 (function () {
   'use strict';
   const I = window.FalconI18n;
@@ -1742,204 +2258,444 @@ window.FalconIcons = {grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect
     en: {
       label:'AI Assistant',title:'Falcon AI Assistant',sub:'Your recruiting co-pilot',close:'Close assistant',open:'Open AI assistant',
       connected:'Key configured',checking:'Checking connection',unconfigured:'API key required',invalidKey:'Check API key',unavailable:'Connection unavailable',demo:'Local demo',retry:'Check again',
-      introTitle:'How can I help?',intro:'Ask about recruiting workflows, interview questions, job descriptions, or the hiring pipeline.',
-      prompt1:'Help me improve my hiring pipeline',prompt2:'Create interview questions for a CDL driver',prompt3:'Draft a recruiter follow-up plan',
+      introTitle:'How can I help?',intro:'I read live API data, open pages, and apply recruiting changes for you automatically.',
+      prompt1:'Where is the hiring report and what does my funnel look like?',prompt2:'Move everyone in New to Screening',prompt3:'Invite someone from Screening to interview tomorrow after 11',
       disconnected:'The AI assistant is available in server mode. Open the full-stack application to connect.',
-      missingKey:'The server is running, but OPENAI_API_KEY is not configured. Add it to your server .env and restart the backend.',
+      missingKey:'The server is running, but no AI key is configured. Add OPENAI_API_KEY (OpenAI or OpenRouter sk-or-...) to .env and restart the backend.',
       statusError:'Could not check the AI connection. Please try again.',invalidKeyBody:'OpenAI rejected the configured server key. Check the key in server settings.',placeholder:'Ask a recruiting question...',send:'Send',
-      clear:'New conversation',typing:'Thinking…',limit:'Write a question to continue.',summary:'Include aggregate workspace statistics',
-      summaryTip:'Only anonymous totals and hiring-stage counts are shared when enabled. Candidate profiles are never sent automatically.',
-      privacy:'Messages are processed by OpenAI. Do not enter personal applicant data or secrets.',
+      clear:'New conversation',typing:'Thinking…',limit:'Write a question to continue.',summary:'Also attach aggregate snapshot to the prompt',
+      summaryTip:'Agent already loads records via API tools. Snapshot is optional context for read-only mode.',
+      privacy:'Messages and tool results are sent to the AI provider. Avoid secrets; applicant data may be included when tools run.',
       genericError:'Could not get an AI response. Try again.',rateError:'Too many requests. Please try again later.',authError:'Session expired. Please sign in again.',
-      setup:'Connection instructions',instructions:'Server setup: add OPENAI_API_KEY to .env, run npm run backend:start, then open the app on the backend URL. Never paste API keys into this chat.',
-      idleHint:'Enter sends · Shift + Enter adds a line',readOnly:'Read-only assistant · Does not change records',copied:'Copy'
+      setup:'Connection instructions',instructions:'Server setup: add OPENAI_API_KEY (or OPENROUTER_API_KEY) to .env. OpenRouter keys (sk-or-...) enable the full agent. Set OPENAI_MODEL=openai/gpt-4o-mini, run npm run backend:start.',
+      idleHint:'Enter sends · Shift + Enter adds a line',readOnly:'Read-only assistant · Does not change records',canAct:'Full co-pilot · Applies changes automatically',
+      confirmTitle:'Confirm changes',confirm:'Confirm',cancel:'Cancel',confirming:'Applying…',cancelled:'Cancelled.',applied:'Applied.'
     },
     ru: {
       label:'ИИ-ассистент',title:'Falcon AI Ассистент',sub:'Помощник по подбору персонала',close:'Закрыть ассистента',open:'Открыть ИИ-ассистента',
       connected:'Ключ настроен',checking:'Проверка подключения',unconfigured:'Нужен API-ключ',invalidKey:'Проверьте API-ключ',unavailable:'Нет подключения',demo:'Локальная демоверсия',retry:'Проверить ещё раз',
-      introTitle:'Чем могу помочь?',intro:'Спросите о воронке найма, вопросах на интервью, вакансиях или ежедневной работе рекрутера.',
-      prompt1:'Как улучшить воронку найма?',prompt2:'Составь вопросы для интервью CDL-водителя',prompt3:'Подготовь план работы рекрутера',
+      introTitle:'Чем могу помочь?',intro:'Читаю живые API-данные, открываю страницы и сам применяю изменения в найме.',
+      prompt1:'Где отчёты и какая сейчас воронка?',prompt2:'Перемести всех из New в Screening',prompt3:'Пригласи кого-то из Screening на интервью завтра после 11',
       disconnected:'ИИ-ассистент работает в серверной версии. Откройте полный проект с backend для подключения.',
-      missingKey:'Сервер работает, но OPENAI_API_KEY ещё не настроен. Добавьте ключ в серверный .env и перезапустите backend.',
+      missingKey:'Сервер работает, но AI-ключ не настроен. Добавьте OPENAI_API_KEY (OpenRouter sk-or-...) в .env и перезапустите backend.',
       statusError:'Не удалось проверить подключение ИИ. Попробуйте ещё раз.',invalidKeyBody:'OpenAI отклонил серверный ключ. Проверьте его в настройках сервера.',placeholder:'Задайте вопрос о найме...',send:'Отправить',
-      clear:'Новый диалог',typing:'Думаю…',limit:'Введите вопрос для отправки.',summary:'Включить сводную статистику',
-      summaryTip:'Передаются только обезличенные количества и этапы найма. Профили кандидатов автоматически не отправляются.',
-      privacy:'Сообщения обрабатывает OpenAI. Не вводите персональные данные кандидатов и секретные ключи.',
-      genericError:'Не удалось получить ответ ИИ. Попробуйте ещё раз.',rateError:'Слишком много запросов. Попробуйте позднее.',authError:'Сессия закончилась. Войдите в систему снова.',
-      setup:'Как подключить',instructions:'На сервере добавьте OPENAI_API_KEY в .env, запустите npm run backend:start и откройте приложение по адресу backend. Не отправляйте API-ключ в этот чат.',
-      idleHint:'Enter — отправить · Shift + Enter — новая строка',readOnly:'Только консультации · Записи не изменяются',copied:'Копировать'
+      clear:'Новый диалог',typing:'Думаю…',limit:'Введите вопрос для отправки.',summary:'Добавить сводный snapshot в промпт',
+      summaryTip:'Агент сам грузит записи через API. Snapshot нужен в основном для read-only режима.',
+      privacy:'Сообщения и результаты tools уходят провайдеру ИИ. Не вводите секреты; данные кандидатов могут попасть в запрос.',
+      genericError:'Не удалось получить ответ ИИ. Попробуйте позднее.',rateError:'Слишком много запросов. Попробуйте позднее.',authError:'Сессия закончилась. Войдите в систему снова.',
+      setup:'Как подключить',instructions:'В .env: OPENAI_API_KEY или OPENROUTER_API_KEY. Ключи OpenRouter (sk-or-...) включают полный агент. Модель: OPENAI_MODEL=openai/gpt-4o-mini, затем npm run backend:start.',
+      idleHint:'Enter — отправить · Shift + Enter — новая строка',readOnly:'Только консультации · Записи не изменяются',canAct:'Полный co-pilot · Изменения применяются сразу',
+      confirmTitle:'Подтвердите изменения',confirm:'Подтвердить',cancel:'Отмена',confirming:'Применяю…',cancelled:'Отменено.',applied:'Готово.'
     }
   };
   const sparkles = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9L12 3Z"/><path d="m19 16-.8 2.2L16 19l2.2.8L19 22l.8-2.2L22 19l-2.2-.8L19 16ZM5 2 4 4 2 5l2 1 1 2 1-2 2-1-2-1-1-2Z"/></svg>`;
   const plane = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>`;
   const closeIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>`;
   const resetIcon = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 3v6h6"/></svg>`;
+
   let root = null;
   let open = false;
-  let status = 'demo'; // demo | checking | ready | unconfigured | invalid | failed
-  let messages = [];
-  let pending = false;
+  let status = 'demo';
+  let canMutate = false;
+  let uiMessages = [];
+  let agentThread = [];
+  let pendingChange = null;
+  let busy = false;
   let optedIn = false;
   let draft = '';
   let error = '';
   let requestController = null;
   let serial = 0;
   let focusReturn = null;
+
   const t = key => (strings[I.language] || strings.en)[key];
   const q = selector => root?.querySelector(selector);
   const safe = value => String(value).replace(/[&<>"']/g, x => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   const connected = () => status === 'ready' && Store.remote === true;
+  const pageHash = () => (location.hash && location.hash.startsWith('#/') ? location.hash : '#/pipeline').slice(0, 200);
+
+  function normalizePending(raw) {
+    if (!raw) return null;
+    if (Array.isArray(raw.changes) && raw.changes.length) {
+      return {summary: String(raw.summary || ''), changes: raw.changes, toolCallId: raw.toolCallId};
+    }
+    if (raw.method && raw.path) {
+      return {
+        summary: String(raw.summary || ''),
+        changes: [{label: String(raw.summary || raw.path), method: raw.method, path: raw.path, body: raw.body ?? {}}],
+        toolCallId: raw.toolCallId
+      };
+    }
+    return null;
+  }
 
   function appendMessage(container, item) {
     const line = document.createElement('div');
     line.className = `fja-msg fja-msg-${item.role}`;
-    const body = document.createElement('p');
-    body.textContent = item.content;
-    line.append(body);
+    if (item.kind === 'confirm') {
+      line.className = 'fja-msg fja-msg-confirm';
+      const box = document.createElement('div');
+      box.className = 'fja-confirm';
+      box.innerHTML = `<strong>${safe(t('confirmTitle'))}</strong><p>${safe(item.summary)}</p><ul>${item.changes.map(c => `<li><code>${safe(c.method)} ${safe(c.path)}</code> — ${safe(c.label || '')}</li>`).join('')}</ul>`;
+      const actions = document.createElement('div');
+      actions.className = 'fja-confirm-actions';
+      const ok = document.createElement('button');
+      ok.type = 'button';
+      ok.className = 'fja-confirm-ok';
+      ok.textContent = t('confirm');
+      ok.dataset.fjaConfirm = '1';
+      const no = document.createElement('button');
+      no.type = 'button';
+      no.className = 'fja-confirm-no';
+      no.textContent = t('cancel');
+      no.dataset.fjaCancel = '1';
+      actions.append(ok, no);
+      box.append(actions);
+      line.append(box);
+    } else {
+      const body = document.createElement('p');
+      body.textContent = item.content;
+      line.append(body);
+    }
     container.append(line);
   }
-  function draw({focus=false}={}) {
+
+  function draw({focus = false} = {}) {
     if (!root) return;
-    const label = status==='ready'?'connected':status==='checking'?'checking':status==='invalid'?'invalidKey':status==='failed'?'unavailable':status==='demo'?'demo':'unconfigured';
-    const prompts = ['prompt1','prompt2','prompt3'];
+    const label = status === 'ready' ? 'connected' : status === 'checking' ? 'checking' : status === 'invalid' ? 'invalidKey' : status === 'failed' ? 'unavailable' : status === 'demo' ? 'demo' : 'unconfigured';
+    const prompts = ['prompt1', 'prompt2', 'prompt3'];
+    const locked = busy || !!pendingChange;
     root.innerHTML = `
       <button type="button" class="fja-launcher" id="fja-launcher" aria-label="${safe(t('open'))}" aria-controls="fja-panel" aria-expanded="${open}">
         <span class="fja-launch-icon">${sparkles}</span><span class="fja-launch-text">${safe(t('label'))}</span>
-        <span class="fja-dot ${connected()?'is-live':''}" aria-hidden="true"></span>
+        <span class="fja-dot ${connected() ? 'is-live' : ''}" aria-hidden="true"></span>
       </button>
-      <section id="fja-panel" class="fja-panel" role="dialog" aria-modal="false" aria-label="${safe(t('title'))}" ${open?'':'hidden'}>
+      <section id="fja-panel" class="fja-panel" role="dialog" aria-modal="false" aria-label="${safe(t('title'))}" ${open ? '' : 'hidden'}>
         <header class="fja-header"><div class="fja-header-icon">${sparkles}</div><div class="fja-heading"><strong>${safe(t('title'))}</strong><small>${safe(t('sub'))}</small></div>
           <button type="button" class="fja-top-button" id="fja-reset" aria-label="${safe(t('clear'))}" title="${safe(t('clear'))}">${resetIcon}</button>
           <button type="button" class="fja-top-button" id="fja-close" aria-label="${safe(t('close'))}">${closeIcon}</button></header>
-        <div class="fja-status"><span class="fja-status-pill fja-${safe(status)}"><i></i>${safe(t(label))}</span><span>${safe(t('readOnly'))}</span></div>
+        <div class="fja-status"><span class="fja-status-pill fja-${safe(status)}"><i></i>${safe(t(label))}</span><span>${safe(t(canMutate ? 'canAct' : 'readOnly'))}</span></div>
         <div class="fja-transcript" id="fja-transcript" role="log" aria-label="${safe(t('title'))}" aria-live="polite" aria-relevant="additions text">
-          ${messages.length===0 && connected() ? `<div class="fja-welcome"><span class="fja-welcome-icon">${sparkles}</span><strong>${safe(t('introTitle'))}</strong><p>${safe(t('intro'))}</p><div class="fja-prompts">${prompts.map(key=>`<button type="button" data-fja-prompt="${key}">${safe(t(key))}</button>`).join('')}</div></div>`:''}
-          ${!connected() ? `<div class="fja-connection"><span class="fja-connect-icon">${sparkles}</span><strong>${safe(status==='demo'?t('demo'):status==='checking'?t('checking'):t(label))}</strong><p>${safe(status==='demo'?t('disconnected'):status==='unconfigured'?t('missingKey'):status==='failed'?t('statusError'):status==='invalid'?t('invalidKeyBody'):t('checking'))}</p>
-            <button type="button" id="fja-setup" class="fja-link">${safe(t('setup'))}</button>${Store.remote ? `<button type="button" id="fja-retry" class="fja-retry">${safe(t('retry'))}</button>`:''}<p class="fja-setup-text" id="fja-setup-text" hidden>${safe(t('instructions'))}</p></div>`:''}
+          ${uiMessages.length === 0 && connected() ? `<div class="fja-welcome"><span class="fja-welcome-icon">${sparkles}</span><strong>${safe(t('introTitle'))}</strong><p>${safe(t('intro'))}</p><div class="fja-prompts">${prompts.map(key => `<button type="button" data-fja-prompt="${key}">${safe(t(key))}</button>`).join('')}</div></div>` : ''}
+          ${!connected() ? `<div class="fja-connection"><span class="fja-connect-icon">${sparkles}</span><strong>${safe(status === 'demo' ? t('demo') : status === 'checking' ? t('checking') : t(label))}</strong><p>${safe(status === 'demo' ? t('disconnected') : status === 'unconfigured' ? t('missingKey') : status === 'failed' ? t('statusError') : status === 'invalid' ? t('invalidKeyBody') : t('checking'))}</p>
+            <button type="button" id="fja-setup" class="fja-link">${safe(t('setup'))}</button>${Store.remote ? `<button type="button" id="fja-retry" class="fja-retry">${safe(t('retry'))}</button>` : ''}<p class="fja-setup-text" id="fja-setup-text" hidden>${safe(t('instructions'))}</p></div>` : ''}
         </div>
-        <div class="fja-bottom"><label class="fja-summary-option"><input type="checkbox" id="fja-summary" ${optedIn?'checked':''} ${connected()?'':'disabled'}><span>${safe(t('summary'))}</span></label>
+        <div class="fja-bottom"><label class="fja-summary-option"><input type="checkbox" id="fja-summary" ${optedIn ? 'checked' : ''} ${connected() ? '' : 'disabled'}><span>${safe(t('summary'))}</span></label>
           <p class="fja-summary-tip">${safe(t('summaryTip'))}</p>
           <form id="fja-form" novalidate><label class="fja-sr-only" for="fja-input">${safe(t('placeholder'))}</label>
-            <textarea id="fja-input" rows="2" maxlength="3000" placeholder="${safe(t('placeholder'))}" ${connected()?'':'disabled'}></textarea>
-            <button id="fja-send" type="submit" class="fja-send" aria-label="${safe(t('send'))}" title="${safe(t('send'))}" ${connected()&&!pending?'':'disabled'}>${plane}</button></form>
-          <p class="fja-error" id="fja-error" role="alert" ${error?'':'hidden'}></p>
+            <textarea id="fja-input" rows="2" maxlength="3000" placeholder="${safe(t('placeholder'))}" ${connected() && !locked ? '' : 'disabled'}></textarea>
+            <button id="fja-send" type="submit" class="fja-send" aria-label="${safe(t('send'))}" title="${safe(t('send'))}" ${connected() && !locked ? '' : 'disabled'}>${plane}</button></form>
+          <p class="fja-error" id="fja-error" role="alert" ${error ? '' : 'hidden'}></p>
           <p class="fja-footnote">${safe(t('privacy'))}</p>
         </div>
       </section>`;
-    document.body.classList.toggle('fja-open',open);
-    const log=q('#fja-transcript');
-    for (const item of messages) appendMessage(log,item);
-    if(pending) {
-      const line=document.createElement('div');line.className='fja-msg fja-msg-wait';
-      const p=document.createElement('p');p.textContent=t('typing');line.append(p);log.append(line);
+    document.body.classList.toggle('fja-open', open);
+    const log = q('#fja-transcript');
+    for (const item of uiMessages) appendMessage(log, item);
+    if (busy && !pendingChange) {
+      const line = document.createElement('div');
+      line.className = 'fja-msg fja-msg-wait';
+      const p = document.createElement('p');
+      p.textContent = t('typing');
+      line.append(p);
+      log.append(line);
     }
-    const textarea=q('#fja-input');if(textarea) textarea.value=draft;
-    const err=q('#fja-error');if(err)err.textContent=error;
-    if(log) log.scrollTop=log.scrollHeight;
-    if(focus&&open&&connected()) textarea?.focus({preventScroll:true});
+    const textarea = q('#fja-input');
+    if (textarea) textarea.value = draft;
+    const err = q('#fja-error');
+    if (err) err.textContent = error;
+    if (log) log.scrollTop = log.scrollHeight;
+    if (focus && open && connected()) textarea?.focus({preventScroll: true});
   }
+
   function setOpen(next) {
-    if(next===open) return;
-    if(next) focusReturn=document.activeElement;
-    open=next;draw({focus:next});
-    if(!next) (q('#fja-launcher')||focusReturn)?.focus({preventScroll:true});
-    if(next && Store.remote && status!=='ready') void checkConnection();
+    if (next === open) return;
+    if (next) focusReturn = document.activeElement;
+    open = next;
+    draw({focus: next});
+    if (!next) (q('#fja-launcher') || focusReturn)?.focus({preventScroll: true});
+    if (next && Store.remote && status !== 'ready') void checkConnection();
   }
+
   async function checkConnection() {
-    if(!Store.remote) {status='demo';draw();return;}
-    status='checking';draw();
+    if (!Store.remote) { status = 'demo'; draw(); return; }
+    status = 'checking';
+    draw();
     try {
-      const response=await fetch('/api/assistant/status',{credentials:'same-origin',cache:'no-store'});
-      if(!response.ok) throw new Error(`Connection failed: ${response.status}`);
-      const data=await response.json();status=data.configured?'ready':'unconfigured';
-    } catch {status='failed';}
+      const response = await fetch('/api/assistant/status', {credentials: 'same-origin', cache: 'no-store'});
+      if (!response.ok) throw new Error(`Connection failed: ${response.status}`);
+      const data = await response.json();
+      status = data.configured ? 'ready' : 'unconfigured';
+      canMutate = !!data.canMutate;
+    } catch {
+      status = 'failed';
+      canMutate = false;
+    }
     draw();
   }
+
+  function applyOpen(path) {
+    if (typeof path === 'string' && path.startsWith('#/')) location.hash = path;
+  }
+
+  async function continueAgent(thread) {
+    const response = await fetch('/api/assistant/chat', {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({messages: thread, page: pageHash(), language: I.language}),
+      signal: requestController?.signal
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const problem = new Error(data.error || t('genericError'));
+      problem.status = response.status;
+      problem.code = data.code;
+      throw problem;
+    }
+    return data;
+  }
+
+  function mergeAgent(data) {
+    if (Array.isArray(data.messages) && data.messages.length) {
+      agentThread = agentThread.concat(data.messages);
+    }
+    if (data.open) applyOpen(data.open);
+    const pending = normalizePending(data.pending);
+    if (pending) {
+      pendingChange = pending;
+      const summary = pending.summary || data.reply || t('confirming');
+      uiMessages.push({role: 'assistant', content: `${t('confirming')}${summary ? `\n${summary}` : ''}`});
+      // Auto-apply mutations — no Confirm click required.
+      queueMicrotask(() => { void confirmPending(); });
+    } else if (data.reply) {
+      uiMessages.push({role: 'assistant', content: String(data.reply).slice(0, 12000)});
+    }
+  }
+
   async function submit(input) {
-    const content=String(input||'').trim();
-    if(!content) {error=t('limit');draw({focus:true});return;}
-    if(!connected()||pending) return;
-    error='';draft='';
-    // Stay within the server's bounded history contract without truncating a message mid-sentence.
-    const history=[];
-    let budget=9000;
-    for (const item of messages.slice(-12).reverse()) {
-      if (item.content.length>budget) break;
-      history.unshift({role:item.role,content:item.content.slice(0,3000)});
-      budget-=item.content.length;
-    }
-    messages.push({role:'user',content});
-    pending=true;draw();
-    const run=++serial;
-    requestController=new AbortController();
+    const content = String(input || '').trim();
+    if (!content) { error = t('limit'); draw({focus: true}); return; }
+    if (!connected() || busy || pendingChange) return;
+    error = '';
+    draft = '';
+    uiMessages.push({role: 'user', content});
+    agentThread.push({role: 'user', content});
+    busy = true;
+    draw();
+    const run = ++serial;
+    requestController = new AbortController();
     try {
-      const response=await fetch('/api/assistant/chat',{
-        method:'POST',credentials:'same-origin',cache:'no-store',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({message:content,history,language:I.language,includeSummary:optedIn}),
-        signal:requestController.signal
-      });
-      const data=await response.json().catch(()=>({}));
-      if(!response.ok) {
-        const problem=new Error(data.error||t('genericError'));
-        problem.status=response.status;problem.code=data.code;throw problem;
+      let data;
+      if (canMutate) {
+        data = await continueAgent(agentThread);
+      } else {
+        const history = [];
+        let budget = 9000;
+        for (const item of uiMessages.slice(0, -1).slice(-12).reverse()) {
+          if (!item.content || item.content.length > budget) break;
+          history.unshift({role: item.role, content: item.content.slice(0, 3000)});
+          budget -= item.content.length;
+        }
+        const response = await fetch('/api/assistant/chat', {
+          method: 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({message: content, history, language: I.language, includeSummary: optedIn}),
+          signal: requestController.signal
+        });
+        data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const problem = new Error(data.error || t('genericError'));
+          problem.status = response.status;
+          problem.code = data.code;
+          throw problem;
+        }
       }
-      if(run!==serial) return;
-      if(!data.reply||typeof data.reply!=='string') throw new Error(t('genericError'));
-      messages.push({role:'assistant',content:data.reply.slice(0,12000)});
+      if (run !== serial) return;
+      if (canMutate) mergeAgent(data);
+      else {
+        if (!data.reply || typeof data.reply !== 'string') throw new Error(t('genericError'));
+        uiMessages.push({role: 'assistant', content: data.reply.slice(0, 12000)});
+      }
     } catch (problem) {
-      if(run!==serial) return;
-      // A failed attempt is not left in the history sent to the AI on retry.
-      messages.pop();draft=content;
-      error=problem.status===401?t('authError'):problem.status===429?t('rateError'):t('genericError');
-      if(problem.code==='NOT_CONFIGURED'){status='unconfigured';error=t('missingKey');}
-      if(problem.code==='INVALID_PROVIDER_KEY') {status='invalid';error=t('invalidKeyBody');}
+      if (run !== serial) return;
+      uiMessages.pop();
+      agentThread.pop();
+      draft = content;
+      error = problem.status === 401 ? t('authError') : problem.status === 429 ? t('rateError') : t('genericError');
+      if (problem.code === 'NOT_CONFIGURED') { status = 'unconfigured'; error = t('missingKey'); }
+      if (problem.code === 'INVALID_PROVIDER_KEY') { status = 'invalid'; error = t('invalidKeyBody'); }
     } finally {
-      if(run===serial){pending=false;requestController=null;draw({focus:open});}
+      if (run === serial) { busy = false; requestController = null; draw({focus: open}); }
     }
   }
+
+  async function runApiChange(change) {
+    const method = String(change.method || 'POST').toUpperCase();
+    const path = String(change.path || '');
+    const opts = {
+      method,
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: {'Content-Type': 'application/json'}
+    };
+    if (method !== 'GET' && method !== 'HEAD') {
+      opts.body = JSON.stringify(change.body ?? {});
+    }
+    const response = await fetch(path, opts);
+    const data = await response.json().catch(() => ({}));
+    return {ok: response.ok, status: response.status, label: change.label || path, data};
+  }
+
+  function patchToolResult(toolCallId, content) {
+    let found = false;
+    agentThread = agentThread.map(m => {
+      if (m.role === 'tool' && m.tool_call_id === toolCallId) {
+        found = true;
+        return {...m, content};
+      }
+      return m;
+    });
+    if (!found) agentThread.push({role: 'tool', tool_call_id: toolCallId, content});
+  }
+
+  async function confirmPending() {
+    if (!pendingChange) return;
+    // Allow chaining from mergeAgent while the previous turn is still marked busy.
+    const batch = pendingChange;
+    pendingChange = null;
+    busy = true;
+    draw();
+    const run = ++serial;
+    requestController = new AbortController();
+    try {
+      const results = [];
+      for (const change of batch.changes) {
+        results.push(await runApiChange(change));
+      }
+      const text = results.map(r =>
+        `${r.ok ? 'OK' : 'FAIL'} ${r.status} ${r.label}: ${JSON.stringify(r.data).slice(0, 1500)}`
+      ).join('\n');
+      patchToolResult(batch.toolCallId, text);
+      if (typeof Store.pullRemote === 'function') {
+        try { await Store.pullRemote(); } catch { /* ignore */ }
+      }
+      const data = await continueAgent(agentThread);
+      if (run !== serial) return;
+      mergeAgent(data);
+      if (!data.pending && !data.reply) {
+        uiMessages.push({role: 'assistant', content: t('applied')});
+      }
+    } catch (problem) {
+      if (run !== serial) return;
+      error = problem.status === 401 ? t('authError') : t('genericError');
+      patchToolResult(batch.toolCallId, `Error applying change: ${problem.message || problem}`);
+    } finally {
+      if (run === serial) {
+        requestController = null;
+        // Keep busy if another mutation was queued by mergeAgent for auto-apply.
+        if (!pendingChange) {
+          busy = false;
+          draw({focus: open});
+        }
+      }
+    }
+  }
+
+  async function cancelPending() {
+    if (!pendingChange || busy) return;
+    const batch = pendingChange;
+    pendingChange = null;
+    const idx = [...uiMessages].map((m, i) => m.kind === 'confirm' ? i : -1).filter(i => i >= 0).pop();
+    if (typeof idx === 'number' && idx >= 0) {
+      uiMessages[idx] = {role: 'assistant', content: t('cancelled')};
+    }
+    patchToolResult(batch.toolCallId, 'Admin cancelled the proposed change.');
+    busy = true;
+    draw();
+    const run = ++serial;
+    requestController = new AbortController();
+    try {
+      const data = await continueAgent(agentThread);
+      if (run !== serial) return;
+      mergeAgent(data);
+    } catch (problem) {
+      if (run !== serial) return;
+      error = problem.status === 401 ? t('authError') : t('genericError');
+    } finally {
+      if (run === serial) { busy = false; requestController = null; draw({focus: open}); }
+    }
+  }
+
   function clearConversation() {
-    serial++;requestController?.abort();requestController=null;
-    pending=false;messages=[];draft='';error='';optedIn=false;draw({focus:open});
+    serial++;
+    requestController?.abort();
+    requestController = null;
+    busy = false;
+    pendingChange = null;
+    uiMessages = [];
+    agentThread = [];
+    draft = '';
+    error = '';
+    optedIn = false;
+    draw({focus: open});
   }
+
   function mount() {
-    if(root || !document.querySelector('#workspace')) return;
-    root=document.createElement('div');root.id='fja-root';document.body.append(root);
-    status=Store.remote?'checking':'demo';draw();
-    if(Store.remote)void checkConnection();
+    if (root || !document.querySelector('#workspace')) return;
+    root = document.createElement('div');
+    root.id = 'fja-root';
+    document.body.append(root);
+    status = Store.remote ? 'checking' : 'demo';
+    draw();
+    if (Store.remote) void checkConnection();
   }
-  document.addEventListener('click',event=>{
-    if(!root) return;
-    const target=event.target;
-    if(!root.contains(target)) return;
-    if(target.closest('#fja-launcher')) {setOpen(!open);return;}
-    if(target.closest('#fja-close')) {setOpen(false);return;}
-    if(target.closest('#fja-reset')) {clearConversation();return;}
-    if(target.closest('#fja-retry')) {void checkConnection();return;}
-    if(target.closest('#fja-setup')) {const note=q('#fja-setup-text');if(note)note.hidden=!note.hidden;return;}
-    const chip=target.closest('[data-fja-prompt]');
-    if(chip) {void submit(t(chip.dataset.fjaPrompt));return;}
+
+  document.addEventListener('click', event => {
+    if (!root) return;
+    const target = event.target;
+    if (!root.contains(target)) return;
+    if (target.closest('#fja-launcher')) { setOpen(!open); return; }
+    if (target.closest('#fja-close')) { setOpen(false); return; }
+    if (target.closest('#fja-reset')) { clearConversation(); return; }
+    if (target.closest('#fja-retry')) { void checkConnection(); return; }
+    if (target.closest('#fja-setup')) {
+      const note = q('#fja-setup-text');
+      if (note) note.hidden = !note.hidden;
+      return;
+    }
+    if (target.closest('[data-fja-confirm]')) { void confirmPending(); return; }
+    if (target.closest('[data-fja-cancel]')) { void cancelPending(); return; }
+    const chip = target.closest('[data-fja-prompt]');
+    if (chip) { void submit(t(chip.dataset.fjaPrompt)); return; }
   });
-  document.addEventListener('input',event=>{
-    if(root?.contains(event.target)&&event.target.id==='fja-input') draft=event.target.value;
+  document.addEventListener('input', event => {
+    if (root?.contains(event.target) && event.target.id === 'fja-input') draft = event.target.value;
   });
-  document.addEventListener('change',event=>{
-    if(root?.contains(event.target)&&event.target.id==='fja-summary') optedIn=event.target.checked;
+  document.addEventListener('change', event => {
+    if (root?.contains(event.target) && event.target.id === 'fja-summary') optedIn = event.target.checked;
   });
-  document.addEventListener('submit',event=>{
-    if(event.target.id!=='fja-form') return;
-    event.preventDefault();void submit(q('#fja-input')?.value);
+  document.addEventListener('submit', event => {
+    if (event.target.id !== 'fja-form') return;
+    event.preventDefault();
+    void submit(q('#fja-input')?.value);
   });
-  document.addEventListener('keydown',event=>{
-    if(!root) return;
-    if(event.key==='Escape'&&open){event.preventDefault();setOpen(false);}
-    if(event.target.id==='fja-input'&&event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();void submit(event.target.value);}
+  document.addEventListener('keydown', event => {
+    if (!root) return;
+    if (event.key === 'Escape' && open) { event.preventDefault(); setOpen(false); }
+    if (event.target.id === 'fja-input' && event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      void submit(event.target.value);
+    }
   });
-  document.addEventListener('falcon:language-change',()=>{if(root)draw();});
-  const host=document.getElementById('root');
+  document.addEventListener('falcon:language-change', () => { if (root) draw(); });
+  const host = document.getElementById('root');
   if (host) {
-    const observer=new MutationObserver(()=>{if(!root)mount();});
-    observer.observe(host,{childList:true});
+    const observer = new MutationObserver(() => { if (!root) mount(); });
+    observer.observe(host, {childList: true});
   }
   mount();
 })();

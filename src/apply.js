@@ -10,6 +10,11 @@ const dict = {
     compensation: 'Compensation',
     notSpecified: 'Details coming soon from the hiring team.',
     about: 'About the role',
+    assignment: 'Test assignment',
+    assignmentRequired: 'Required with your application',
+    assignmentLink: 'Link to your solution *',
+    assignmentLinkOptional: 'Link to your solution',
+    assignmentHint: 'GitHub, GitLab, Gist or Drive link to your completed assignment.',
     applyTitle: 'Apply for this role',
     applyLead: 'Confirm your email, then complete a short application. Verified applicants land in New in the hiring pipeline.',
     stepEmail: 'Email',
@@ -51,6 +56,11 @@ const dict = {
     compensation: 'Компенсация',
     notSpecified: 'Подробности скоро появятся от команды найма.',
     about: 'О роли',
+    assignment: 'Тестовое задание',
+    assignmentRequired: 'Обязательно приложите к анкете',
+    assignmentLink: 'Ссылка на решение *',
+    assignmentLinkOptional: 'Ссылка на решение',
+    assignmentHint: 'GitHub, GitLab, Gist или Drive со сделанным тестовым.',
     applyTitle: 'Откликнуться',
     applyLead: 'Подтвердите email и заполните короткую анкету. После этого вы попадёте в этап New в pipeline.',
     stepEmail: 'Email',
@@ -143,11 +153,24 @@ function chipsHtml(job) {
   ].filter(Boolean).map(x => `<span class="chip">${esc(x)}</span>`).join('');
 }
 
+function assignmentBlock(job, {light = false} = {}) {
+  const text = String(job.assignment || '').trim();
+  if (!text) return '';
+  const req = job.assignmentRequired
+    ? `<span class="assignment-req">${esc(t.assignmentRequired)}</span>`
+    : '';
+  return `<div class="assignment-block${light ? ' is-light' : ''}">
+    <div class="assignment-head"><span>${esc(t.assignment)}</span>${req}</div>
+    <p class="job-body assignment-body">${esc(text)}</p>
+  </div>`;
+}
+
 function rolePlane(job, company, {showBody = true} = {}) {
   const hasDesc = !!(job.description && String(job.description).trim());
   const hasPay = !!(job.pay && String(job.pay).trim());
   const body = showBody
     ? `<p class="job-body${hasDesc ? '' : ' is-empty'}">${esc(hasDesc ? job.description : t.notSpecified)}</p>
+      ${assignmentBlock(job)}
       ${hasPay ? `<div class="pay"><span>${esc(t.compensation)}</span>${esc(job.pay)}</div>` : ''}`
     : '';
   return `<section class="role-plane" aria-label="${esc(job.title)}">
@@ -204,6 +227,11 @@ function formPanel() {
         </div>
       </form>`;
   } else {
+    const job = jobPayload?.job || {};
+    const hasAssignment = !!(job.assignment && String(job.assignment).trim());
+    const assignmentField = hasAssignment
+      ? `<label>${esc(job.assignmentRequired ? t.assignmentLink : t.assignmentLinkOptional)}<input name="assignmentUrl" type="url" maxlength="500" ${job.assignmentRequired ? 'required' : ''} placeholder="https://github.com/…/repo" autocomplete="off"><small class="field-hint">${esc(t.assignmentHint)}</small></label>`
+      : '';
     body = `<p class="lead">${esc(t.formLead)} <strong>${esc(email)}</strong></p>
       <form id="submit-form">
         <label>${esc(t.name)}<input name="name" required maxlength="100" autocomplete="name"></label>
@@ -211,6 +239,7 @@ function formPanel() {
         <label>${esc(t.telegram)}<input name="telegram" maxlength="32" autocomplete="off" placeholder="@username" pattern="[@A-Za-z0-9_]{0,33}"><small class="field-hint">${esc(t.telegramHint)}</small></label>
         <label>${esc(t.location)}<input name="location" required maxlength="100" autocomplete="address-level2" placeholder="City, ST"></label>
         <label>${esc(t.experience)}<input name="experience" maxlength="100" placeholder="e.g. 3 years"></label>
+        ${assignmentField}
         <label>${esc(t.notes)}<textarea name="notes" rows="4" maxlength="4000"></textarea></label>
         <div class="form-actions"><button class="btn btn-primary" type="submit"${busy?' disabled':''}>${esc(t.submit)}</button></div>
       </form>`;
@@ -254,6 +283,7 @@ function render() {
         <section class="about-panel">
           <h3>${esc(t.about)}</h3>
           <p class="job-body${hasDesc ? '' : ' is-empty'}">${esc(hasDesc ? job.description : t.notSpecified)}</p>
+          ${assignmentBlock(job, {light: true})}
         </section>
       </div>
     </div>`;
@@ -363,7 +393,8 @@ root.addEventListener('submit', async event => {
       const submitted = await api(`/api/public/jobs/${encodeURIComponent(slug)}/submit`, {
         email, proof,
         name: data.name, phone: data.phone, telegram: data.telegram,
-        location: data.location, experience: data.experience, notes: data.notes
+        location: data.location, experience: data.experience, notes: data.notes,
+        assignmentUrl: data.assignmentUrl
       });
       telegramLink = submitted.telegramDeepLink || submitted.telegramAppLink || null;
       step = 'done';

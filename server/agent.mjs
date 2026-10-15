@@ -49,6 +49,7 @@ export const JOBSTER_API_ROUTES = [
   'DELETE /api/messages/:id',
   'GET /api/campaigns',
   'POST /api/campaigns',
+  'POST /api/campaigns/:id/send',
   'PATCH /api/campaigns/:id',
   'DELETE /api/campaigns/:id',
   'GET /api/team',

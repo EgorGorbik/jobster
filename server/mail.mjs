@@ -218,7 +218,7 @@ function trackNotify(promise) {
  * Email (Resend), SMS (Twilio), Telegram when each channel is configured / linked.
  * A brand-new interview created in the same save (pipeline drag onto Interview) uses the appointment text.
  */
-export function notifyStageChanges(prevState, nextState) {
+export function notifyStageChanges(prevState, nextState, meta = {}) {
   try {
     const prevMap = new Map((prevState?.candidates || []).map(c => [c.id, c]));
     const prevInterviewIds = new Set((prevState?.interviews || []).map(i => i.id));
@@ -285,26 +285,34 @@ export function notifyStageChanges(prevState, nextState) {
       }));
     }
     const tgTasks = tasks.filter(t => t.candidate.telegramChatId);
-    if (!tgTasks.length) return;
-    trackNotify(import('./telegram.mjs').then(async mod => {
-      if (!mod.telegramConfigured()) return;
-      await Promise.all(tgTasks.map(task => {
-        const pending = task.interview
-          ? mod.sendInterviewTelegram({
-            candidate: task.candidate,
-            jobTitle: task.jobTitle,
-            interview: task.interview,
-            company: task.company
-          })
-          : mod.sendStageChangeTelegram({
-            candidate: task.candidate,
-            jobTitle: task.jobTitle,
-            toStage: task.toStage,
-            company: task.company
-          });
-        return pending.catch(err => console.error('[telegram] stage notify failed:', err.message || err));
+    if (tgTasks.length) {
+      trackNotify(import('./telegram.mjs').then(async mod => {
+        if (!mod.telegramConfigured()) return;
+        await Promise.all(tgTasks.map(task => {
+          const pending = task.interview
+            ? mod.sendInterviewTelegram({
+              candidate: task.candidate,
+              jobTitle: task.jobTitle,
+              interview: task.interview,
+              company: task.company
+            })
+            : mod.sendStageChangeTelegram({
+              candidate: task.candidate,
+              jobTitle: task.jobTitle,
+              toStage: task.toStage,
+              company: task.company
+            });
+          return pending.catch(err => console.error('[telegram] stage notify failed:', err.message || err));
+        }));
       }));
-    }));
+    }
+    // Team inbox: Offer stage → all team / login emails (settings.offers).
+    if (nextState?.settings?.offers && meta.db && meta.workspaceId) {
+      trackNotify(import('./team-mail.mjs').then(mod =>
+        mod.notifyTeamOfferChange(prevState, nextState, meta)
+          .catch(err => console.error('[team-mail] offer notify failed:', err.message || err))
+      ));
+    }
   } catch (err) {
     console.error('[mail] stage diff failed:', err.message || err);
   }

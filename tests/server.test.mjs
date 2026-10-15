@@ -38,7 +38,7 @@ test('public health check and static frontend bootloader',async()=>{
   assert.equal(typeof r.data.providers.email,'boolean');
   assert.equal(typeof r.data.providers.telegram,'boolean');
   assert.equal(typeof r.data.providers.sms,'boolean');
-  assert.equal(r.data.providers.calendar,false);
+  assert.equal(typeof r.data.providers.campaigns,'boolean');
   const response=await fetch(origin+'/');const html=await response.text();
   assert.equal(response.status,200);assert.match(html,/src\/remote\.js/);assert.doesNotMatch(html,/src="\.\/app\.js"/);
   assert.match(response.headers.get('content-security-policy'),/connect-src 'self'/);
@@ -101,7 +101,16 @@ test('interviews, campaign definitions and draft messages never send',async()=>{
   const msg=await post('/api/messages',{candidateId:newCandidate,channel:'Email',subject:'Hello',body:'Draft only'});
   assert.equal(msg.status,201);assert.equal(msg.data.data.status,'Draft');
   assert.equal((await get('/api/healthz')).data.messaging,'disabled');
+  assert.equal((await get('/api/healthz')).data.providers.campaigns,false);
   assert.equal((await get('/api/reports')).data.interviews.scheduled,2);
+});
+test('campaign send refuses when SMS/email providers are off',async()=>{
+  const campaign=await post('/api/campaigns',{name:'Blast check',channel:'Email',message:'Hi {{first_name}}',jobId:newJob});
+  assert.equal(campaign.status,201);
+  const id=campaign.data.data.id;
+  const blocked=await post(`/api/campaigns/${id}/send`,{});
+  assert.equal(blocked.status,503);
+  assert.match(String(blocked.data.error||''),/not configured/i);
 });
 test('invalid references rejected atomically and linked jobs protected',async()=>{
   const beforeState=await get('/api/state');const r=await patch(`/api/candidates/${newCandidate}`,{jobId:'missing-job'});

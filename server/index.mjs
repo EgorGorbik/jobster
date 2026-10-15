@@ -7,6 +7,7 @@ import {handleApi,handleError} from './api.mjs';
 import {makeAssistantHandler} from './assistant.mjs';
 import {handlePublicApply} from './apply.mjs';
 import {handleTelegramWebhook, startTelegramServices, stopTelegramServices} from './telegram.mjs';
+import {startTeamMailServices, stopTeamMailServices} from './team-mail.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const ASSETS=new Map([
   ['/app.js', ['app.js','text/javascript; charset=utf-8']],
@@ -80,8 +81,9 @@ if (process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.u
   const tgConfigured=!!(process.env.TELEGRAM_BOT_TOKEN?.trim()&&process.env.TELEGRAM_BOT_USERNAME?.trim());
   server.listen(port,host,()=>{
     startTelegramServices(db);
+    startTeamMailServices(db);
     console.log(`Falcon Jobster API and UI running at http://${host}:${port} | SQLite: ${dbPath} | AI assistant: ${aiConfigured?`configured (${aiProvider})`:'needs API key'} | Telegram: ${tgConfigured?(process.env.TELEGRAM_USE_POLLING==='true'?'polling':'webhook /api/public/telegram/webhook'):'off'}`);
   });
-  const exit=()=>{stopTelegramServices();server.close(()=>{db.close();process.exit(0);});};
+  const exit=()=>{stopTeamMailServices();stopTelegramServices();server.close(()=>{db.close();process.exit(0);});};
   process.on('SIGTERM',exit);process.on('SIGINT',exit);
 }

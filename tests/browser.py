@@ -134,6 +134,9 @@ def main():
                 assert page.locator('#injected').count()==0
                 page.locator('[data-action="move-candidate"][data-stage="Interview"]').click()
                 assert next(c for c in state()['candidates'] if c['id']==ids['candidate'])['stage']=='Interview'
+                expect(page.locator('#interview-form')).to_be_visible()
+                page.locator('[data-action="close-overlay"]').first.click()
+                page.locator(f'[data-action="candidate"][data-id="{ids["candidate"]}"]').click()
                 page.locator('[data-action="edit-candidate"]').click()
                 f=page.locator('#candidate-form')
                 f.locator('[name="phone"]').fill('(214) 555-0131')
@@ -249,18 +252,18 @@ def main():
                 f.locator('button[value="Ready"]').click()
                 ids['campaign']=next(c['id'] for c in state()['campaigns'] if c['name']=='QA Outreach')
                 assert next(c for c in state()['campaigns'] if c['id']==ids['campaign'])['status']=='Ready'
-                page.locator('[data-action="simulate-campaign"]').click()
+                expect(page.locator('[data-action="send-campaign"]')).to_be_visible()
+                page.locator('[data-action="send-campaign"]').click()
                 page.locator('[data-action="confirm-action"]').click()
-                assert next(c for c in state()['campaigns'] if c['id']==ids['campaign'])['status']=='Running'
-                page.locator('[data-action="pause-campaign"]').click()
-                assert next(c for c in state()['campaigns'] if c['id']==ids['campaign'])['status']=='Paused'
+                # Local demo cannot blast; status stays Ready and toast explains server mode.
+                assert next(c for c in state()['campaigns'] if c['id']==ids['campaign'])['status']=='Ready'
                 close()
                 page.locator('.heading-actions [data-action="templates"]').click()
                 page.locator('[data-action="use-template"][data-template="1"]').click()
                 page.locator('#campaign-form button[value="Draft"]').click()
                 assert len(state()['campaigns'])==5
                 close()
-            run('Campaign segmentation, previews, templates and honest simulation', campaigns)
+            run('Campaign segmentation, previews, templates and send affordance', campaigns)
 
             def reports():
                 nav('reports');page.locator('[data-action="report-period"][data-days="7"]').click()

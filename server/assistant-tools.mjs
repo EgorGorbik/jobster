@@ -64,7 +64,7 @@ const APP_GUIDE = {
     {route: '#/candidates', name: 'Candidates', purpose: 'Searchable table of all applicants, filters, CSV export, archive'},
     {route: '#/jobs', name: 'Jobs', purpose: 'Open roles, openings, career-page link (/apply/:slug), layouts classic/spotlight/compact'},
     {route: '#/calendar', name: 'Calendar', purpose: 'Local interview appointments and .ics export (no live invites sent)'},
-    {route: '#/campaigns', name: 'Campaigns', purpose: 'Audience segments and message simulations (drafts only, nothing is sent)'},
+    {route: '#/campaigns', name: 'Campaigns', purpose: 'Audience segments; Send blasts via Resend/Twilio (POST /api/campaigns/:id/send)'},
     {route: '#/reports', name: 'Reports', purpose: 'Funnel, source and location hiring stats'},
     {route: '#/settings', name: 'Settings', purpose: 'Company prefs, team directory, import/export, password'}
   ],
@@ -427,7 +427,7 @@ export const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'list_campaigns',
-      description: 'List outreach campaigns (simulation/drafts only).',
+      description: 'List outreach campaigns (send via POST /api/campaigns/:id/send).',
       parameters: {
         type: 'object',
         properties: {status: {type: 'string', enum: CAMPAIGN_STATUSES}},
@@ -459,7 +459,7 @@ export const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'update_campaign',
-      description: 'Update campaign fields or simulation status.',
+      description: 'Update campaign fields or status (Draft/Ready/Completed).',
       parameters: {
         type: 'object',
         properties: {

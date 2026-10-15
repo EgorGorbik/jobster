@@ -30,6 +30,20 @@ export const DEFAULT_JOB_TITLES = Object.freeze([
       'Будет плюсом: React, SQLite, Telegram Bot API, опыт hiring/HR-продуктов.',
       '',
       'Условия: удалёнка или гибрид, гибкий график, оплачиваемый отпуск, техника.'
+    ].join('\n'),
+    assignmentRequired: true,
+    assignment: [
+      'Тестовое задание (ориентир 2–4 часа)',
+      '',
+      '1. Сделайте мини-сервис на Node.js:',
+      '   • GET /health → { "ok": true }',
+      '   • POST /echo — принять JSON и вернуть его же в ответе',
+      '2. Добавьте README: как установить зависимости и запустить.',
+      '3. Залейте код на GitHub / GitLab / Gist (репозиторий можно приватным + invite).',
+      '',
+      'Плюсом: простой HTML/JS клиент, который дергает /echo.',
+      '',
+      'В анкете обязательно приложите ссылку на решение (поле «Ссылка на тестовое»).'
     ].join('\n')
   },
   {
@@ -119,18 +133,21 @@ const CANDIDATES_BY_JOB = Object.freeze({
       name: 'Алексей Котов', email: 'alexey.kotov@example.com', phone: '+375291112233',
       telegram: 'alex_kotov_dev', stage: 'New', location: 'Минск', experience: '3 года',
       rating: 72, favorite: false, tags: ['JavaScript', 'React', 'Node'],
+      assignmentUrl: 'https://github.com/example/jobster-echo-kotov',
       notes: 'Отклик с career landing. Сильный фронт, хочет fullstack.'
     },
     {
       name: 'Мария Смирнова', email: 'maria.smirnova@example.com', phone: '+375297778899',
       telegram: 'm_smirnova', stage: 'Screening', location: 'Москва', experience: '5 лет',
       rating: 88, favorite: true, tags: ['TypeScript', 'Node', 'PostgreSQL'],
+      assignmentUrl: 'https://github.com/example/jobster-echo-smirnova',
       notes: 'Скрининг пройден. Портфолио: 2 SaaS-продукта. Назначить техсобесед.'
     },
     {
       name: 'Иван Петров', email: 'ivan.petrov.dev@example.com', phone: '+375333445566',
       telegram: 'ivan_petrov_js', stage: 'Interview', location: 'Remote', experience: '4 года',
       rating: 81, favorite: false, tags: ['Python', 'Django', 'Docker'],
+      assignmentUrl: 'https://gitlab.com/example/jobster-echo-petrov',
       notes: 'Интервью в календаре. Интерес к backend и интеграциям.'
     }
   ],
@@ -211,6 +228,8 @@ export function buildDefaultJobs({owner = '', company = 'Falcon Jobster'} = {}) 
     pay: job.pay,
     owner: ownerName,
     description: job.description,
+    assignment: job.assignment || '',
+    assignmentRequired: !!job.assignmentRequired,
     landingLayout: job.landingLayout,
     publicEnabled: true,
     createdAt: now
@@ -248,6 +267,7 @@ export function buildDefaultCandidates(jobs, {owner = '', company = 'Falcon Jobs
         owner: ownerName,
         tags: [...(person.tags || []), 'seed'],
         notes: person.notes || `Sample candidate for «${job.title}».`,
+        assignmentUrl: person.assignmentUrl || '',
         favorite: !!person.favorite,
         archived: false,
         color: COLORS[colorIdx++ % COLORS.length],
@@ -279,6 +299,8 @@ export function applyDefaultJobContent(jobs, {owner = ''} = {}) {
       openings: seed.openings,
       pay: seed.pay,
       description: seed.description,
+      assignment: seed.assignment || '',
+      assignmentRequired: !!seed.assignmentRequired,
       landingLayout: seed.landingLayout,
       publicEnabled: true,
       status: job.status || 'Active',
@@ -302,6 +324,7 @@ export function applyDefaultCandidateContent(candidates) {
       telegram: seed.telegram || c.telegram || '',
       location: seed.location || c.location,
       experience: seed.experience || c.experience,
+      assignmentUrl: seed.assignmentUrl || c.assignmentUrl || '',
       rating: seed.rating ?? c.rating,
       stage: c.stage || seed.stage,
       favorite: seed.favorite ?? c.favorite,

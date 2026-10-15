@@ -95,10 +95,11 @@ test('public apply flow verifies email and creates New candidate', async () => {
 
   const list = await query('GET', '/api/candidates?stage=New');
   assert.equal(list.status, 200);
-  assert.equal(list.data.total, 1);
-  assert.equal(list.data.items[0].email, 'candidate@example.com');
-  assert.equal(list.data.items[0].source, 'Career site');
-  assert.ok(list.data.items[0].history.some(h => /career page/i.test(h.text)));
+  const jamie = list.data.items.find(c => c.email === 'candidate@example.com');
+  assert.ok(jamie);
+  assert.equal(jamie.source, 'Career site');
+  assert.equal(jamie.assignmentUrl || '', '');
+  assert.ok(jamie.history.some(h => /career page/i.test(h.text)));
 });
 
 test('duplicate apply and bad code rejected', async () => {

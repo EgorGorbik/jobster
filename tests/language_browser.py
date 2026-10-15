@@ -133,14 +133,18 @@ def main():
             def profile_stage_and_notes():
                 page.locator(f'[data-action="candidate"][data-id="{ids["candidate"]}"]').first.click()
                 page.locator('[data-action="move-candidate"][data-stage="Interview"]').click()
-                expect(page.locator('.profile-meta .stage-badge')).to_have_text('Интервью')
+                expect(page.locator('#interview-form')).to_be_visible()
+                expect(page.locator('#dialog-title')).to_contain_text('Назначение собеседования')
                 expect(page.locator('#toast-root')).to_contain_text('этап: Интервью')
+                close()
+                page.locator(f'[data-action="candidate"][data-id="{ids["candidate"]}"]').first.click()
+                expect(page.locator('.profile-meta .stage-badge')).to_have_text('Интервью')
                 page.locator('[data-action="drawer-tab"][data-tab="activity"]').click()
                 expect(page.locator('.timeline')).to_contain_text('Переход на этап: Интервью')
                 close()
                 before=snapshot();lang('en');lang('ru')
                 assert snapshot()==before
-            run('Stage changes, toasts and historical activity translated without changing records',profile_stage_and_notes)
+            run('Stage changes open schedule modal; activity translated without changing records',profile_stage_and_notes)
 
             def csv_localized():
                 nav('candidates');action('export-candidates')

@@ -64,6 +64,10 @@ export function validateWorkspace(state) {
   str(s.company, 'company', 80, true); str(s.website, 'website', 250);
   str(s.timezone, 'timezone', 90, true); str(s.logo, 'logo', 750000);
   for (const field of ['digest', 'interview', 'offers']) boolean(s[field], field);
+  if (s.digestLastSent !== undefined && s.digestLastSent) {
+    str(s.digestLastSent, 'digestLastSent', 32);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s.digestLastSent)) fail('Invalid digestLastSent');
+  }
   try { new Intl.DateTimeFormat('en-US', {timeZone: s.timezone}); } catch { fail('Invalid timezone'); }
   if (s.website && (!/^https?:\/\//i.test(s.website) || !URL.canParse(s.website))) fail('Invalid company website');
   if (s.logo && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(s.logo)) fail('Invalid logo format');
@@ -75,6 +79,8 @@ export function validateWorkspace(state) {
     str(j.title, 'job title', 200, true); str(j.department, 'department', 120);
     str(j.location, 'job location', 240); str(j.pay, 'pay', 120);
     str(j.owner, 'job owner', 120); str(j.description, 'job description', 20000);
+    if (j.assignment !== undefined) str(j.assignment, 'job assignment', 20000);
+    if (j.assignmentRequired !== undefined) boolean(j.assignmentRequired, 'job assignmentRequired');
     date(j.createdAt, 'job createdAt'); oneOf(j.status, JOB_STATUSES, 'job status');
     if (!Number.isInteger(j.openings) || j.openings < 1 || j.openings > 100000) fail('Invalid job openings');
     if (j.publicSlug !== undefined) {
@@ -91,6 +97,10 @@ export function validateWorkspace(state) {
     id(c.jobId, 'candidate jobId'); if (!jobs.has(c.jobId)) fail('Candidate references a missing job');
     str(c.name, 'candidate name', 200, true); maybeEmail(c.email);
     str(c.phone, 'candidate phone', 120); str(c.location, 'candidate location', 240);
+    if (c.assignmentUrl !== undefined) {
+      str(c.assignmentUrl, 'candidate assignmentUrl', 500);
+      if (c.assignmentUrl && !/^https?:\/\/[^\s<>"']+$/i.test(c.assignmentUrl)) fail('Invalid candidate assignmentUrl');
+    }
     if (c.telegram !== undefined) {
       str(c.telegram, 'candidate telegram', 32);
       if (c.telegram && !/^[A-Za-z0-9_]{5,32}$/.test(c.telegram)) fail('Invalid candidate telegram');
@@ -126,6 +136,12 @@ export function validateWorkspace(state) {
     if (!Number.isInteger(i.duration) || i.duration < 15 || i.duration > 240) fail('Invalid interview duration');
     if (i.telegramReminderSentAt !== undefined && i.telegramReminderSentAt) {
       date(i.telegramReminderSentAt, 'interview telegramReminderSentAt');
+    }
+    if (i.emailReminder24hSentAt !== undefined && i.emailReminder24hSentAt) {
+      date(i.emailReminder24hSentAt, 'interview emailReminder24hSentAt');
+    }
+    if (i.emailReminder1hSentAt !== undefined && i.emailReminder1hSentAt) {
+      date(i.emailReminder1hSentAt, 'interview emailReminder1hSentAt');
     }
   }
   for (const m of state.messages) {
