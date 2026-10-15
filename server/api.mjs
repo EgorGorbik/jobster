@@ -13,6 +13,17 @@ const RESOURCES=['jobs','candidates','interviews','campaigns','messages','team']
 const writeMethods=['POST','PUT','PATCH','DELETE'];
 const allowWrite = user => ['Owner','Admin','Recruiter'].includes(user.role);
 const allowAdmin = user => ['Owner','Admin'].includes(user.role);
+const RECRUITER_WRITE_KINDS = new Set(['candidates','interviews']);
+function assertRecruiterState(prev, next) {
+  for (const key of ['jobs','campaigns','messages','team']) {
+    if (JSON.stringify(prev[key]||[]) !== JSON.stringify(next[key]||[])) {
+      throw new ValidationError(`Recruiter cannot modify ${key}`, 403);
+    }
+  }
+  if (JSON.stringify(prev.settings||{}) !== JSON.stringify(next.settings||{})) {
+    throw new ValidationError('Recruiter cannot modify workspace settings', 403);
+  }
+}
 const iso = () => new Date().toISOString();
 const freshId = () => randomUUID();
 const present = (value) => value!==undefined && value!==null;
@@ -166,6 +177,10 @@ export async function handleApi(req,res,db,url,options={}) {
       const body=await readJSON(req);
       const revision=readRevision(req,body);
       if (revision===undefined) throw new ValidationError('A revision is required to protect against overwriting changes',428);
+      if (user.role==='Recruiter') {
+        const prev=getWorkspace(db,user.workspaceId).state;
+        assertRecruiterState(prev, body.state);
+      }
       const result=saveWorkspace(db,user.workspaceId,body.state,revision,user.id,'workspace.sync');
       return json(res,200,{revision:result.revision});
     }
@@ -199,6 +214,9 @@ export async function handleApi(req,res,db,url,options={}) {
   const kind=parts[1], recordId=parts[2], command=parts[3];
   if (parts[0]!=='api'|| !RESOURCES.includes(kind) || parts.length>4) throw new ValidationError('Endpoint not found',404);
   if (kind==='team' && writeMethods.includes(method)) requireRole(user,allowAdmin);
+  else if (writeMethods.includes(method) && user.role==='Recruiter' && !RECRUITER_WRITE_KINDS.has(kind)) {
+    throw new ValidationError('Recruiter can only create and update candidates and interviews',403);
+  }
   else if (writeMethods.includes(method)) requireRole(user,allowWrite);
   if (method==='GET') {
     const {state,revision}=getWorkspace(db,user.workspaceId);
