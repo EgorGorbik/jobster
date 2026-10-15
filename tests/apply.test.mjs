@@ -28,10 +28,8 @@ async function query(method, route, body, headers = {}, authCookie = cookie) {
 
 before(async () => {
   process.env.JOBSTER_APPLY_DEV_LINKS = 'true';
-  // Isolate tests from a developer machine SMTP — use inbox-bypass + exposed codes.
-  delete process.env.SMTP_HOST;
-  delete process.env.SMTP_USER;
-  delete process.env.SMTP_PASS;
+  // Isolate tests from a developer machine Resend key — use inbox-bypass + exposed codes.
+  delete process.env.RESEND_API_KEY;
   await bootstrap(db, {company: 'Apply Co', name: 'Owner', email: 'apply-owner@example.com', password: pass});
   server = makeServer({db, allowedOrigin: ''});
   server.listen(0, '127.0.0.1');

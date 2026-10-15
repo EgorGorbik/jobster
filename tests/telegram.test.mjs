@@ -40,9 +40,7 @@ before(async () => {
   process.env.TELEGRAM_BOT_USERNAME = 'JobsterTestBot';
   process.env.TELEGRAM_USE_POLLING = 'false';
   process.env.TELEGRAM_REMINDERS = 'false';
-  delete process.env.SMTP_HOST;
-  delete process.env.SMTP_USER;
-  delete process.env.SMTP_PASS;
+  delete process.env.RESEND_API_KEY;
 
   const realFetch = globalThis.fetch;
   globalThis.fetch = async (url, opts) => {

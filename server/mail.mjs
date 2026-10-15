@@ -1,70 +1,52 @@
 /**
- * Outbound email via SMTP (Gmail / Brevo / etc).
- * No-op when SMTP_* is not configured — mutations still succeed.
+ * Outbound email via Resend API (https://api.resend.com/emails).
+ * No-op when RESEND_API_KEY is unset — mutations still succeed.
  */
-import nodemailer from 'nodemailer';
-
-let cached = null;
+const RESEND_URL = 'https://api.resend.com/emails';
 
 export function mailConfigured() {
-  return !!(process.env.SMTP_HOST?.trim() && process.env.SMTP_USER?.trim() && process.env.SMTP_PASS?.trim());
-}
-
-function smtpPass() {
-  // Gmail app passwords are often pasted with spaces.
-  return String(process.env.SMTP_PASS || '').replace(/\s+/g, '');
-}
-
-function transport() {
-  if (!mailConfigured()) return null;
-  if (cached) return cached;
-  const port = Number(process.env.SMTP_PORT || 465);
-  const secure = process.env.SMTP_SECURE != null
-    ? process.env.SMTP_SECURE !== 'false'
-    : port === 465;
-  cached = nodemailer.createTransport({
-    host: process.env.SMTP_HOST.trim(),
-    port,
-    secure,
-    auth: {
-      user: process.env.SMTP_USER.trim(),
-      pass: smtpPass()
-    }
-  });
-  return cached;
+  return !!process.env.RESEND_API_KEY?.trim();
 }
 
 function fromAddress() {
-  const user = process.env.SMTP_USER.trim();
   const raw = process.env.JOBSTER_MAIL_FROM?.trim();
-  // Gmail rejects / quietly drops mismatched From — prefer SMTP_USER when From domain differs.
-  if (!raw) return user;
-  const match = raw.match(/<([^>]+)>/) || [null, raw];
-  const addr = (match[1] || raw).trim().toLowerCase();
-  if (addr !== user.toLowerCase() && !addr.endsWith('@' + user.split('@')[1]?.toLowerCase())) {
-    return `Falcon Jobster <${user}>`;
-  }
+  // Resend test sender until a domain is verified in the dashboard.
+  if (!raw) return 'Falcon Jobster <onboarding@resend.dev>';
   if (raw.includes('<')) return raw;
   return `Falcon Jobster <${raw}>`;
 }
 
 export async function sendMail({to, subject, text, html}) {
-  const tx = transport();
-  if (!tx) {
-    console.log(`[mail] SMTP not configured — skip to=${to} subject=${subject}\n${text}`);
+  const key = process.env.RESEND_API_KEY?.trim();
+  if (!key) {
+    console.log(`[mail] Resend not configured — skip to=${to} subject=${subject}\n${text}`);
     return {delivered: false, skipped: true};
   }
   if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
     return {delivered: false, skipped: true, reason: 'invalid-to'};
   }
-  const info = await tx.sendMail({
+  const payload = {
     from: fromAddress(),
-    to,
-    subject,
-    text,
+    to: [to],
+    subject: String(subject || '').slice(0, 998),
+    text: text || undefined,
     html: html || undefined
+  };
+  const res = await fetch(RESEND_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
   });
-  return {delivered: true, messageId: info.messageId || null};
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = data?.message || data?.error || `HTTP ${res.status}`;
+    console.error('[mail] Resend send failed:', err);
+    return {delivered: false, skipped: false, error: String(err)};
+  }
+  return {delivered: true, messageId: data.id || null, provider: 'resend'};
 }
 
 export async function sendApplyVerification({email, code, link, jobTitle, company}) {
@@ -233,7 +215,7 @@ function trackNotify(promise) {
 
 /**
  * Diff candidate stages and notify asynchronously (never throws to caller).
- * Email when SMTP is configured; the same text goes to Telegram when the candidate linked the bot.
+ * Email (Resend), SMS (Twilio), Telegram when each channel is configured / linked.
  * A brand-new interview created in the same save (pipeline drag onto Interview) uses the appointment text.
  */
 export function notifyStageChanges(prevState, nextState) {
@@ -252,21 +234,20 @@ export function notifyStageChanges(prevState, nextState) {
       const freshInterview = c.stage === 'Interview'
         ? (nextState.interviews || []).find(i => i.candidateId === c.id && i.status !== 'Cancelled' && !prevInterviewIds.has(i.id))
         : null;
-      const hasInterview = c.stage === 'Interview' && (nextState.interviews || []).some(
-        i => i.candidateId === c.id && i.status !== 'Cancelled'
-      );
-      // Appointment already existed — invite was sent when it was created.
-      if (c.stage === 'Interview' && hasInterview && !freshInterview) continue;
-      // Caller sends the invite after this save (POST /api/interviews, assistant invite).
+      const existingInterview = c.stage === 'Interview'
+        ? (nextState.interviews || []).find(i => i.candidateId === c.id && i.status !== 'Cancelled')
+        : null;
+      // POST /api/interviews + assistant invite send themselves — skip duplicate stage mail.
       if (freshInterview && suppressDuplicateInterviewNotify) continue;
-      if (!c.email && !c.telegramChatId) continue;
+      if (!c.email && !c.telegramChatId && !c.phone) continue;
       tasks.push({
         candidate: c,
         jobTitle: jobs.get(c.jobId) || '',
         fromStage: prev.stage,
         toStage: c.stage,
         company,
-        interview: freshInterview || null
+        // Re-entry Screening→Interview reuses the existing slot and re-sends the invite.
+        interview: freshInterview || existingInterview || null
       });
     }
     for (const task of tasks) {
@@ -280,6 +261,28 @@ export function notifyStageChanges(prevState, nextState) {
         })
         : sendStageChangeEmail(task);
       trackNotify(pending);
+    }
+    const smsTasks = tasks.filter(t => t.candidate.phone);
+    if (smsTasks.length) {
+      trackNotify(import('./sms.mjs').then(async mod => {
+        if (!mod.smsConfigured() || process.env.JOBSTER_SMS_STAGE_NOTIFY === 'false') return;
+        await Promise.all(smsTasks.map(task => {
+          const pending = task.interview
+            ? mod.sendInterviewSms({
+              candidate: task.candidate,
+              jobTitle: task.jobTitle,
+              interview: task.interview,
+              company: task.company
+            })
+            : mod.sendStageChangeSms({
+              candidate: task.candidate,
+              jobTitle: task.jobTitle,
+              toStage: task.toStage,
+              company: task.company
+            });
+          return pending.catch(err => console.error('[sms] stage notify failed:', err.message || err));
+        }));
+      }));
     }
     const tgTasks = tasks.filter(t => t.candidate.telegramChatId);
     if (!tgTasks.length) return;

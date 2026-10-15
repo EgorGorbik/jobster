@@ -17,6 +17,6 @@ try {
     email:process.env.JOBSTER_ADMIN_EMAIL,password:process.env.JOBSTER_ADMIN_PASSWORD,
     name:process.env.JOBSTER_ADMIN_NAME||'',company:process.env.JOBSTER_COMPANY||'Falcon Jobster'
   });
-  console.log('Workspace created:',filename,'\nSign in at / with the configured admin email. No sample candidates were imported.');
+  console.log('Workspace created:',filename,'\nSign in at / with the configured admin email. Default jobs seeded (Программист, Водитель, Диспетчер, Строитель); no sample candidates.');
 } catch(error) { console.error('Initialization failed:',error.message);process.exitCode=1; }
 finally {db.close();}

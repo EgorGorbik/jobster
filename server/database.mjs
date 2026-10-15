@@ -5,14 +5,29 @@ import {DatabaseSync} from 'node:sqlite';
 import {clone, validateWorkspace, ValidationError} from './validation.mjs';
 import {normalizeJobPublicFields} from './job-public.mjs';
 import {notifyStageChanges} from './mail.mjs';
+import {buildDefaultSeed} from './seed-jobs.mjs';
 
 const KINDS = ['jobs', 'candidates', 'interviews', 'campaigns', 'messages', 'team', 'activity'];
-const defaults = (company = 'Falcon Jobster', member = {name:'Workspace owner', email:''}) => ({
-  version: 1, jobs: [], candidates: [], interviews: [], campaigns: [], messages: [],
-  team: [{id: randomUUID(), name: member.name, email: member.email, role:'Owner', status:'Active'}],
-  activity: [],
-  settings: {company, website:'', timezone:'America/New_York', logo:'', digest:true, interview:true, offers:true}
-});
+const defaults = (company = 'Falcon Jobster', member = {name:'Workspace owner', email:''}) => {
+  const now = new Date().toISOString();
+  const {jobs, candidates} = buildDefaultSeed({company, owner: member.name});
+  return {
+    version: 1,
+    jobs,
+    candidates,
+    interviews: [],
+    campaigns: [],
+    messages: [],
+    team: [{id: randomUUID(), name: member.name, email: member.email, role: 'Owner', status: 'Active'}],
+    activity: [{
+      id: randomUUID(),
+      text: 'Workspace initialized with default jobs and sample candidates',
+      at: now,
+      read: false
+    }],
+    settings: {company, website: '', timezone: 'America/New_York', logo: '', digest: true, interview: true, offers: true}
+  };
+};
 export {defaults as emptyWorkspace};
 
 export function createDatabase(filename) {

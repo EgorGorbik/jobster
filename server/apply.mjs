@@ -154,7 +154,7 @@ async function deliverChallenge({email, code, link, jobTitle, company}) {
       `Role: ${jobTitle}`,
       `Code: ${code}`,
       `Link: ${link}`,
-      mailConfigured() ? 'SMTP send skipped/failed — see logs above.' : 'SMTP not configured; code logged for development.'
+      mailConfigured() ? 'Resend send skipped/failed — see logs above.' : 'Resend not configured; code logged for development.'
     ].join('\n'));
   }
   return result;
@@ -199,7 +199,7 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
     // Production careers page: real inbox delivery is mandatory.
     if (!mailConfigured() && !allowDevBypass) {
       throw new ValidationError(
-        'Email verification is unavailable: SMTP is not configured on the server.',
+        'Email verification is unavailable: Resend is not configured on the server (RESEND_API_KEY).',
         503
       );
     }
@@ -222,13 +222,13 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
         delivered = !!sendResult?.delivered;
       } catch (error) {
         console.error('[apply] email send failed:', error.message || error);
-        throw new ValidationError('Could not send verification email. Check SMTP settings and try again.', 502);
+        throw new ValidationError('Could not send verification email. Check Resend settings and try again.', 502);
       }
       if (!delivered) {
-        throw new ValidationError('Could not send verification email. Check SMTP settings and try again.', 502);
+        throw new ValidationError('Could not send verification email. Check Resend settings and try again.', 502);
       }
     } else {
-      // Dev-only: log code when SMTP is absent and JOBSTER_APPLY_DEV_LINKS=true.
+      // Dev-only: log code when Resend is absent and JOBSTER_APPLY_DEV_LINKS=true.
       console.log(`[apply:dev] code=${code} email=${email} link=${link}`);
     }
     return json(res, 200, {

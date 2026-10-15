@@ -7,6 +7,7 @@ import {getWorkspace, mutateWorkspace} from './database.mjs';
 import {STAGES, ValidationError, validateRecord, clone} from './validation.mjs';
 import {normalizeJobPublicFields} from './job-public.mjs';
 import {sendInterviewInvite, withSuppressedInterviewStageNotify} from './mail.mjs';
+import {sendInterviewSms} from './sms.mjs';
 import {sendInterviewTelegram} from './telegram.mjs';
 import {ensureScheduledInterview} from './interview-slot.mjs';
 
@@ -326,7 +327,7 @@ export const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'invite_to_interview',
-      description: 'High-level interview invite. Picks candidates from Screening (then Interview), NOT New. Parses relative time like tomorrow after 11, applies defaults (30 min, Video), creates the appointment, moves candidate to Interview, and emails the candidate when SMTP is configured. Use this when the user says "invite / пригласи на интервью".',
+      description: 'High-level interview invite. Picks candidates from Screening (then Interview), NOT New. Parses relative time like tomorrow after 11, applies defaults (30 min, Video), creates the appointment, moves candidate to Interview, and emails the candidate when Resend is configured. Use this when the user says "invite / пригласи на интервью".',
       parameters: {
         type: 'object',
         properties: {
@@ -972,6 +973,7 @@ export async function executeAssistantTool(db, workspaceId, actorId, name, rawAr
       return {invited, company: state.settings.company};
     }));
     const emailResults = [];
+    const smsResults = [];
     const telegramResults = [];
     if (sendEmail) {
       for (const item of result.data.invited) {
@@ -985,6 +987,17 @@ export async function executeAssistantTool(db, workspaceId, actorId, name, rawAr
           emailResults.push({candidateId: item.candidate.id, ...mail});
         } catch (err) {
           emailResults.push({candidateId: item.candidate.id, delivered: false, error: err.message || String(err)});
+        }
+        try {
+          const sms = await sendInterviewSms({
+            candidate: item.candidate,
+            jobTitle: item.jobTitle,
+            interview: item.interview,
+            company: result.data.company
+          });
+          smsResults.push({candidateId: item.candidate.id, ...sms});
+        } catch (err) {
+          smsResults.push({candidateId: item.candidate.id, delivered: false, error: err.message || String(err)});
         }
         try {
           const tg = await sendInterviewTelegram({
@@ -1003,9 +1016,10 @@ export async function executeAssistantTool(db, workspaceId, actorId, name, rawAr
       count: result.data.invited.length,
       invited: result.data.invited,
       emails: emailResults,
+      sms: smsResults,
       telegrams: telegramResults,
       note: sendEmail
-        ? 'Interview created; email/Telegram attempted when configured and candidate is linked.'
+        ? 'Interview created; email/SMS/Telegram attempted when configured and candidate has phone/chat.'
         : 'Interview created without outbound notify.'
     });
   }
@@ -1034,6 +1048,7 @@ export async function executeAssistantTool(db, workspaceId, actorId, name, rawAr
       return {interview: clone(record), candidate: clone(c), jobTitle: job?.title || null, company: state.settings.company};
     });
     let email = {delivered: false, skipped: true};
+    let sms = {delivered: false, skipped: true};
     let telegram = {delivered: false, skipped: true};
     if (args.sendEmail) {
       try {
@@ -1047,6 +1062,16 @@ export async function executeAssistantTool(db, workspaceId, actorId, name, rawAr
         email = {delivered: false, error: err.message || String(err)};
       }
       try {
+        sms = await sendInterviewSms({
+          candidate: result.data.candidate,
+          jobTitle: result.data.jobTitle,
+          interview: result.data.interview,
+          company: result.data.company
+        });
+      } catch (err) {
+        sms = {delivered: false, error: err.message || String(err)};
+      }
+      try {
         telegram = await sendInterviewTelegram({
           candidate: result.data.candidate,
           jobTitle: result.data.jobTitle,
@@ -1057,7 +1082,7 @@ export async function executeAssistantTool(db, workspaceId, actorId, name, rawAr
         telegram = {delivered: false, error: err.message || String(err)};
       }
     }
-    return changed({interview: result.data.interview, email, telegram});
+    return changed({interview: result.data.interview, email, sms, telegram});
   }
 
   if (name === 'update_interview') {

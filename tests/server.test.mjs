@@ -34,6 +34,11 @@ after(async()=>{if(server) await new Promise(resolve=>server.close(resolve));db.
 
 test('public health check and static frontend bootloader',async()=>{
   let r=await get('/api/healthz','');assert.equal(r.status,200);assert.equal(r.data.messaging,'disabled');
+  assert.equal(r.data.providers.api,true);
+  assert.equal(typeof r.data.providers.email,'boolean');
+  assert.equal(typeof r.data.providers.telegram,'boolean');
+  assert.equal(typeof r.data.providers.sms,'boolean');
+  assert.equal(r.data.providers.calendar,false);
   const response=await fetch(origin+'/');const html=await response.text();
   assert.equal(response.status,200);assert.match(html,/src\/remote\.js/);assert.doesNotMatch(html,/src="\.\/app\.js"/);
   assert.match(response.headers.get('content-security-policy'),/connect-src 'self'/);
@@ -48,22 +53,34 @@ test('authentication required, no account enumeration, login cookie',async()=>{
   assert.doesNotMatch(setCookie,/Secure/);cookie=setCookie.split(';')[0];
   assert.equal((await get('/api/session')).data.user.email,'owner@example.com');
 });
-test('workspace empty by default and revision begins at 1',async()=>{
+test('workspace starts with default jobs and revision begins at 1',async()=>{
   const r=await get('/api/state');assert.equal(r.status,200);assert.equal(r.data.revision,1);
-  assert.deepEqual(r.data.state.candidates,[]);assert.deepEqual(r.data.state.jobs,[]);
+  assert.equal(r.data.state.jobs.length,4);
+  assert.deepEqual(r.data.state.jobs.map(j=>j.title).sort(),['Водитель','Диспетчер','Программист','Строитель'].sort());
+  assert.ok(r.data.state.jobs.every(j=>j.status==='Active'&&j.publicEnabled===true&&j.publicSlug));
+  assert.equal(r.data.state.candidates.length,12);
+  assert.ok(r.data.state.candidates.every(c=>r.data.state.jobs.some(j=>j.id===c.jobId)));
+  assert.ok(r.data.state.candidates.every(c=>c.source==='Seed'&&c.tags.includes('seed')));
+  for (const job of r.data.state.jobs) {
+    assert.equal(r.data.state.candidates.filter(c=>c.jobId===job.id).length,3);
+  }
   assert.equal(r.data.state.team.length,1);assert.equal(r.data.state.settings.company,'Test Freight Hiring');
 });
 test('create job and candidate, persist and filter',async()=>{
   const job=await post('/api/jobs',{title:'CDL Driver',location:'Austin, TX',openings:2,department:'Operations',pay:'',owner:'Test Owner'});
   assert.equal(job.status,201);newJob=job.data.data.id;assert.equal(job.data.data.title,'CDL Driver');
+  const seededNew=(await get('/api/candidates?stage=New')).data.total;
+  const seededOffer=(await get('/api/candidates?stage=Offer')).data.total;
   const c=await post('/api/candidates',{name:'Alex Test',email:'alex@example.com',jobId:newJob,location:'Texas',source:'Career site'});
   assert.equal(c.status,201);newCandidate=c.data.data.id;assert.equal(c.data.data.stage,'New');
-  assert.equal((await get('/api/candidates?stage=New')).data.total,1);
-  assert.equal((await get('/api/candidates?stage=Offer')).data.total,0);
+  assert.equal((await get('/api/candidates?stage=New')).data.total,seededNew+1);
+  assert.equal((await get('/api/candidates?stage=Offer')).data.total,seededOffer);
   assert.equal((await get(`/api/candidates/${newCandidate}`)).data.data.email,'alex@example.com');
-  assert.equal((await get('/api/reports')).data.candidates.byStage.New,1);
+  assert.equal((await get('/api/reports')).data.candidates.byStage.New,seededNew+1);
 });
 test('move stage, add notes, archive and restore',async()=>{
+  const beforeInterview=(await get('/api/reports')).data.candidates.byStage.Interview;
+  const activeBefore=(await get('/api/reports')).data.candidates.total;
   const move=await post(`/api/candidates/${newCandidate}/stage`,{stage:'Interview'});
   assert.equal(move.status,200);assert.equal(move.data.data.stage,'Interview');
   assert.ok(move.data.data.history.some(h=>h.stage==='Interview'));
@@ -71,9 +88,9 @@ test('move stage, add notes, archive and restore',async()=>{
   assert.equal((await get('/api/reports')).data.interviews.scheduled,1);
   assert.equal((await post(`/api/candidates/${newCandidate}/notes`,{notes:'Follow up on CDL'})).status,200);
   const archive=await post(`/api/candidates/${newCandidate}/archive`,{archived:true});
-  assert.equal(archive.data.data.archived,true);assert.equal((await get('/api/reports')).data.candidates.total,0);
+  assert.equal(archive.data.data.archived,true);assert.equal((await get('/api/reports')).data.candidates.total,activeBefore-1);
   assert.equal((await post(`/api/candidates/${newCandidate}/archive`,{archived:false})).status,200);
-  assert.equal((await get('/api/reports')).data.candidates.byStage.Interview,1);
+  assert.equal((await get('/api/reports')).data.candidates.byStage.Interview,beforeInterview+1);
 });
 test('interviews, campaign definitions and draft messages never send',async()=>{
   // Candidate already has the auto calendar slot from Interview stage — add a second explicit one.
@@ -117,9 +134,11 @@ test('tenant separation and viewer access restrictions',async()=>{
   createWorkspace(db,{company:'Second workspace',name:'Second owner',email:'second@example.com',salt,passwordHash});
   const second=await query('POST','/api/auth/login',{email:'second@example.com',password:'second-workspace-password-44'});
   const otherCookie=second.headers.get('set-cookie').split(';')[0];
-  const other=await get('/api/state',otherCookie);assert.equal(other.status,200);assert.equal(other.data.state.candidates.length,0);
+  const other=await get('/api/state',otherCookie);assert.equal(other.status,200);assert.equal(other.data.state.candidates.length,12);
+  assert.equal(other.data.state.jobs.length,4);
   assert.equal(other.data.state.settings.company,'Second workspace');
-  assert.equal((await get('/api/state')).data.state.candidates.length,1);
+  // First tenant still has seeded people + Alex Test from earlier tests.
+  assert.equal((await get('/api/state')).data.state.candidates.length,13);
   const viewer=await post('/api/users',{email:'viewer@example.com',name:'Read only',password:'viewer-password-34577',role:'Viewer'});
   assert.equal(viewer.status,201);
   const viewerLogin=await query('POST','/api/auth/login',{email:'viewer@example.com',password:'viewer-password-34577'});

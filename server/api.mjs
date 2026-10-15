@@ -3,8 +3,9 @@ import {getWorkspace,saveWorkspace,mutateWorkspace,listAudit} from './database.m
 import {login,sessionUser,logout,cookieHeader,clearCookieHeader,changePassword,addUser} from './auth.mjs';
 import {clone,validateWorkspace,validateRecord,ValidationError,STAGES} from './validation.mjs';
 import {normalizeJobPublicFields} from './job-public.mjs';
-import {sendInterviewInvite, withSuppressedInterviewStageNotify} from './mail.mjs';
-import {sendInterviewTelegram} from './telegram.mjs';
+import {mailConfigured, sendInterviewInvite, withSuppressedInterviewStageNotify} from './mail.mjs';
+import {sendInterviewSms, smsConfigured} from './sms.mjs';
+import {botUsername, sendInterviewTelegram, telegramConfigured} from './telegram.mjs';
 import {ensureScheduledInterview, promoteToInterview} from './interview-slot.mjs';
 
 const RESOURCES=['jobs','candidates','interviews','campaigns','messages','team'];
@@ -105,7 +106,25 @@ function assertSafeMutation(req,options) {
 }
 export async function handleApi(req,res,db,url,options={}) {
   const method=req.method||'GET', pathname=url.pathname;
-  if (pathname==='/api/healthz' && method==='GET') return json(res,200,{status:'ok',database:'sqlite',messaging:'disabled'});
+  if (pathname==='/api/healthz' && method==='GET') {
+    const email=mailConfigured();
+    const telegram=telegramConfigured();
+    const sms=smsConfigured();
+    return json(res,200,{
+      status:'ok',
+      database:'sqlite',
+      // Campaign blast channel is still draft-only; transactional email/SMS/Telegram use providers below.
+      messaging:'disabled',
+      providers:{
+        api:true,
+        email,
+        telegram,
+        telegramBot:telegram?botUsername():null,
+        sms,
+        calendar:false
+      }
+    });
+  }
   if (writeMethods.includes(method)) assertSafeMutation(req,options);
   if (pathname==='/api/auth/login' && method==='POST') {
     const body=await readJSON(req);
@@ -208,6 +227,7 @@ export async function handleApi(req,res,db,url,options={}) {
           candidate: candidate ? {
             name:candidate.name,
             email:candidate.email,
+            phone:candidate.phone||'',
             telegramChatId:candidate.telegramChatId||''
           } : null,
           jobTitle: job?.title || null,
@@ -220,16 +240,21 @@ export async function handleApi(req,res,db,url,options={}) {
     const result=kind==='interviews' ? withSuppressedInterviewStageNotify(run) : run();
     if (kind==='interviews' && mailMeta?.candidate) {
       let email={skipped:true};
+      let sms={skipped:true};
       let telegram={skipped:true};
       if (mailMeta.candidate.email) {
         try { email=await sendInterviewInvite(mailMeta); }
         catch (err) { email={delivered:false,error:err.message||String(err)}; }
       }
+      if (mailMeta.candidate.phone) {
+        try { sms=await sendInterviewSms(mailMeta); }
+        catch (err) { sms={delivered:false,error:err.message||String(err)}; }
+      }
       if (mailMeta.candidate.telegramChatId) {
         try { telegram=await sendInterviewTelegram(mailMeta); }
         catch (err) { telegram={delivered:false,error:err.message||String(err)}; }
       }
-      return json(res,201,{...result,email,telegram});
+      return json(res,201,{...result,email,sms,telegram});
     }
     return json(res,201,result);
   }

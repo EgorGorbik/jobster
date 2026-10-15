@@ -59,7 +59,7 @@
   const heading = (kicker, title, text, actions = '') => `<div class="page-heading"><div><span class="eyebrow">${kicker}</span><h1>${title}</h1><p>${text}</p></div><div class="heading-actions">${actions}</div></div>`;
   const panelHead = (title, subtitle, action = '') => `<div class="section-title"><div><h2>${title}</h2><p>${subtitle}</p></div>${action}</div>`;
   const today = dateKey(new Date());
-  const ui = {view: 'overview', search: '', job: 'All', stage: 'All', source: 'All', candidateTab: 'All', jobStatus: 'All', sort: 'updated', page: 1, pageSize: 10, selected: new Set(), reportDays: 30, flowDays: 14, settingsTab: 'workspace', calendarDate: today, calendarMonth: today.slice(0, 7), calendarFilter: 'All', drawerTab: 'profile', accounts: {items: null, loading: false, error: ''}};
+  const ui = {view: 'overview', search: '', job: 'All', stage: 'All', source: 'All', candidateTab: 'All', jobStatus: 'All', sort: 'updated', page: 1, pageSize: 10, selected: new Set(), reportDays: 30, flowDays: 14, settingsTab: 'workspace', calendarDate: today, calendarMonth: today.slice(0, 7), calendarFilter: 'All', drawerTab: 'profile', accounts: {items: null, loading: false, error: ''}, providers: null, providersLoading: false};
   let dragId = null, lastFocus = null, currentCandidateId = null;
   const sessionRole = () => window.FalconSession?.role || '';
   const isOwner = () => sessionRole() === 'Owner';
@@ -302,7 +302,7 @@
   }
   function toggle(name, title, description, checked) { return `<label class="toggle-row"><span><strong>${title}</strong><small>${description}</small></span><input type="checkbox" name="${name}" ${checked ? 'checked' : ''}><i aria-hidden="true"></i></label>`; }
   function settingsView() {
-    return `${heading(I.t("MAKE IT YOUR WORKSPACE"), I.t("The details behind the work."), (Store.remote ? (I.language === "ru" ? "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u044e\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0412\u043d\u0435\u0448\u043d\u0438\u0435 \u0441\u0435\u0440\u0432\u0438\u0441\u044b \u043d\u0435 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u044b." : "Settings are stored on the server. External providers are not connected.") : I.t("Workspace preferences are local. Team roles and notification settings do not activate backend services.")))}<div class="settings-layout"><nav class="settings-nav" aria-label="${I.t("Settings sections")}">${[{id: 'workspace', label: I.t("Workspace"), ico: 'briefcase'}, {id: 'team', label: I.t("Team & roles"), ico: 'users'}, {id: 'integrations', label: I.t("Integrations"), ico: 'link'}, {id: 'data', label: I.t("Data & privacy"), ico: 'shield'}].map(x => `<button class="${ui.settingsTab === x.id ? 'active' : ''}" data-action="settings-tab" data-tab="${x.id}" ${ui.settingsTab === x.id ? 'aria-current="page"' : ''}>${icon(x.ico, 17)}${x.label}</button>`).join('')}</nav><div class="settings-content">${({workspace: workspaceSettings, team: teamSettings, integrations: integrationSettings, data: dataSettings}[ui.settingsTab] || workspaceSettings)()}</div></div>`;
+    return `${heading(I.t("MAKE IT YOUR WORKSPACE"), I.t("The details behind the work."), settingsLead())}<div class="settings-layout"><nav class="settings-nav" aria-label="${I.t("Settings sections")}">${[{id: 'workspace', label: I.t("Workspace"), ico: 'briefcase'}, {id: 'team', label: I.t("Team & roles"), ico: 'users'}, {id: 'integrations', label: I.t("Integrations"), ico: 'link'}, {id: 'data', label: I.t("Data & privacy"), ico: 'shield'}].map(x => `<button class="${ui.settingsTab === x.id ? 'active' : ''}" data-action="settings-tab" data-tab="${x.id}" ${ui.settingsTab === x.id ? 'aria-current="page"' : ''}>${icon(x.ico, 17)}${x.label}</button>`).join('')}</nav><div class="settings-content">${({workspace: workspaceSettings, team: teamSettings, integrations: integrationSettings, data: dataSettings}[ui.settingsTab] || workspaceSettings)()}</div></div>`;
   }
   function workspaceSettings() {
     const s = state().settings;
@@ -362,8 +362,69 @@
     }
     modal(I.t("Add teammate"), I.t("Creates a sign-in account and adds them to the hiring team list."), `<form id="account-form"><label>${I.t("Name *")}<input name="name" required maxlength="200" autocomplete="name"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="254" autocomplete="off" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Password *")}<input name="password" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Confirm password *")}<input name="confirm" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Role")}<select name="role">${options(['Admin', 'Recruiter'], 'Admin')}</select></label><p class="field-hint">${I.t("Admin/Recruiter: full hiring UI. Only Owner creates accounts.")}</p>${formActions(I.t("Add teammate"))}</form>`);
   }
+  function providerOn(id) {
+    if (id === 'api') return !!Store.remote;
+    return !!(ui.providers && ui.providers[id]);
+  }
+  function settingsLead() {
+    if (!Store.remote) return I.t("Workspace preferences are local. Team roles and notification settings do not activate backend services.");
+    const p = ui.providers;
+    if (!p) return I.language === 'ru' ? 'Настройки сохраняются на сервере. Проверяем интеграции…' : 'Settings are stored on the server. Checking integrations…';
+    const on = [p.email && 'Email', p.sms && 'SMS', p.telegram && 'Telegram'].filter(Boolean);
+    if (!on.length) {
+      return I.language === 'ru'
+        ? 'Настройки сохраняются на сервере. Resend, Twilio и Telegram пока не настроены в .env.'
+        : 'Settings are stored on the server. Resend, Twilio and Telegram are not configured in .env yet.';
+    }
+    return I.language === 'ru'
+      ? `Настройки на сервере. Подключено: ${on.join(', ')}. Секреты только в .env.`
+      : `Settings on server. Connected: ${on.join(', ')}. Keep secrets in .env only.`;
+  }
+  async function refreshProviders() {
+    if (!Store.remote) {
+      ui.providers = {api: false, email: false, telegram: false, sms: false, calendar: false};
+      return;
+    }
+    if (ui.providersLoading) return;
+    ui.providersLoading = true;
+    try {
+      const res = await fetch('/api/healthz', {credentials: 'same-origin', cache: 'no-store'});
+      const data = await res.json().catch(() => ({}));
+      ui.providers = {
+        api: true,
+        email: !!data.providers?.email,
+        telegram: !!data.providers?.telegram,
+        telegramBot: data.providers?.telegramBot || null,
+        sms: !!data.providers?.sms,
+        calendar: !!data.providers?.calendar
+      };
+    } catch {
+      ui.providers = {api: true, email: false, telegram: false, sms: false, calendar: false};
+    } finally {
+      ui.providersLoading = false;
+    }
+  }
   function integrationSettings() {
-    return `<section class="settings-section"><div><h2>${Store.remote ? "Connect external services" : I.t("Connect when your backend is ready")}</h2><p>${Store.remote ? "The backend API is connected; SMS, email, and calendar providers are not connected. Keep API secrets on the server." : I.t("No provider is connected in this build. Never place API secrets in frontend code or browser storage.")}</p></div><div class="integration-grid">${[{id: 'api', name: 'Backend API', text: 'Authentication, records, audit trail and permissions.', ico: 'database'}, {id: 'sms', name: 'SMS provider', text: 'Server-side sending, consent checks and delivery events.', ico: 'message'}, {id: 'email', name: 'Email provider', text: 'Server-side templates, sending and delivery events.', ico: 'mail'}, {id: 'calendar', name: 'External calendar', text: 'Account connection and two-way event synchronization.', ico: 'calendar'}].map(i => `<article><span class="integration-icon">${icon(i.ico, 23)}</span><h3>${I.t(i.name)}</h3><p>${I.t(i.text)}</p><span class="badge ${i.id === "api" && Store.remote ? "active" : "not-connected"}">${i.id === "api" && Store.remote ? (I.language === "ru" ? "\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u043e" : "Connected") : I.t("Not connected")}</span>${button(I.t("View requirements"), 'integration-info', 'arrow', 'text-button', `data-integration="${i.id}"`)}</article>`).join('')}</div></section>`;
+    if (Store.remote && !ui.providers && !ui.providersLoading) void refreshProviders().then(() => render());
+    const p = ui.providers || {};
+    const cards = [
+      {id: 'api', name: 'Backend API', text: 'Authentication, records, audit trail and permissions.', ico: 'database'},
+      {id: 'email', name: 'Email provider', text: 'Resend API from .env — apply codes, stage and interview emails.', ico: 'mail'},
+      {id: 'telegram', name: 'Telegram bot', text: p.telegramBot ? `Bot @${p.telegramBot} — interview invites and day-before reminders.` : 'Bot token in .env — interview invites and day-before reminders.', ico: 'message'},
+      {id: 'sms', name: 'SMS provider', text: 'Twilio from .env — stage and interview SMS when the candidate has a phone.', ico: 'message'},
+      {id: 'calendar', name: 'External calendar', text: 'Account connection and two-way event synchronization.', ico: 'calendar'}
+    ];
+    const summary = !Store.remote
+      ? I.t("No provider is connected in this build. Never place API secrets in frontend code or browser storage.")
+      : !ui.providers
+        ? (I.language === 'ru' ? 'Загружаем статус провайдеров…' : 'Loading provider status…')
+        : (I.language === 'ru'
+          ? 'Статус берётся с сервера (/api/healthz). Секреты не показываются во фронтенде.'
+          : 'Status comes from the server (/api/healthz). Secrets never appear in the frontend.');
+    return `<section class="settings-section"><div><h2>${Store.remote ? I.t("Connect external services") : I.t("Connect when your backend is ready")}</h2><p>${summary}</p></div><div class="integration-grid">${cards.map(i => {
+      const on = providerOn(i.id);
+      return `<article><span class="integration-icon">${icon(i.ico, 23)}</span><h3>${I.t(i.name)}</h3><p>${I.t(i.text)}</p><span class="badge ${on ? 'active' : 'not-connected'}">${on ? (I.language === 'ru' ? 'Подключено' : 'Connected') : I.t('Not connected')}</span>${button(I.t("View requirements"), 'integration-info', 'arrow', 'text-button', `data-integration="${i.id}"`)}</article>`;
+    }).join('')}</div></section>`;
   }
   function dataSettings() {
     return `<section class="settings-section"><div><h2>${Store.remote ? (I.language === "ru" ? "\u0414\u0430\u043d\u043d\u044b\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u044b" : "Workspace data") : I.t("Your demo data")}</h2><p>${Store.remote ? (I.language === "ru" ? "\u0417\u0430\u043f\u0438\u0441\u0438 \u0445\u0440\u0430\u043d\u044f\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435." : "Records are stored in the SQLite database.") : I.t("Records are stored in this browser, not in a cloud database.")}</p></div><div class="notice">${Store.remote ? `${icon("shield", 19)} ${I.language === "ru" ? "\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 \u0442\u0435\u0441\u0442\u043e\u0432\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435 \u0434\u043e \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438 \u0438 \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438." : "Use test data until security and privacy review is complete."}` : I.t("{0} Do not enter real applicant data, identification documents, medical information, or secret keys. This frontend has no authentication or access control.", [icon('shield', 19)])}</div><div class="data-summary"><div><strong>${state().candidates.length}</strong><span>${I.t("Candidate records")}</span></div><div><strong>${state().jobs.length}</strong><span>${I.t("Job records")}</span></div><div><strong>${state().interviews.length}</strong><span>${I.t("Appointments")}</span></div></div><div class="data-action-row"><span><strong>${I.t("Export a backup")}</strong><small>${(Store.remote ? "Includes the current workspace records and settings as JSON." : I.t("Includes all local records and settings as JSON."))}</small></span>${button(I.t("Export JSON"), 'export-backup', 'download')}</div><div class="data-action-row"><span><strong>${I.t("Restore a backup")}</strong><small>${(Store.remote ? "Replaces the entire server workspace after confirmation." : I.t("Replaces this demo workspace after confirmation."))}</small></span><label class="secondary upload-label" for="backup-file">${I.t("{0}Import JSON", [icon('upload', 15)])}</label><input id="backup-file" type="file" accept="application/json,.json" hidden></div>${Store.remote ? "" : `<div class="data-action-row danger-zone"><span><strong>${I.t("Reset demo workspace")}</strong><small>${I.t("Replace Jobster records with the original sample data. Other browser data is not cleared.")}</small></span>${button(I.t("Reset demo"), 'confirm-reset', 'refresh', 'danger-button')}</div>`}</section>`;
@@ -664,7 +725,12 @@
       case 'pause-campaign': commit(d => { const c = d.campaigns.find(c => c.id === id); c.status = 'Paused'; c.updatedAt = new Date().toISOString(); Store.log(d, `Simulation paused: ${c.name}`); }, 'Simulation paused'); openCampaign(id); break;
       case 'report-period': ui.reportDays = Number(target.dataset.days); render(); break;
       case 'export-report': exportReport(); break;
-      case 'settings-tab': ui.settingsTab = tab; if (tab === 'team') ui.accounts.items = null; render(); break;
+      case 'settings-tab':
+        ui.settingsTab = tab;
+        if (tab === 'team') ui.accounts.items = null;
+        if (tab === 'integrations' && Store.remote) void refreshProviders().then(() => render());
+        render();
+        break;
       case 'remove-logo': commit(d => { d.settings.logo = ''; }, 'Workspace logo removed'); break;
       case 'add-member': openMemberForm(); break;
       case 'edit-member': openMemberForm(id); break;
@@ -681,11 +747,12 @@
   function integrationInfo(type) {
     const info = {
       api: {title: 'Backend API', steps: ['Authenticated sessions and server-enforced roles.', 'Candidate and job endpoints with stable IDs and tenant isolation.', 'Input validation, audit events, backups, and a database.', 'Replace the local store behind the data boundary; never expose secret keys.']},
-      sms: {title: 'SMS integration', steps: ['Connect a messaging provider on the server, not in the browser.', 'Check recipient eligibility and consent before sending.', 'Implement opt-out handling, rate limits, idempotency, and delivery callbacks.', 'Replace draft-only controls with an explicit, reviewed send workflow.']},
-      email: {title: 'Email integration', steps: ['Configure an authenticated sending domain and a server-side provider.', 'Render templates safely and validate recipients on the server.', 'Handle delivery, bounce, and unsubscribe events.', 'Keep provider credentials outside the frontend.']},
+      sms: {title: 'SMS integration', steps: ['Set TWILIO_ACCOUNT_SID (AC… from Console dashboard), TWILIO_API_KEY (SK…), TWILIO_API_SECRET, and TWILIO_FROM_NUMBER in .env.', 'From number must be a Twilio number in E.164, e.g. +15551234567.', 'Sends on Interview / Offer / Hired and interview invites when the candidate has a phone — same moments as Resend email.', 'Campaign and draft SMS stay draft-only until a separate blast workflow is added.']},
+      email: {title: 'Email integration', steps: ['Set RESEND_API_KEY in server .env (https://resend.com/api-keys).', 'JOBSTER_MAIL_FROM: onboarding@resend.dev until your domain is verified, then hiring@yourdomain.com.', 'Used for apply verification codes, Interview/Offer/Hired stage mail, and interview invites.', 'Never put API keys in frontend code or browser storage.']},
+      telegram: {title: 'Telegram bot', steps: ['Create a bot with @BotFather and set TELEGRAM_BOT_TOKEN + TELEGRAM_BOT_USERNAME in .env.', 'Candidates link via apply deep-link /start=<candidateId> (or paste /start in the bot).', 'Interview invites and day-before reminders go to linked chat_id.', 'Local: TELEGRAM_USE_POLLING=true. Production: set webhook to /api/public/telegram/webhook.']},
       calendar: {title: 'External calendar', steps: ['Use an authenticated account connection.', 'Create and update events on the server with timezone handling.', 'Implement availability checks and synchronization.', 'Ask for an explicit action before sending real invitations.']}
     }[type];
-    if (info) modal(I.t(info.title), I.t("Integration requirements. No service is connected by this dialog."), `<div class="integration-requirements">${info.steps.map((s, i) => `<div><b>${i + 1}</b><p>${I.t(s)}</p></div>`).join('')}</div><div class="modal-actions">${button(I.t("Understood"), 'close-overlay', 'check', 'primary')}</div>`);
+    if (info) modal(I.t(info.title), providerOn(type) ? (I.language === 'ru' ? 'Провайдер настроен на сервере.' : 'This provider is configured on the server.') : I.t("Integration requirements. No service is connected by this dialog."), `<div class="integration-requirements">${info.steps.map((s, i) => `<div><b>${i + 1}</b><p>${I.t(s)}</p></div>`).join('')}</div><div class="modal-actions">${button(I.t("Understood"), 'close-overlay', 'check', 'primary')}</div>`);
   }
 
   document.addEventListener('submit', event => {

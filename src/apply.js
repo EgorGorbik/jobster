@@ -35,7 +35,7 @@ const dict = {
     successTitle: 'Application sent',
     successBody: 'Thank you! We received your application. A recruiter will review it and get back to you by email.',
     telegramConnect: 'Open Telegram',
-    devHint: 'Development mode: SMTP is not connected. Use this code (also printed in the server console):',
+    devHint: 'Development mode: Resend is not connected. Use this code (also printed in the server console):',
     openLink: 'Or open magic link',
     errorGeneric: 'Something went wrong. Try again.',
     lang: 'Language'
@@ -76,7 +76,7 @@ const dict = {
     successTitle: 'Анкета отправлена',
     successBody: 'Спасибо! Мы получили ваш отклик. Рекрутер посмотрит анкету и напишет вам на email.',
     telegramConnect: 'Открыть Telegram',
-    devHint: 'Режим разработки: SMTP не подключён. Используйте этот код (он же в консоли сервера):',
+    devHint: 'Режим разработки: Resend не подключён. Используйте этот код (он же в консоли сервера):',
     openLink: 'Или открыть magic link',
     errorGeneric: 'Что-то пошло не так. Попробуйте ещё раз.',
     lang: 'Язык'
