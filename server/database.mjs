@@ -88,6 +88,27 @@ export function createDatabase(filename) {
     CREATE INDEX IF NOT EXISTS apply_tokens_job_idx ON apply_tokens(workspace_id, job_id, email);
     CREATE INDEX IF NOT EXISTS apply_tokens_exp_idx ON apply_tokens(expires_at);
   `);
+  const userColumns = db.prepare('PRAGMA table_info(users)').all();
+  if (!userColumns.some(column => column.name === 'phone')) {
+    db.exec(`ALTER TABLE users ADD COLUMN phone TEXT NOT NULL DEFAULT ''`);
+  }
+  db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS users_phone_unique ON users(phone) WHERE phone <> '';
+    CREATE TABLE IF NOT EXISTS login_challenges (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      code_hash TEXT NOT NULL,
+      channel TEXT NOT NULL CHECK(channel IN ('email','sms')),
+      destination TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      sends INTEGER NOT NULL DEFAULT 1,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      sent_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS login_challenges_user_idx ON login_challenges(user_id);
+    CREATE INDEX IF NOT EXISTS login_challenges_exp_idx ON login_challenges(expires_at);
+  `);
   return db;
 }
 export function transaction(db, fn) {

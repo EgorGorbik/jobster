@@ -28,6 +28,14 @@ function fromNumber() {
   return process.env.TWILIO_FROM_NUMBER?.trim() || '';
 }
 
+/** Alphanumeric sender for countries that reject a foreign long code (e.g. Georgia). */
+export function alphanumericSender() {
+  const raw = (process.env.TWILIO_SENDER_ID || 'Falcon').trim();
+  const cleaned = raw.replace(/[^A-Za-z0-9 &_+-]/g, '').trim().slice(0, 11);
+  if (!/[A-Za-z]/.test(cleaned)) return 'Falcon';
+  return cleaned;
+}
+
 function accountSidEnv() {
   return process.env.TWILIO_ACCOUNT_SID?.trim() || '';
 }
@@ -117,30 +125,40 @@ export async function sendSms({to, body}) {
     return {delivered: false, skipped: false, error: String(err.message || err)};
   }
 
-  const form = new URLSearchParams({To: dest, From: cred.from, Body: text});
-  let res;
-  let data = {};
-  try {
-    res = await fetch(messagesUrl(accountSid), {
-      method: 'POST',
-      headers: {
-        Authorization: basicAuth(cred.user, cred.pass),
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: form.toString()
-    });
-    data = await res.json().catch(() => ({}));
-  } catch (err) {
-    const msg = err?.cause?.message || err?.message || String(err);
-    console.error('[sms] Twilio request failed:', msg);
-    return {delivered: false, skipped: false, error: msg};
+  const froms = [cred.from];
+  const alpha = alphanumericSender();
+  if (alpha && alpha !== cred.from) froms.push(alpha);
+
+  let lastError = 'Twilio send failed';
+  for (let i = 0; i < froms.length; i++) {
+    const from = froms[i];
+    const form = new URLSearchParams({To: dest, From: from, Body: text});
+    let res;
+    let data = {};
+    try {
+      res = await fetch(messagesUrl(accountSid), {
+        method: 'POST',
+        headers: {
+          Authorization: basicAuth(cred.user, cred.pass),
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: form.toString()
+      });
+      data = await res.json().catch(() => ({}));
+    } catch (err) {
+      const msg = err?.cause?.message || err?.message || String(err);
+      console.error('[sms] Twilio request failed:', msg);
+      return {delivered: false, skipped: false, error: msg};
+    }
+    if (res.ok) return {delivered: true, messageId: data.sid || null, provider: 'twilio', to: dest};
+    lastError = data?.message || data?.error_message || `HTTP ${res.status}`;
+    const code = Number(data?.code);
+    // 21612: this From cannot reach that country. Georgia rejects foreign long codes.
+    if (code !== 21612 || i === froms.length - 1) break;
+    console.error(`[sms] long code rejected (${code}), retrying as ${froms[i + 1]}`);
   }
-  if (!res.ok) {
-    const err = data?.message || data?.error_message || `HTTP ${res.status}`;
-    console.error('[sms] Twilio send failed:', err);
-    return {delivered: false, skipped: false, error: String(err)};
-  }
-  return {delivered: true, messageId: data.sid || null, provider: 'twilio', to: dest};
+  console.error('[sms] Twilio send failed:', lastError);
+  return {delivered: false, skipped: false, error: String(lastError)};
 }
 
 /** Compact SMS (≤~320 chars) for stage / interview notices. */

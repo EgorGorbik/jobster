@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {getWorkspace,saveWorkspace,mutateWorkspace,listAudit} from './database.mjs';
-import {login,sessionUser,logout,cookieHeader,clearCookieHeader,changePassword,addUser} from './auth.mjs';
+import {login,verifyLoginCode,resendLoginCode,setUserPhone,sessionUser,logout,cookieHeader,clearCookieHeader,changePassword,addUser} from './auth.mjs';
 import {clone,validateWorkspace,validateRecord,ValidationError,STAGES} from './validation.mjs';
 import {normalizeJobPublicFields} from './job-public.mjs';
 import {mailConfigured, sendInterviewInvite, withSuppressedInterviewStageNotify} from './mail.mjs';
@@ -139,8 +139,18 @@ export async function handleApi(req,res,db,url,options={}) {
   if (writeMethods.includes(method)) assertSafeMutation(req,options);
   if (pathname==='/api/auth/login' && method==='POST') {
     const body=await readJSON(req);
-    const session=await login(db,body.email,body.password,req.socket.remoteAddress||'unknown');
+    const session=await login(db,body,req.socket.remoteAddress||'unknown');
+    if (!session.token) return json(res,200,session);
     return json(res,200,{user:session.user,expiresAt:session.expiresAt}, {'Set-Cookie':cookieHeader(session.token,options.cookieSecure)});
+  }
+  if (pathname==='/api/auth/login/verify' && method==='POST') {
+    const body=await readJSON(req);
+    const session=await verifyLoginCode(db,body.challenge,body.code,req.socket.remoteAddress||'unknown');
+    return json(res,200,{user:session.user,expiresAt:session.expiresAt}, {'Set-Cookie':cookieHeader(session.token,options.cookieSecure)});
+  }
+  if (pathname==='/api/auth/login/resend' && method==='POST') {
+    const body=await readJSON(req);
+    return json(res,200,await resendLoginCode(db,body.challenge));
   }
   const user=sessionUser(db,req.headers.cookie);
   if (!user) throw new ValidationError('Authentication required',401);
@@ -154,9 +164,13 @@ export async function handleApi(req,res,db,url,options={}) {
     await changePassword(db,user.id,body.currentPassword,body.newPassword);
     return json(res,200,{ok:true,signedOut:true},{'Set-Cookie':clearCookieHeader(options.cookieSecure)});
   }
+  if (pathname==='/api/auth/phone' && method==='POST') {
+    const body=await readJSON(req);
+    return json(res,200,{user:setUserPhone(db,user.id,body.phone)});
+  }
   if (pathname==='/api/users' && method==='GET') {
     requireRole(user,allowAdmin);
-    const users=db.prepare('SELECT id,name,email,role,disabled,created_at AS createdAt FROM users WHERE workspace_id=? ORDER BY created_at').all(user.workspaceId);
+    const users=db.prepare('SELECT id,name,email,phone,role,disabled,created_at AS createdAt FROM users WHERE workspace_id=? ORDER BY created_at').all(user.workspaceId);
     return json(res,200,{items:users});
   }
   if (pathname==='/api/users' && method==='POST') {

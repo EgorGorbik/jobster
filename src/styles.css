@@ -60,8 +60,15 @@ html[lang=ru] .primary,html[lang=ru] .secondary,html[lang=ru] .danger-button{whi
 .remote-entry p{font-size:12px;color:#66796a;line-height:1.7}
 .remote-entry-form,.remote-entry form{display:flex;flex-direction:column;gap:17px;margin-top:28px}
 .remote-entry form label{font-size:12px;font-weight:600;color:#516b53;display:flex;flex-direction:column;gap:8px}
-.remote-entry form input{height:43px;padding:10px;border:1px solid #ceddcc;border-radius:7px;font-size:15px}
+.remote-entry form input:not([type=radio]){height:43px;padding:10px;border:1px solid #ceddcc;border-radius:7px;font-size:15px}
 .remote-entry form button{height:42px;font-size:13px}
+.remote-channels{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.remote-entry form .remote-channels label{flex-direction:row;align-items:center;gap:8px;border:1px solid #ceddcc;border-radius:7px;padding:10px 12px;background:#fff}
+.remote-entry form .remote-channels label:has(input:checked){border-color:#2d6d51;background:#f3f8ef;color:#1d5b39}
+.remote-entry form .remote-channels input{width:auto;height:auto;margin:0}
+.remote-entry .field-hint{margin:0;font-size:11px;line-height:1.5;color:#7b8e7e;font-weight:500}
+.remote-entry .remote-code{letter-spacing:.4em;text-align:center;font-family:ui-monospace,Menlo,monospace;font-size:22px}
+.remote-entry form button.secondary{background:#fff;color:#355a44;border:1px solid #ceddcc}
 .remote-entry-error{min-height:18px;color:#ae4f34!important;margin:0!important}
 .remote-entry small{display:block;margin-top:26px;color:#7b8e7e;font-size:10px;line-height:1.6}
 #jobster-remote-banner{position:fixed;z-index:100;left:50%;bottom:18px;transform:translateX(-50%);max-width:min(95vw,800px);background:#224c3b;border:1px solid #527358;color:#ecf3e6;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 15px;border-radius:10px;box-shadow:0 12px 45px #10281836;font-size:12px}

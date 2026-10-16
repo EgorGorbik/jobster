@@ -23,6 +23,12 @@ with sync_playwright() as p:
     page.locator('#remote-login [name=email]').fill(EMAIL)
     page.locator('#remote-login [name=password]').fill(PASSWORD)
     page.locator('#remote-login button[type=submit]').click()
+    page.locator('.sidebar .main-nav, #remote-code',timeout=15000).wait_for()
+    if page.locator('#remote-code').count() and page.locator('#remote-code').is_visible():
+        code=os.getenv('JOBSTER_LOGIN_CODE','')
+        assert code, 'Sign-in requires an email or SMS code. Set JOBSTER_LOGIN_CODE from the message, or run against a server without Resend/Twilio.'
+        page.locator('#remote-code [name=code]').fill(code)
+        page.locator('#remote-code button[type=submit]').click()
     page.locator('.sidebar .main-nav',timeout=15000).wait_for()
     page.screenshot(path=str(output/'backend-overview.png'),full_page=True)
     page.locator('[data-view="jobs"].nav-item').click()

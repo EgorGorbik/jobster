@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizePhone,
+  alphanumericSender,
   smsConfigured,
   smsStageBody,
   smsInterviewBody,
@@ -11,7 +12,7 @@ import {
 
 const KEYS = [
   'TWILIO_API_KEY','TWILIO_API_SECRET','TWILIO_API_KEY_SID','TWILIO_API_KEY_SECRET',
-  'TWILIO_ACCOUNT_SID','TWILIO_AUTH_TOKEN','TWILIO_FROM_NUMBER'
+  'TWILIO_ACCOUNT_SID','TWILIO_AUTH_TOKEN','TWILIO_FROM_NUMBER','TWILIO_SENDER_ID'
 ];
 
 function clearTwilioEnv() {
@@ -77,6 +78,40 @@ test('sendSms uses TWILIO_ACCOUNT_SID and posts message', async () => {
     assert.equal(calls.length, 1);
     assert.match(calls[0].url, /Accounts\/ACffffffffffffffffffffffffffffffff\/Messages\.json/);
     assert.match(calls[0].opts.body, /To=%2B375291112233/);
+    assert.match(calls[0].opts.body, /From=%2B15550001111/);
+    assert.equal(alphanumericSender(), 'Falcon');
+  } finally {
+    globalThis.fetch = original;
+    clearTwilioEnv();
+    Object.assign(process.env, prev);
+  }
+});
+
+test('sendSms retries with alphanumeric sender after Twilio 21612', async () => {
+  const prev = {...process.env};
+  const calls = [];
+  const original = globalThis.fetch;
+  try {
+    clearTwilioEnv();
+    process.env.TWILIO_ACCOUNT_SID = 'ACffffffffffffffffffffffffffffffff';
+    process.env.TWILIO_API_KEY = 'SKabc';
+    process.env.TWILIO_API_SECRET = 'sec';
+    process.env.TWILIO_FROM_NUMBER = '+15550001111';
+    process.env.TWILIO_SENDER_ID = 'Falcon';
+    globalThis.fetch = async (url, opts) => {
+      calls.push(String(opts.body));
+      if (calls.length === 1) {
+        return {ok: false, json: async () => ({code: 21612, message: 'bad combo'})};
+      }
+      return {ok: true, json: async () => ({sid: 'SMretry'})};
+    };
+    const r = await sendSms({to: '+995598283822', body: 'code'});
+    assert.equal(r.delivered, true);
+    assert.equal(r.messageId, 'SMretry');
+    assert.equal(calls.length, 2);
+    assert.match(calls[0], /From=%2B15550001111/);
+    assert.match(calls[1], /From=Falcon/);
+    assert.match(calls[1], /To=%2B995598283822/);
   } finally {
     globalThis.fetch = original;
     clearTwilioEnv();

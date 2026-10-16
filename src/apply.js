@@ -16,17 +16,30 @@ const dict = {
     assignmentLinkOptional: 'Link to your solution',
     assignmentHint: 'GitHub, GitLab, Gist or Drive link to your completed assignment.',
     applyTitle: 'Apply for this role',
-    applyLead: 'Confirm your email, then complete a short application. Verified applicants land in New in the hiring pipeline.',
+    applyLead: 'Confirm your email or phone, then complete a short application. Verified applicants land in New in the hiring pipeline.',
     stepEmail: 'Email',
+    stepPhone: 'Phone',
     stepCode: 'Verify',
     stepForm: 'Profile',
+    viaEmail: 'Email',
+    viaPhone: 'Phone',
     emailLabel: 'Work or personal email *',
+    phoneLabel: 'Phone number *',
+    phoneHint: 'International format, for example +375291112233. The code arrives by SMS.',
+    badPhone: 'Enter the phone in international format, for example +375291112233.',
     sendCode: 'Send verification code',
     codeLead: 'We emailed a 6-digit code to',
+    codeLeadSms: 'We texted a 6-digit code to',
     codeSent: 'Check your inbox and spam folder. The code expires in about 30 minutes.',
+    codeSentSms: 'The SMS code expires in about 30 minutes.',
     codeLabel: 'Verification code *',
     verify: 'Verify email',
+    verifyPhone: 'Verify phone',
     changeEmail: 'Use a different email',
+    changePhone: 'Use a different phone',
+    optionalEmail: 'Email',
+    optionalEmailHint: 'Optional. Leave blank if you only want to be contacted by phone.',
+    formLeadSms: 'Phone verified. Tell us a bit about yourself.',
     resendCode: 'Resend code',
     formLead: 'Email verified. Tell us a bit about yourself.',
     name: 'Full name *',
@@ -38,9 +51,9 @@ const dict = {
     notes: 'Why you / notes',
     submit: 'Submit application',
     successTitle: 'Application sent',
-    successBody: 'Thank you! We received your application. A recruiter will review it and get back to you by email.',
+    successBody: 'Thank you! We received your application. A recruiter will review it and get back to you.',
     telegramConnect: 'Open Telegram',
-    devHint: 'Development mode: Resend is not connected. Use this code (also printed in the server console):',
+    devHint: 'Development mode: delivery is not connected. Use this code (also printed in the server console):',
     openLink: 'Or open magic link',
     errorGeneric: 'Something went wrong. Try again.',
     lang: 'Language'
@@ -62,17 +75,30 @@ const dict = {
     assignmentLinkOptional: 'Ссылка на решение',
     assignmentHint: 'GitHub, GitLab, Gist или Drive со сделанным тестовым.',
     applyTitle: 'Откликнуться',
-    applyLead: 'Подтвердите email и заполните короткую анкету. После этого вы попадёте в этап New в pipeline.',
+    applyLead: 'Подтвердите почту или телефон и заполните короткую анкету. После этого вы попадёте в этап New в pipeline.',
     stepEmail: 'Email',
+    stepPhone: 'Телефон',
     stepCode: 'Код',
     stepForm: 'Анкета',
+    viaEmail: 'Почта',
+    viaPhone: 'Телефон',
     emailLabel: 'Email *',
+    phoneLabel: 'Телефон *',
+    phoneHint: 'Международный формат, например +375291112233. Код придёт в SMS.',
+    badPhone: 'Введите телефон в международном формате, например +375291112233.',
     sendCode: 'Отправить код',
     codeLead: 'Мы отправили 6-значный код на',
+    codeLeadSms: 'Мы отправили SMS с кодом на',
     codeSent: 'Проверьте входящие и спам. Код действует около 30 минут.',
+    codeSentSms: 'Код в SMS действует около 30 минут.',
     codeLabel: 'Код подтверждения *',
     verify: 'Подтвердить email',
+    verifyPhone: 'Подтвердить телефон',
     changeEmail: 'Другой email',
+    changePhone: 'Другой телефон',
+    optionalEmail: 'Email',
+    optionalEmailHint: 'Необязательно. Можно не указывать, если связаться нужно по телефону.',
+    formLeadSms: 'Телефон подтверждён. Расскажите немного о себе.',
     resendCode: 'Отправить код ещё раз',
     formLead: 'Email подтверждён. Расскажите немного о себе.',
     name: 'ФИО *',
@@ -84,9 +110,9 @@ const dict = {
     notes: 'О себе / комментарий',
     submit: 'Отправить анкету',
     successTitle: 'Анкета отправлена',
-    successBody: 'Спасибо! Мы получили ваш отклик. Рекрутер посмотрит анкету и напишет вам на email.',
+    successBody: 'Спасибо! Мы получили ваш отклик. Рекрутер посмотрит анкету и свяжется с вами.',
     telegramConnect: 'Открыть Telegram',
-    devHint: 'Режим разработки: Resend не подключён. Используйте этот код (он же в консоли сервера):',
+    devHint: 'Режим разработки: отправка не подключена. Используйте этот код (он же в консоли сервера):',
     openLink: 'Или открыть magic link',
     errorGeneric: 'Что-то пошло не так. Попробуйте ещё раз.',
     lang: 'Язык'
@@ -100,7 +126,9 @@ let lang = localStorage.getItem('falcon-jobster:apply-locale:v1') || (navigator.
 let t = dict[lang] || dict.en;
 let jobPayload = null;
 let step = 'email'; // email | code | form | done
+let channel = 'email'; // email | sms
 let email = params.get('email') || '';
+let phone = params.get('phone') || '';
 let proof = '';
 let lastDev = null;
 let busy = false;
@@ -110,6 +138,26 @@ function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 
+const ruErrors = {
+  'Enter a valid email address.': 'Введите корректный email.',
+  'Enter a phone number in international format, for example +375291112233.': 'Введите телефон в международном формате, например +375291112233.',
+  'SMS verification is unavailable: Twilio is not configured on the server.': 'SMS-подтверждение недоступно: Twilio не настроен на сервере.',
+  'Could not send the SMS code. Check Twilio settings and try again.': 'Не удалось отправить SMS. Проверьте настройки Twilio и попробуйте ещё раз.',
+  'Verification expired or not found. Request a new code.': 'Код истёк или не найден. Запросите новый.',
+  'Verification expired. Request a new code.': 'Код истёк. Запросите новый.',
+  'Invalid verification code.': 'Неверный код.',
+  'Verification is required.': 'Сначала подтвердите телефон или почту.',
+  'Verified session expired. Verify your email again.': 'Сессия истекла. Подтвердите контакт ещё раз.',
+  'You already applied to this role with this phone number.': 'Вы уже откликались на эту вакансию с этого номера.',
+  'You already applied to this role with this email.': 'Вы уже откликались на эту вакансию с этого email.',
+  'Too many attempts. Try again later.': 'Слишком много попыток. Попробуйте позже.'
+};
+
+function localizeError(message) {
+  if (lang === 'ru' && message && ruErrors[message]) return ruErrors[message];
+  return message || t.errorGeneric;
+}
+
 async function api(path, body) {
   const res = await fetch(path, {
     method: body ? 'POST' : 'GET',
@@ -117,7 +165,7 @@ async function api(path, body) {
     body: body ? JSON.stringify(body) : undefined
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || t.errorGeneric);
+  if (!res.ok) throw new Error(localizeError(data.error));
   return data;
 }
 
@@ -187,7 +235,7 @@ function stepsUi() {
   const order = ['email', 'code', 'form'];
   const idx = step === 'done' ? 3 : order.indexOf(step);
   return `<div class="steps" aria-hidden="true">
-    <span class="${idx>0?'done':''} ${idx===0?'active':''}">${esc(t.stepEmail)}</span>
+    <span class="${idx>0?'done':''} ${idx===0?'active':''}">${esc(channel === 'sms' ? t.stepPhone : t.stepEmail)}</span>
     <span class="${idx>1?'done':''} ${idx===1?'active':''}">${esc(t.stepCode)}</span>
     <span class="${idx>2?'done':''} ${idx===2?'active':''}">${esc(t.stepForm)}</span>
   </div>`;
@@ -209,21 +257,29 @@ function formPanel() {
   }
   let body = '';
   if (step === 'email') {
+    const sms = channel === 'sms';
     body = `<form id="start-form">
-      <label>${esc(t.emailLabel)}<input name="email" type="email" required maxlength="180" value="${esc(email)}" autocomplete="email"></label>
+      <div class="channel-switch" role="group" aria-label="${esc(t.applyTitle)}">
+        <button type="button" data-channel="email" aria-pressed="${sms ? 'false' : 'true'}">${esc(t.viaEmail)}</button>
+        <button type="button" data-channel="sms" aria-pressed="${sms ? 'true' : 'false'}">${esc(t.viaPhone)}</button>
+      </div>
+      ${sms
+        ? `<label>${esc(t.phoneLabel)}<input name="phone" type="tel" required maxlength="40" value="${esc(phone)}" autocomplete="tel" inputmode="tel" placeholder="+375291112233" autofocus><small class="field-hint">${esc(t.phoneHint)}</small></label>`
+        : `<label>${esc(t.emailLabel)}<input name="email" type="email" required maxlength="180" value="${esc(email)}" autocomplete="email" autofocus></label>`}
       <div class="form-actions"><button class="btn btn-primary" type="submit"${busy?' disabled':''}>${esc(t.sendCode)}</button></div>
     </form>`;
   } else if (step === 'code') {
-    body = `<p class="lead">${esc(t.codeLead)} <strong>${esc(email)}</strong>.</p>
-      <div class="notice ok">${esc(t.codeSent)}</div>
+    const dest = channel === 'sms' ? phone : email;
+    body = `<p class="lead">${esc(channel === 'sms' ? t.codeLeadSms : t.codeLead)} <strong>${esc(dest)}</strong>.</p>
+      <div class="notice ok">${esc(channel === 'sms' ? t.codeSentSms : t.codeSent)}</div>
       ${lastDev ? `<div class="notice dev"><strong>${esc(t.devHint)}</strong><div class="dev-code">${esc(lastDev.code)}</div>
-        <a href="${esc(lastDev.link)}">${esc(t.openLink)}</a></div>` : ''}
+        ${lastDev.link ? `<a href="${esc(lastDev.link)}">${esc(t.openLink)}</a>` : ''}</div>` : ''}
       <form id="confirm-form">
         <label>${esc(t.codeLabel)}<input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></label>
         <div class="form-actions">
-          <button class="btn btn-primary" type="submit"${busy?' disabled':''}>${esc(t.verify)}</button>
+          <button class="btn btn-primary" type="submit"${busy?' disabled':''}>${esc(channel === 'sms' ? t.verifyPhone : t.verify)}</button>
           <button class="btn btn-secondary" type="button" data-action="resend-code"${busy?' disabled':''}>${esc(t.resendCode)}</button>
-          <button class="btn btn-secondary" type="button" data-action="reset-email">${esc(t.changeEmail)}</button>
+          <button class="btn btn-secondary" type="button" data-action="reset-email">${esc(channel === 'sms' ? t.changePhone : t.changeEmail)}</button>
         </div>
       </form>`;
   } else {
@@ -232,10 +288,17 @@ function formPanel() {
     const assignmentField = hasAssignment
       ? `<label>${esc(job.assignmentRequired ? t.assignmentLink : t.assignmentLinkOptional)}<input name="assignmentUrl" type="url" maxlength="500" ${job.assignmentRequired ? 'required' : ''} placeholder="https://github.com/…/repo" autocomplete="off"><small class="field-hint">${esc(t.assignmentHint)}</small></label>`
       : '';
-    body = `<p class="lead">${esc(t.formLead)} <strong>${esc(email)}</strong></p>
+    const contactLine = channel === 'sms'
+      ? `<p class="lead">${esc(t.formLeadSms)} <strong>${esc(phone)}</strong></p>`
+      : `<p class="lead">${esc(t.formLead)} <strong>${esc(email)}</strong></p>`;
+    const contactFields = channel === 'sms'
+      ? `<label>${esc(t.phoneLabel)}<input name="phone" type="tel" value="${esc(phone)}" readonly></label>
+        <label>${esc(t.optionalEmail)}<input name="email" type="email" maxlength="180" autocomplete="email"><small class="field-hint">${esc(t.optionalEmailHint)}</small></label>`
+      : `<label>${esc(t.phone)}<input name="phone" type="tel" maxlength="40" autocomplete="tel"></label>`;
+    body = `${contactLine}
       <form id="submit-form">
         <label>${esc(t.name)}<input name="name" required maxlength="100" autocomplete="name"></label>
-        <label>${esc(t.phone)}<input name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
+        ${contactFields}
         <label>${esc(t.telegram)}<input name="telegram" maxlength="32" autocomplete="off" placeholder="@username" pattern="[@A-Za-z0-9_]{0,33}"><small class="field-hint">${esc(t.telegramHint)}</small></label>
         <label>${esc(t.location)}<input name="location" required maxlength="100" autocomplete="address-level2" placeholder="City, ST"></label>
         <label>${esc(t.experience)}<input name="experience" maxlength="100" placeholder="e.g. 3 years"></label>
@@ -341,10 +404,11 @@ async function boot() {
 }
 
 async function startVerification() {
-  if (!email || busy) return;
+  if (busy) return;
+  if (channel === 'sms' ? !phone : !email) return;
   busy = true; render();
   try {
-    const res = await api(`/api/public/jobs/${encodeURIComponent(slug)}/start`, {email});
+    const res = await api(`/api/public/jobs/${encodeURIComponent(slug)}/start`, channel === 'sms' ? {channel: 'sms', phone} : {email});
     lastDev = res.dev || null;
     step = 'code';
   } catch (err) {
@@ -360,6 +424,17 @@ async function startVerification() {
 root.addEventListener('click', event => {
   const langBtn = event.target.closest('[data-lang]');
   if (langBtn) { setLang(langBtn.dataset.lang); return; }
+  const channelBtn = event.target.closest('[data-channel]');
+  if (channelBtn && step === 'email') {
+    const current = document.querySelector('#start-form input');
+    if (current) {
+      if (channel === 'sms') phone = current.value;
+      else email = current.value;
+    }
+    channel = channelBtn.dataset.channel === 'sms' ? 'sms' : 'email';
+    render();
+    return;
+  }
   if (event.target.closest('[data-action="reset-email"]')) {
     step = 'email'; proof = ''; lastDev = null; render();
     return;
@@ -379,20 +454,27 @@ root.addEventListener('submit', async event => {
   busy = true; render();
   try {
     if (form.id === 'start-form') {
-      email = String(data.email || '').trim().toLowerCase();
+      if (channel === 'sms') phone = String(data.phone || '').trim();
+      else email = String(data.email || '').trim().toLowerCase();
       busy = false;
       await startVerification();
       return;
     } else if (form.id === 'confirm-form') {
-      const res = await api(`/api/public/jobs/${encodeURIComponent(slug)}/confirm`, {email, code: data.code});
+      const payload = channel === 'sms' ? {channel: 'sms', phone, code: data.code} : {email, code: data.code};
+      const res = await api(`/api/public/jobs/${encodeURIComponent(slug)}/confirm`, payload);
       proof = res.proof;
-      email = res.email;
+      if (res.channel === 'sms') { channel = 'sms'; phone = res.phone || phone; }
+      else { channel = 'email'; email = res.email || email; }
       step = 'form';
       lastDev = null;
     } else if (form.id === 'submit-form') {
       const submitted = await api(`/api/public/jobs/${encodeURIComponent(slug)}/submit`, {
-        email, proof,
-        name: data.name, phone: data.phone, telegram: data.telegram,
+        channel,
+        email: channel === 'sms' ? String(data.email || '').trim().toLowerCase() : email,
+        proof,
+        name: data.name,
+        phone: channel === 'sms' ? phone : data.phone,
+        telegram: data.telegram,
         location: data.location, experience: data.experience, notes: data.notes,
         assignmentUrl: data.assignmentUrl
       });

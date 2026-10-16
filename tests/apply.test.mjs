@@ -119,3 +119,32 @@ test('duplicate apply and bad code rejected', async () => {
     location: 'Dallas, TX'
   }, {}, '')).status, 409);
 });
+
+test('public apply can verify a phone by SMS code', async () => {
+  const start = await query('POST', `/api/public/jobs/${slug}/start`, {
+    channel: 'sms', phone: '80291110099'
+  }, {}, '');
+  assert.equal(start.status, 200);
+  assert.equal(start.data.channel, 'sms');
+  assert.equal(start.data.phone, '+375291110099');
+  assert.match(start.data.dev.code, /^\d{6}$/);
+  const confirm = await query('POST', `/api/public/jobs/${slug}/confirm`, {
+    channel: 'sms', phone: '+375 29 111-00-99', code: start.data.dev.code
+  }, {}, '');
+  assert.equal(confirm.status, 200);
+  assert.equal(confirm.data.phone, '+375291110099');
+  const submit = await query('POST', `/api/public/jobs/${slug}/submit`, {
+    channel: 'sms',
+    phone: confirm.data.phone,
+    proof: confirm.data.proof,
+    name: 'SMS Applicant',
+    location: 'Minsk',
+    email: ''
+  }, {}, '');
+  assert.equal(submit.status, 201);
+  const list = await query('GET', '/api/candidates?stage=New');
+  const person = list.data.items.find(c => c.name === 'SMS Applicant');
+  assert.equal(person.phone, '+375291110099');
+  assert.equal(person.email, '');
+  assert.ok(person.history.some(h => /SMS verified/i.test(h.text)));
+});

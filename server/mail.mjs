@@ -81,6 +81,26 @@ export async function sendApplyVerification({email, code, link, jobTitle, compan
   return sendMail({to: email, subject, text, html});
 }
 
+export async function sendLoginCode({email, code, company}) {
+  const subject = `${company}: код входа / sign-in code`;
+  const text = [
+    `Код для входа в ${company}: ${code}`,
+    `Код действует 10 минут. Если вы не входили — проигнорируйте письмо.`,
+    ``,
+    `Sign-in code for ${company}: ${code}`,
+    `The code expires in 10 minutes. If you did not try to sign in, ignore this email.`
+  ].join('\n');
+  const html = `
+    <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1c3129">
+      <p style="font-size:15px;line-height:1.5">Код для входа в <strong>${escapeHtml(company)}</strong>:</p>
+      <p style="font-size:32px;letter-spacing:6px;font-weight:700;font-family:ui-monospace,Menlo,monospace;background:#eaf1e9;padding:16px 20px;border-radius:10px;text-align:center">${escapeHtml(code)}</p>
+      <p style="font-size:13px;color:#5f7368">Код действует 10 минут. Если вы не входили — проигнорируйте письмо.</p>
+      <hr style="border:none;border-top:1px solid #d5e0d6;margin:24px 0">
+      <p style="font-size:14px;line-height:1.5">Sign-in code: <strong>${escapeHtml(code)}</strong>. It expires in 10 minutes.</p>
+    </div>`;
+  return sendMail({to: email, subject, text, html});
+}
+
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }

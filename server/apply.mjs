@@ -3,6 +3,7 @@ import {getWorkspace, mutateWorkspace} from './database.mjs';
 import {ValidationError, clone} from './validation.mjs';
 import {normalizeJobPublicFields} from './job-public.mjs';
 import {mailConfigured, sendApplyVerification} from './mail.mjs';
+import {normalizePhone, sendSms, smsConfigured} from './sms.mjs';
 import {
   botUsername,
   normalizeTelegramUsername,
@@ -107,6 +108,18 @@ function emailOk(email) {
   return typeof email === 'string' && email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !/[<>]/.test(email);
 }
 
+function contactFrom(body) {
+  const channel = body?.channel === 'sms' ? 'sms' : 'email';
+  if (channel === 'sms') {
+    const phone = normalizePhone(body?.phone);
+    if (!phone) throw new ValidationError('Enter a phone number in international format, for example +375291112233.', 400);
+    return {channel, key: `tel:${phone}`, phone, email: ''};
+  }
+  const email = asString(body?.email).toLowerCase();
+  if (!emailOk(email)) throw new ValidationError('Enter a valid email address.', 400);
+  return {channel, key: email, phone: '', email};
+}
+
 function purgeExpired(db) {
   db.prepare('DELETE FROM apply_tokens WHERE expires_at < ? OR (used_at IS NOT NULL AND used_at < ?)').run(iso(), new Date(Date.now() - 86400000).toISOString());
 }
@@ -139,8 +152,8 @@ function consumeChallenge(db, {workspaceId, jobId, email, code, token}) {
 
 function requireProof(db, {workspaceId, jobId, email, proof}) {
   const row = db.prepare('SELECT * FROM apply_tokens WHERE workspace_id=? AND job_id=? AND email=? AND token_hash=?')
-    .get(workspaceId, jobId, email.toLowerCase(), hash(`proof:${proof}`));
-  if (!row || !row.used_at) throw new ValidationError('Email is not verified for this application.', 403);
+    .get(workspaceId, jobId, email, hash(`proof:${proof}`));
+  if (!row || !row.used_at) throw new ValidationError('Verification is required.', 403);
   if (Date.parse(row.expires_at) < Date.now()) {
     throw new ValidationError('Verified session expired. Verify your email again.', 403);
   }
@@ -193,80 +206,107 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
   if (found.closed) throw new ValidationError('This role is not accepting applications.', 409);
 
   const ip = req.socket.remoteAddress || 'unknown';
-  const email = asString(body.email).toLowerCase();
+  const contact = contactFrom(body);
 
   if (action === 'start') {
-    if (!emailOk(email)) throw new ValidationError('Enter a valid email address.', 400);
     const allowDevBypass = process.env.JOBSTER_APPLY_DEV_LINKS === 'true';
-    // Production careers page: real inbox delivery is mandatory.
-    if (!mailConfigured() && !allowDevBypass) {
+    const canSend = contact.channel === 'sms' ? smsConfigured() : mailConfigured();
+    if (!canSend && !allowDevBypass) {
       throw new ValidationError(
-        'Email verification is unavailable: Resend is not configured on the server (RESEND_API_KEY).',
+        contact.channel === 'sms'
+          ? 'SMS verification is unavailable: Twilio is not configured on the server.'
+          : 'Email verification is unavailable: Resend is not configured on the server (RESEND_API_KEY).',
         503
       );
     }
-    rateLimit(startAttempts, `${ip}:${email}`, 8);
+    rateLimit(startAttempts, `${ip}:${contact.key}`, 8);
     const {rawToken, code, expiresAt} = createApplyChallenge(db, {
       workspaceId: found.workspaceId,
       jobId: found.job.id,
-      email
+      email: contact.key
     });
     const base = options.allowedOrigin || `${options.cookieSecure ? 'https' : 'http'}://${req.headers.host}`;
-    const link = `${base}/apply/${found.job.publicSlug}?email=${encodeURIComponent(email)}&token=${encodeURIComponent(rawToken)}`;
+    const link = contact.channel === 'email'
+      ? `${base}/apply/${found.job.publicSlug}?email=${encodeURIComponent(contact.email)}&token=${encodeURIComponent(rawToken)}`
+      : '';
     let delivered = false;
-    if (mailConfigured()) {
+    if (canSend) {
       try {
-        const sendResult = await deliverChallenge({
-          email, code, link,
-          jobTitle: found.job.title,
-          company: found.settings.company
-        });
+        const sendResult = contact.channel === 'sms'
+          ? await sendSms({
+            to: contact.phone,
+            body: `${found.settings.company}: код отклика на «${found.job.title}»: ${code}. 30 мин. Никому не сообщайте.`.slice(0, 320)
+          })
+          : await deliverChallenge({
+            email: contact.email, code, link,
+            jobTitle: found.job.title,
+            company: found.settings.company
+          });
         delivered = !!sendResult?.delivered;
       } catch (error) {
-        console.error('[apply] email send failed:', error.message || error);
-        throw new ValidationError('Could not send verification email. Check Resend settings and try again.', 502);
+        console.error('[apply] verification send failed:', error.message || error);
+        throw new ValidationError(
+          contact.channel === 'sms'
+            ? 'Could not send the SMS code. Check Twilio settings and try again.'
+            : 'Could not send verification email. Check Resend settings and try again.',
+          502
+        );
       }
       if (!delivered) {
-        throw new ValidationError('Could not send verification email. Check Resend settings and try again.', 502);
+        throw new ValidationError(
+          contact.channel === 'sms'
+            ? 'Could not send the SMS code. Check Twilio settings and try again.'
+            : 'Could not send verification email. Check Resend settings and try again.',
+          502
+        );
       }
     } else {
-      // Dev-only: log code when Resend is absent and JOBSTER_APPLY_DEV_LINKS=true.
-      console.log(`[apply:dev] code=${code} email=${email} link=${link}`);
+      console.log(`[apply:dev] code=${code} ${contact.channel}=${contact.phone || contact.email} link=${link}`);
     }
     return json(res, 200, {
       ok: true,
       expiresAt,
       delivered,
-      email,
+      channel: contact.channel,
+      email: contact.email,
+      phone: contact.phone,
       message: delivered
-        ? 'Verification email sent. Check your inbox (and spam folder).'
+        ? (contact.channel === 'sms' ? 'Verification SMS sent.' : 'Verification email sent. Check your inbox (and spam folder).')
         : 'Verification code created (development mode).',
       ...(allowDevBypass ? {dev: {code, link}} : {})
     });
   }
 
   if (action === 'confirm') {
-    if (!emailOk(email)) throw new ValidationError('Enter a valid email address.', 400);
-    rateLimit(startAttempts, `confirm:${ip}:${email}`, 20);
+    rateLimit(startAttempts, `confirm:${ip}:${contact.key}`, 20);
     const proof = consumeChallenge(db, {
       workspaceId: found.workspaceId,
       jobId: found.job.id,
-      email,
+      email: contact.key,
       code: body.code,
       token: body.token
     });
-    return json(res, 200, {ok: true, proof: proof.proof, email: proof.email, expiresAt: proof.expiresAt});
+    const verifiedPhone = proof.email.startsWith('tel:') ? proof.email.slice(4) : '';
+    return json(res, 200, {
+      ok: true,
+      proof: proof.proof,
+      channel: verifiedPhone ? 'sms' : 'email',
+      email: verifiedPhone ? '' : proof.email,
+      phone: verifiedPhone,
+      expiresAt: proof.expiresAt
+    });
   }
 
   if (action === 'submit') {
-    if (!emailOk(email)) throw new ValidationError('Enter a valid email address.', 400);
-    rateLimit(submitAttempts, `${ip}:${email}`, 10);
+    rateLimit(submitAttempts, `${ip}:${contact.key}`, 10);
     const proof = asString(body.proof);
-    if (!proof) throw new ValidationError('Email verification is required.', 403);
-    requireProof(db, {workspaceId: found.workspaceId, jobId: found.job.id, email, proof});
+    if (!proof) throw new ValidationError('Verification is required.', 403);
+    requireProof(db, {workspaceId: found.workspaceId, jobId: found.job.id, email: contact.key, proof});
+    const email = contact.channel === 'sms' ? asString(body.email).toLowerCase() : contact.email;
+    if (contact.channel === 'sms' && email && !emailOk(email)) throw new ValidationError('Enter a valid email address.', 400);
 
     const name = asString(body.name);
-    const phone = asString(body.phone);
+    const phone = contact.channel === 'sms' ? contact.phone : asString(body.phone);
     const location = asString(body.location);
     const experience = asString(body.experience);
     const notes = asString(body.notes);
@@ -294,15 +334,18 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
 
     const now = iso();
     const result = mutateWorkspace(db, found.workspaceId, undefined, null, 'candidate.apply', state => {
-      const existing = state.candidates.find(c => c.email.toLowerCase() === email && c.jobId === found.job.id);
-      if (existing) throw new ValidationError('You already applied to this role with this email.', 409);
+      const sameEmail = email && state.candidates.find(c => c.email.toLowerCase() === email && c.jobId === found.job.id);
+      const samePhone = contact.channel === 'sms' && state.candidates.find(c => normalizePhone(c.phone) === contact.phone && c.jobId === found.job.id);
+      if (sameEmail) throw new ValidationError('You already applied to this role with this email.', 409);
+      if (samePhone) throw new ValidationError('You already applied to this role with this phone number.', 409);
       const id = freshId();
+      const verifiedBy = contact.channel === 'sms' ? 'SMS' : 'email';
       const applicationNote = [
         notes,
         experience ? `Experience: ${experience}` : '',
         telegram ? `Telegram: @${telegram}` : '',
         assignmentUrl ? `Test assignment: ${assignmentUrl}` : '',
-        'Submitted via public career page after email verification.'
+        `Submitted via public career page after ${verifiedBy} verification.`
       ].filter(Boolean).join('\n');
       const candidate = {
         id,
@@ -331,8 +374,8 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
           id: freshId(),
           type: 'created',
           text: assignmentUrl
-            ? 'Applied via career page (email verified) with test assignment link'
-            : 'Applied via career page (email verified)',
+            ? `Applied via career page (${contact.channel === 'sms' ? 'SMS' : 'email'} verified) with test assignment link`
+            : `Applied via career page (${contact.channel === 'sms' ? 'SMS' : 'email'} verified)`,
           stage: 'New',
           at: now
         }]
@@ -348,7 +391,7 @@ export async function handlePublicApply(req, res, db, url, options = {}) {
       return clone(candidate);
     });
 
-    db.prepare('DELETE FROM apply_tokens WHERE workspace_id=? AND job_id=? AND email=?').run(found.workspaceId, found.job.id, email);
+    db.prepare('DELETE FROM apply_tokens WHERE workspace_id=? AND job_id=? AND email=?').run(found.workspaceId, found.job.id, contact.key);
     const id = result.data.id;
     return json(res, 201, {
       ok: true,

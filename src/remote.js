@@ -3,12 +3,50 @@
   'use strict';
   const store=window.FalconStore, i18n=window.FalconI18n;
   const labels={
-    en:{title:'Sign in to Falcon Jobster',subtitle:'Your recruiting workspace is protected by a server session.',email:'Email',password:'Password',signIn:'Sign in',loading:'Connecting to server...',bad:'Unable to sign in. Check your credentials.',retry:'Retry',offline:'Cannot connect to the backend.',saved:'Saved to server',pending:'Saving changes...',failed:'Changes have NOT been saved on the server.',export:'Export unsaved JSON',reload:'Discard local edits and reload server data',logout:'Sign out',readonly:'The full workspace interface requires an Owner, Admin, or Recruiter account.',conflict:'Another session changed these records. Export your unsaved work before reloading.',changes:'Your latest edits are not yet confirmed by the server.'},
-    ru:{title:'\u0412\u0445\u043e\u0434 \u0432 Falcon Jobster',subtitle:'\u0414\u0430\u043d\u043d\u044b\u0435 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u044b \u0441\u0435\u0440\u0432\u0435\u0440\u043d\u043e\u0439 \u0441\u0435\u0441\u0441\u0438\u0435\u0439.',email:'\u042d\u043b. \u043f\u043e\u0447\u0442\u0430',password:'\u041f\u0430\u0440\u043e\u043b\u044c',signIn:'\u0412\u043e\u0439\u0442\u0438',loading:'\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u043a \u0441\u0435\u0440\u0432\u0435\u0440\u0443...',bad:'\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u043e\u0439\u0442\u0438. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0434\u0430\u043d\u043d\u044b\u0435.',retry:'\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c',offline:'\u041d\u0435\u0442 \u0441\u0432\u044f\u0437\u0438 \u0441 backend.',saved:'\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u043e \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435',pending:'\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435...',failed:'\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u041d\u0415 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u044b \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435.',export:'\u042d\u043a\u0441\u043f\u043e\u0440\u0442 JSON',reload:'\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u043f\u0440\u0430\u0432\u043a\u0438 \u0438 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0441 \u0441\u0435\u0440\u0432\u0435\u0440\u0430',logout:'\u0412\u044b\u0439\u0442\u0438',readonly:'\u0414\u043b\u044f \u0440\u0430\u0431\u043e\u0442\u044b \u0432 \u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441\u0435 \u043d\u0443\u0436\u043d\u0430 \u0440\u043e\u043b\u044c Owner, Admin \u0438\u043b\u0438 Recruiter.',conflict:'\u0414\u0440\u0443\u0433\u0430\u044f \u0441\u0435\u0441\u0441\u0438\u044f \u0438\u0437\u043c\u0435\u043d\u0438\u043b\u0430 \u0434\u0430\u043d\u043d\u044b\u0435. \u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u0435 \u043a\u043e\u043f\u0438\u044e \u043f\u0435\u0440\u0435\u0434 \u043f\u0435\u0440\u0435\u0437\u0430\u0433\u0440\u0443\u0437\u043a\u043e\u0439.',changes:'\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0435\u0449\u0435 \u043d\u0435 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u044b \u0441\u0435\u0440\u0432\u0435\u0440\u043e\u043c.'}
+    en:{
+      title:'Sign in to Falcon Jobster',subtitle:'Password, then a one-time code by email or SMS.',
+      email:'Email',phone:'Phone',password:'Password',signIn:'Continue',
+      byEmail:'Email',bySms:'SMS',codeTitle:'Enter the code',codeLabel:'6-digit code',confirm:'Confirm',resend:'Resend code',back:'Back',
+      sentEmail:'Code sent to {0}.',sentSms:'SMS sent to {0}.',
+      noPhone:'No phone on this account. Sign in by email, then save a phone in Settings.',
+      badPhone:'Enter the phone in international format, for example +375291112233.',
+      bad:'Unable to sign in. Check your credentials.',badCode:'That code is not valid.',expired:'Code expired. Request a new one.',
+      rate:'Too many attempts. Try again later.',wait:'Wait a moment before requesting another code.',emailOff:'Email codes are unavailable.',smsOff:'SMS codes are unavailable.',
+      emailFail:'Could not send the email code.',smsFail:'Could not send the SMS code.',
+      smsHint:'The number must already be saved on the account. First sign-in is by email.',
+      loading:'Connecting to server...',retry:'Retry',offline:'Cannot connect to the backend.',
+      saved:'Saved to server',pending:'Saving changes...',failed:'Changes have NOT been saved on the server.',
+      export:'Export unsaved JSON',reload:'Discard local edits and reload server data',logout:'Sign out',
+      readonly:'The full workspace interface requires an Owner, Admin, or Recruiter account.',
+      conflict:'Another session changed these records. Export your unsaved work before reloading.',
+      changes:'Your latest edits are not yet confirmed by the server.',
+      footnote:'Email via Resend, SMS via Twilio, when configured. Calendar invitations are not sent.'
+    },
+    ru:{
+      title:'Вход в Falcon Jobster',subtitle:'Пароль, затем разовый код на почту или в SMS.',
+      email:'Эл. почта',phone:'Телефон',password:'Пароль',signIn:'Продолжить',
+      byEmail:'Почта',bySms:'SMS',codeTitle:'Введите код',codeLabel:'Код из 6 цифр',confirm:'Подтвердить',resend:'Отправить код ещё раз',back:'Назад',
+      sentEmail:'Код отправлен на {0}.',sentSms:'SMS отправлено на {0}.',
+      noPhone:'На аккаунте нет телефона. Войдите по почте и сохраните номер в настройках.',
+      badPhone:'Введите телефон в международном формате, например +375291112233.',
+      bad:'Не удалось войти. Проверьте данные.',badCode:'Неверный код.',expired:'Код истёк. Запросите новый.',
+      rate:'Слишком много попыток. Попробуйте позже.',wait:'Подождите немного перед повторной отправкой.',emailOff:'Коды на почту сейчас недоступны.',smsOff:'SMS-коды сейчас недоступны.',
+      emailFail:'Не удалось отправить код на почту.',smsFail:'Не удалось отправить SMS.',
+      smsHint:'Номер уже должен быть сохранён в аккаунте. Первый вход — по почте.',
+      loading:'Подключение к серверу...',retry:'Повторить',offline:'Нет связи с backend.',
+      saved:'Сохранено на сервере',pending:'Сохранение...',failed:'Изменения НЕ сохранены на сервере.',
+      export:'Экспорт JSON',reload:'Отменить правки и загрузить с сервера',logout:'Выйти',
+      readonly:'Для работы в интерфейсе нужна роль Owner, Admin или Recruiter.',
+      conflict:'Другая сессия изменила данные. Сохраните копию перед перезагрузкой.',
+      changes:'Изменения ещё не подтверждены сервером.',
+      footnote:'Почта через Resend, SMS через Twilio, если они настроены. Календарные приглашения не отправляются.'
+    }
   };
   const t=key=>labels[i18n.language]?.[key]||labels.en[key];
   const $=selector=>document.querySelector(selector);
   let state=null, revision=0, generation=0, savedGeneration=0, activeSave=false, blocked=false, failure='', appLoaded=false;
+  const draft={channel:'email',email:'',phone:'',password:'',error:''};
+  let pendingCode=null;
   const root=$('#root');
   const banner=document.createElement('div');banner.id='jobster-remote-banner';banner.setAttribute('role','status');banner.hidden=true;document.body.append(banner);
   async function call(url,options={}) {
@@ -17,18 +55,106 @@
     if (!response.ok) { const error=new Error(result.error||`Server error (${response.status})`);error.status=response.status;throw error; }
     return result;
   }
-  function loginView(error='') {
+  function entryShell(body) {
     document.documentElement.lang=i18n.language;
-    root.innerHTML=`<main class="remote-entry"><section class="remote-entry-panel"><div class="remote-symbol" aria-hidden="true">F</div><div class="remote-entry-top"><strong>FALCON JOBSTER</strong><div class="remote-entry-langs"><button type="button" data-remote-lang="en" aria-pressed="${i18n.language==='en'}">EN</button><button type="button" data-remote-lang="ru" aria-pressed="${i18n.language==='ru'}">RU</button></div></div><h1>${t('title')}</h1><p>${t('subtitle')}</p><form id="remote-login" autocomplete="on"><label>${t('email')}<input type="email" name="email" autocomplete="username" maxlength="254" required autofocus></label><label>${t('password')}<input type="password" name="password" autocomplete="current-password" required></label><p class="remote-entry-error" id="remote-login-error" role="alert">${error}</p><button type="submit" class="primary">${t('signIn')}</button></form><small>${i18n.language==='ru' ? 'Email/SMS через Resend и Twilio при настройке .env. Календарные приглашения не отправляются.' : 'Email/SMS via Resend and Twilio when configured. Calendar invitations are not sent.'}</small></section></main>`;
-    const form=$('#remote-login');
-    form.addEventListener('submit',async(event)=>{
-      event.preventDefault(); const button=form.querySelector('button[type=submit]');button.disabled=true;
-      const data=new FormData(form);
-      try {await call('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:data.get('email'),password:data.get('password')})});await loadSession();}
-      catch(e){$('#remote-login-error').textContent=e.status===401?t('bad'):e.message||t('offline');button.disabled=false;}
-    });
-    root.querySelectorAll('[data-remote-lang]').forEach(button=>button.addEventListener('click',()=>{const email=form.elements.email.value;i18n.setLanguage(button.dataset.remoteLang);loginView(error);$('#remote-login').elements.email.value=email;}));
+    root.innerHTML=`<main class="remote-entry"><section class="remote-entry-panel"><div class="remote-symbol" aria-hidden="true">F</div><div class="remote-entry-top"><strong>FALCON JOBSTER</strong><div class="remote-entry-langs"><button type="button" data-remote-lang="en" aria-pressed="${i18n.language==='en'}">EN</button><button type="button" data-remote-lang="ru" aria-pressed="${i18n.language==='ru'}">RU</button></div></div>${body}</section></main>`;
   }
+  function bindLang(render) {
+    root.querySelectorAll('[data-remote-lang]').forEach(button=>button.addEventListener('click',()=>{i18n.setLanguage(button.dataset.remoteLang);render();}));
+  }
+  function loginFailure(error, channel) {
+    if (error.status===401) return t('bad');
+    if (error.status===429) return /wait/i.test(String(error.message||''))?t('wait'):t('rate');
+    if (error.status===503) return channel==='sms'?t('smsOff'):t('emailOff');
+    if (error.status===502) return channel==='sms'?t('smsFail'):t('emailFail');
+    if (error.status===400) {
+      const message=String(error.message||'');
+      if (/no phone/i.test(message)) return t('noPhone');
+      if (/international|format/i.test(message)) return t('badPhone');
+      if (/expired/i.test(message)) return t('expired');
+      return t('badCode');
+    }
+    return error.message||t('offline');
+  }
+  function syncLoginChannel(form) {
+    const sms=form.elements.channel.value==='sms';
+    form.elements.email.closest('label').hidden=sms;
+    form.elements.phone.closest('label').hidden=!sms;
+    form.querySelector('[data-sms-hint]').hidden=!sms;
+    form.elements.email.required=!sms;
+    form.elements.phone.required=sms;
+  }
+  function readLoginDraft(form) {
+    draft.channel=form.elements.channel.value==='sms'?'sms':'email';
+    draft.email=form.elements.email.value;
+    draft.phone=form.elements.phone.value;
+    draft.password=form.elements.password.value;
+  }
+  function loginView(error) {
+    if (typeof error==='string') draft.error=error;
+    pendingCode=null;
+    const sms=draft.channel==='sms';
+    entryShell(`<h1>${t('title')}</h1><p>${t('subtitle')}</p><form id="remote-login" autocomplete="on"><div class="remote-channels" role="radiogroup" aria-label="${t('title')}"><label><input type="radio" name="channel" value="email" ${sms?'':'checked'}>${t('byEmail')}</label><label><input type="radio" name="channel" value="sms" ${sms?'checked':''}>${t('bySms')}</label></div><label>${t('email')}<input type="email" name="email" autocomplete="username" maxlength="254" value="${escapeAttr(draft.email)}" ${sms?'':'required autofocus'}></label><label ${sms?'':'hidden'}>${t('phone')}<input type="tel" name="phone" autocomplete="tel" maxlength="40" inputmode="tel" placeholder="+375291112233" value="${escapeAttr(draft.phone)}" ${sms?'required autofocus':''}></label><p class="field-hint" data-sms-hint ${sms?'':'hidden'}>${t('smsHint')}</p><label>${t('password')}<input type="password" name="password" autocomplete="current-password" required value="${escapeAttr(draft.password)}"></label><p class="remote-entry-error" id="remote-login-error" role="alert">${escapeText(draft.error)}</p><button type="submit" class="primary">${t('signIn')}</button></form><small>${t('footnote')}</small>`);
+    const form=$('#remote-login');
+    syncLoginChannel(form);
+    form.elements.channel.forEach(input=>input.addEventListener('change',()=>{readLoginDraft(form);syncLoginChannel(form);}));
+    form.addEventListener('submit',async(event)=>{
+      event.preventDefault(); readLoginDraft(form);
+      const button=form.querySelector('button[type=submit]');button.disabled=true;
+      const payload=draft.channel==='sms'
+        ? {phone:draft.phone,password:draft.password,channel:'sms'}
+        : {email:draft.email,password:draft.password,channel:'email'};
+      try {
+        const result=await call('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        draft.password='';
+        if (result.mfa && result.challenge) {codeView(result);return;}
+        if (result.mfa) {draft.error=draft.channel==='sms'?t('smsOff'):t('emailOff');loginView();return;}
+        await loadSession();
+      } catch(e) {
+        draft.error=loginFailure(e, draft.channel);
+        button.disabled=false;
+        const node=$('#remote-login-error');
+        if (node) node.textContent=draft.error;
+        else loginView();
+      }
+    });
+    bindLang(()=>{readLoginDraft(form);loginView();});
+  }
+  function codeView(result) {
+    pendingCode={challenge:result.challenge,channel:result.channel,destination:result.destination||'',error:pendingCode?.error||''};
+    const sent=(pendingCode.channel==='sms'?t('sentSms'):t('sentEmail')).replace('{0}',pendingCode.destination);
+    entryShell(`<h1>${t('codeTitle')}</h1><p>${escapeText(sent)}</p><form id="remote-code" autocomplete="one-time-code"><label>${t('codeLabel')}<input class="remote-code" name="code" inputmode="numeric" autocomplete="one-time-code" minlength="6" maxlength="6" pattern="[0-9]{6}" required autofocus></label><p class="remote-entry-error" id="remote-login-error" role="alert">${escapeText(pendingCode.error)}</p><button type="submit" class="primary">${t('confirm')}</button><button type="button" class="secondary" data-resend>${t('resend')}</button><button type="button" class="secondary" data-back>${t('back')}</button></form><small>${t('footnote')}</small>`);
+    const form=$('#remote-code');
+    form.addEventListener('submit',async(event)=>{
+      event.preventDefault();
+      const button=form.querySelector('button[type=submit]');button.disabled=true;
+      try {
+        await call('/api/auth/login/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({challenge:pendingCode.challenge,code:form.elements.code.value.trim()})});
+        pendingCode=null;
+        await loadSession();
+      } catch(e) {
+        pendingCode.error=loginFailure(e, pendingCode.channel);
+        button.disabled=false;
+        $('#remote-login-error').textContent=pendingCode.error;
+      }
+    });
+    form.querySelector('[data-resend]').addEventListener('click',async()=>{
+      const button=form.querySelector('[data-resend]');button.disabled=true;
+      try {
+        const next=await call('/api/auth/login/resend',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({challenge:pendingCode.challenge})});
+        pendingCode.error='';
+        codeView(next);
+      } catch(e) {
+        pendingCode.error=loginFailure(e, pendingCode.channel);
+        button.disabled=false;
+        $('#remote-login-error').textContent=pendingCode.error;
+      }
+    });
+    form.querySelector('[data-back]').addEventListener('click',()=>{pendingCode=null;draft.error='';loginView();});
+    bindLang(()=>codeView(pendingCode));
+  }
+  function escapeText(value) {return String(value??'').replace(/[&<>]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));}
+  function escapeAttr(value) {return escapeText(value).replace(/"/g,'&quot;');}
   function remoteBanner() {
     if (!state) return;
     const pending=generation!==savedGeneration;

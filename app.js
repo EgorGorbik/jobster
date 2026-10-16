@@ -329,9 +329,14 @@
   function workspaceSettings() {
     const s = state().settings;
     if (isRecruiterLimited()) {
-      return `<div class="settings-section"><div class="language-settings"><div><h2>${I.t('Interface language')}</h2><p>${I.t('Choose the interface language. Your records and draft messages stay unchanged.')}</p></div><label for="workspace-language">${I.t('Language')}<select id="workspace-language" data-language-control><option value="en" lang="en" ${I.language === 'en' ? 'selected' : ''}>English</option><option value="ru" lang="ru" ${I.language === 'ru' ? 'selected' : ''}>Русский</option></select></label></div><div class="notice">${I.t("{0} Recruiter access: move candidates in the pipeline, create candidates, and manage the calendar.", [icon('shield', 17)])}</div></div>`;
+      return `<div class="settings-section"><div class="language-settings"><div><h2>${I.t('Interface language')}</h2><p>${I.t('Choose the interface language. Your records and draft messages stay unchanged.')}</p></div><label for="workspace-language">${I.t('Language')}<select id="workspace-language" data-language-control><option value="en" lang="en" ${I.language === 'en' ? 'selected' : ''}>English</option><option value="ru" lang="ru" ${I.language === 'ru' ? 'selected' : ''}>Русский</option></select></label></div><div class="notice">${I.t("{0} Recruiter access: move candidates in the pipeline, create candidates, and manage the calendar.", [icon('shield', 17)])}</div></div>${signInPhoneBlock()}`;
     }
-    return `<form id="settings-form" class="settings-section"><div class="language-settings"><div><h2>${I.t('Interface language')}</h2><p>${I.t('Choose the interface language. Your records and draft messages stay unchanged.')}</p></div><label for="workspace-language">${I.t('Language')}<select id="workspace-language" data-language-control><option value="en" lang="en" ${I.language === 'en' ? 'selected' : ''}>English</option><option value="ru" lang="ru" ${I.language === 'ru' ? 'selected' : ''}>Русский</option></select></label></div><hr><div><h2>${I.t("Workspace details")}</h2><p>${I.t("The name your team sees throughout the demo.")}</p></div><div class="logo-upload"><span>${s.logo ? `<img src="${esc(s.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(s.company))}</span><div><label class="secondary upload-label" for="logo-file">${I.t("{0}Upload logo", [icon('upload', 15)])}</label><input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><small>${I.t("PNG, JPG or WebP. Up to 512 KB.")}</small></div>${s.logo ? button(I.t("Remove"), 'remove-logo', 'x', 'text-button') : ''}</div><label>${I.t("Company name")}<input name="company" value="${esc(s.company)}" required maxlength="80" autocomplete="organization"></label><div class="form-grid"><label>${I.t("Company website")}<input name="website" value="${esc(s.website)}" type="url" placeholder="${I.t("https://example.com")}" maxlength="250"></label><label>${I.t("Display timezone")}<select name="timezone">${options([{value: 'America/New_York', label: I.t("Eastern Time (New York)")}, {value: 'America/Chicago', label: I.t("Central Time (Chicago)")}, {value: 'America/Denver', label: I.t("Mountain Time (Denver)")}, {value: 'America/Los_Angeles', label: I.t("Pacific Time (Los Angeles)")}, {value: 'America/Phoenix', label: I.t("Arizona (Phoenix)")}, {value: 'UTC', label: I.t("UTC")}], s.timezone)}</select></label></div><hr><div><h2>${I.t("Notification preferences")}</h2><p>${I.t("Emails go to team directory + login accounts via Resend when enabled.")}</p></div>${toggle('digest', I.t("Daily recruiting digest"), I.t("Morning summary (~08:00 in display timezone) with funnel and upcoming interviews."), s.digest)}${toggle('interview', I.t("Interview reminders"), I.t("Team emails 24 hours and 1 hour before each scheduled interview."), s.interview)}${toggle('offers', I.t("Offer activity"), I.t("Email the team when a candidate moves to the Offer stage."), s.offers)}<p class="form-error" role="alert" hidden></p><div class="settings-actions"><span class="muted">${Store.remote ? `${icon("database", 14)} ${I.language === "ru" ? "\u0425\u0440\u0430\u043d\u0438\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435" : "Stored on server"}` : I.t("{0} Saved in this browser", [icon('database', 14)])}</span><button class="primary" type="submit">${I.t("{0}Save changes", [icon('check', 16)])}</button></div></form>`;
+    return `<form id="settings-form" class="settings-section"><div class="language-settings"><div><h2>${I.t('Interface language')}</h2><p>${I.t('Choose the interface language. Your records and draft messages stay unchanged.')}</p></div><label for="workspace-language">${I.t('Language')}<select id="workspace-language" data-language-control><option value="en" lang="en" ${I.language === 'en' ? 'selected' : ''}>English</option><option value="ru" lang="ru" ${I.language === 'ru' ? 'selected' : ''}>Русский</option></select></label></div><hr><div><h2>${I.t("Workspace details")}</h2><p>${I.t("The name your team sees throughout the demo.")}</p></div><div class="logo-upload"><span>${s.logo ? `<img src="${esc(s.logo)}" alt="${I.t("Workspace logo")}">` : esc(initials(s.company))}</span><div><label class="secondary upload-label" for="logo-file">${I.t("{0}Upload logo", [icon('upload', 15)])}</label><input id="logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><small>${I.t("PNG, JPG or WebP. Up to 512 KB.")}</small></div>${s.logo ? button(I.t("Remove"), 'remove-logo', 'x', 'text-button') : ''}</div><label>${I.t("Company name")}<input name="company" value="${esc(s.company)}" required maxlength="80" autocomplete="organization"></label><div class="form-grid"><label>${I.t("Company website")}<input name="website" value="${esc(s.website)}" type="url" placeholder="${I.t("https://example.com")}" maxlength="250"></label><label>${I.t("Display timezone")}<select name="timezone">${options([{value: 'America/New_York', label: I.t("Eastern Time (New York)")}, {value: 'America/Chicago', label: I.t("Central Time (Chicago)")}, {value: 'America/Denver', label: I.t("Mountain Time (Denver)")}, {value: 'America/Los_Angeles', label: I.t("Pacific Time (Los Angeles)")}, {value: 'America/Phoenix', label: I.t("Arizona (Phoenix)")}, {value: 'UTC', label: I.t("UTC")}], s.timezone)}</select></label></div><hr><div><h2>${I.t("Notification preferences")}</h2><p>${I.t("Emails go to team directory + login accounts via Resend when enabled.")}</p></div>${toggle('digest', I.t("Daily recruiting digest"), I.t("Morning summary (~08:00 in display timezone) with funnel and upcoming interviews."), s.digest)}${toggle('interview', I.t("Interview reminders"), I.t("Team emails 24 hours and 1 hour before each scheduled interview."), s.interview)}${toggle('offers', I.t("Offer activity"), I.t("Email the team when a candidate moves to the Offer stage."), s.offers)}<p class="form-error" role="alert" hidden></p><div class="settings-actions"><span class="muted">${Store.remote ? `${icon("database", 14)} ${I.language === "ru" ? "\u0425\u0440\u0430\u043d\u0438\u0442\u0441\u044f \u043d\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435" : "Stored on server"}` : I.t("{0} Saved in this browser", [icon('database', 14)])}</span><button class="primary" type="submit">${I.t("{0}Save changes", [icon('check', 16)])}</button></div></form>${signInPhoneBlock()}`;
+  }
+  function signInPhoneBlock() {
+    if (!Store.remote) return '';
+    const phone = window.FalconSession?.phone || '';
+    return `<form id="signin-phone-form" class="settings-section"><div><h2>${I.t("Sign-in phone")}</h2><p>${I.t("SMS login codes go to this number. Email codes go to your account email.")}</p></div><label>${I.t("Phone")}<input name="phone" value="${esc(phone)}" inputmode="tel" autocomplete="tel" maxlength="40" placeholder="+375291112233"></label><p class="field-hint">${I.t("Use international format, for example +375291112233. Leave blank to disable SMS sign-in.")}</p><p class="form-error" role="alert" hidden></p><div class="settings-actions"><span class="muted">${phone ? esc(phone) : I.t("No SMS number yet")}</span><button class="primary" type="submit">${I.t("Save phone")}</button></div></form>`;
   }
   function roleHint(role) {
     if (role === 'Owner') return I.t('Full access, can create login accounts.');
@@ -370,7 +375,7 @@
       ? `<p class="muted">${I.t("Loading accounts...")}</p>`
       : ui.accounts.error
         ? `<div class="notice">${esc(ui.accounts.error)}</div>`
-        : `<div class="team-list">${(ui.accounts.items || []).map(u => `<div>${avatar({name: u.name, color: '#deebe6'})}<span><strong>${esc(u.name)}</strong><small>${esc(u.email)}${u.disabled ? ` &middot; ${esc(I.t('Disabled'))}` : ''}</small></span><em title="${esc(roleHint(u.role))}">${esc(I.t(u.role === 'Owner' ? 'Workspace owner' : u.role))}</em></div>`).join('') || `<p class="muted">${I.t("No login accounts yet.")}</p>`}</div>`;
+        : `<div class="team-list">${(ui.accounts.items || []).map(u => `<div>${avatar({name: u.name, color: '#deebe6'})}<span><strong>${esc(u.name)}</strong><small>${esc(u.email)}${u.phone ? ` · ${esc(u.phone)}` : ''}${u.disabled ? ` &middot; ${esc(I.t('Disabled'))}` : ''}</small></span><em title="${esc(roleHint(u.role))}">${esc(I.t(u.role === 'Owner' ? 'Workspace owner' : u.role))}</em></div>`).join('') || `<p class="muted">${I.t("No login accounts yet.")}</p>`}</div>`;
     return `<section class="settings-section">${panelHead(I.t("Team & roles"), I.t("People who can sign in. Password is set here; no invite email."), createBtn)}<div class="notice">${I.t("{0} One list: login + appears in owner/interviewer picks. Owner creates accounts; share password securely.", [icon('shield', 17)])}</div>${body}</section>`;
   }
   function teamSettings() {
@@ -385,7 +390,7 @@
       toast(I.t('Only the Owner can create login accounts.'), true);
       return;
     }
-    modal(I.t("Add teammate"), I.t("Creates a sign-in account and adds them to the hiring team list."), `<form id="account-form"><label>${I.t("Name *")}<input name="name" required maxlength="200" autocomplete="name"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="254" autocomplete="off" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Password *")}<input name="password" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Confirm password *")}<input name="confirm" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Role")}<select name="role">${options(['Admin', 'Recruiter'], 'Admin')}</select></label><p class="field-hint">${I.t("Admin: full hiring UI. Recruiter: pipeline, candidates, calendar. Only Owner creates accounts.")}</p>${formActions(I.t("Add teammate"))}</form>`);
+    modal(I.t("Add teammate"), I.t("Creates a sign-in account and adds them to the hiring team list."), `<form id="account-form"><label>${I.t("Name *")}<input name="name" required maxlength="200" autocomplete="name"></label><label>${I.t("Email *")}<input name="email" type="email" required maxlength="254" autocomplete="off" placeholder="${I.t("name@example.com")}"></label><label>${I.t("Phone")}<input name="phone" inputmode="tel" autocomplete="tel" maxlength="40" placeholder="+375291112233"></label><p class="field-hint">${I.t("Optional. International format, for SMS sign-in codes.")}</p><label>${I.t("Password *")}<input name="password" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Confirm password *")}<input name="confirm" type="password" required maxlength="256" autocomplete="new-password"></label><label>${I.t("Role")}<select name="role">${options(['Admin', 'Recruiter'], 'Admin')}</select></label><p class="field-hint">${I.t("Admin: full hiring UI. Recruiter: pipeline, candidates, calendar. Only Owner creates accounts.")}</p>${formActions(I.t("Add teammate"))}</form>`);
   }
   function providerOn(id) {
     if (id === 'api') return !!Store.remote;
@@ -846,7 +851,7 @@
 
   document.addEventListener('submit', event => {
     const form = event.target;
-    const supported = ['candidate-form', 'job-form', 'notes-form', 'message-form', 'interview-form', 'campaign-form', 'member-form', 'account-form', 'settings-form'];
+    const supported = ['candidate-form', 'job-form', 'notes-form', 'message-form', 'interview-form', 'campaign-form', 'member-form', 'account-form', 'settings-form', 'signin-phone-form'];
     if (!supported.includes(form.id)) return;
     event.preventDefault();
     if (!validateForm(form)) return;
@@ -854,6 +859,26 @@
     Object.keys(d).forEach(k => { if (typeof d[k] === 'string') d[k] = d[k].trim(); });
     const id = form.dataset.id || '', now = new Date().toISOString();
     const fail = text => showFormError(form, I.t(text));
+    if (form.id === 'signin-phone-form') {
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+      void (async () => {
+        try {
+          const result = await apiJson('/api/auth/phone', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({phone: d.phone || ''})
+          });
+          if (window.FalconSession) window.FalconSession.phone = result.user?.phone || '';
+          toast(I.t('Sign-in phone saved.'));
+          render();
+        } catch (err) {
+          showFormError(form, err.message || I.t('Phone'));
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      })();
+      return;
+    }
     if (form.id === 'account-form') {
       if (!isOwner()) return fail('Only the Owner can create login accounts.');
       if (!d.name || !d.email || !d.password) return fail('Name, email, and password are required.');
@@ -866,13 +891,13 @@
           await apiJson('/api/users', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name: d.name, email: d.email, password: d.password, role: d.role})
+            body: JSON.stringify({name: d.name, email: d.email, password: d.password, role: d.role, phone: d.phone || ''})
           });
           syncTeamDirectoryFromUser({name: d.name, email: d.email, role: d.role});
           closeOverlay();
           ui.accounts.items = null;
           await loadAccounts({force: true});
-          toast(I.t('Teammate added. They can sign in with this email and password.'));
+          toast(I.t('Teammate added. They sign in with email or phone, then confirm a code.'));
         } catch (err) {
           showFormError(form, err.message || I.t('Could not create login account.'));
           if (submitBtn) submitBtn.disabled = false;
